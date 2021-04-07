@@ -7,12 +7,12 @@ import com.google.gson.annotations.SerializedName;
 public class VersionInfoModel extends ResultClass {
 
     // バージョンコード
-    @SerializedName("versioncd")
+    //@SerializedName("versioncd")
     @Expose
     public int Versioncd = 0;
 
     // バージョン名
-    @SerializedName("versionnm")
+    //@SerializedName("versionnm")
     @Expose
     public String Versionnm = "";
 

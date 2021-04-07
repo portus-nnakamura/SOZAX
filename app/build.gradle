@@ -10,7 +10,7 @@ android {
         applicationId "com.example.sozax"
         minSdkVersion 25
         targetSdkVersion 30
-        versionCode 3
+        versionCode 1
         versionName "Ver.1.0.000"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

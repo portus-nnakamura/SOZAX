@@ -6,12 +6,12 @@ import com.google.gson.annotations.SerializedName;
 public class ResultClass {
 
     // エラーフラグ
-    @SerializedName("is_error")
+    //@SerializedName("is_error")
     @Expose
     public boolean Is_error = false;
 
     // メッセージ
-    @SerializedName("message")
+    //@SerializedName("message")
     @Expose
     public String Message = "";
 
