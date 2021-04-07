@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.InventoryInquiryPage1Activity">
+
+    <!-- アイコンバー -->
+    <LinearLayout
+        android:id="@+id/llInventoryInquiryPage1Header"
+        style="@style/header_icon_bar_style"
+        android:background="@color/black"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- アプリ終了 -->
+        <ImageButton
+            android:id="@+id/btnExit"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_logout_48"
+            tools:ignore="ContentDescription" />
+
+        <!-- ログイン情報 -->
+        <TextView
+            android:id="@+id/txtLoginInfo"
+            style="@style/login_info_text_style"
+            android:layout_weight="0.5"
+            android:background="@drawable/text_border_white" />
+
+        <!-- -->
+        <ImageButton
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
+
+    <!-- ガイダンス -->
+    <TextView
+        android:id="@+id/txtInventoryInquiryPage1Guidance"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center"
+        android:text="@string/text_inventory_inquiry_guidance"
+        android:textColor="@color/heavenlyblue"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/txtInventoryInquiryProductInformation"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llInventoryInquiryPage1Header" />
+
+    <!-- 在庫品情報（カラムヘッダ） -->
+    <TextView
+        android:id="@+id/txtInventoryInquiryProductInformation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/heavenlyblue"
+        android:gravity="center"
+        android:text="在庫品情報"
+        android:textSize="@dimen/font_size_16"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toTopOf="@+id/lvInventoryInquiryProductInformation"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtInventoryInquiryPage1Guidance" />
+
+    <!-- 在庫品情報（行） -->
+    <ListView
+        android:id="@+id/lvInventoryInquiryProductInformation"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@color/darkgray"
+        android:dividerHeight="1dp"
+        android:background="@color/frostygray"
+        app:layout_constraintBottom_toTopOf="@+id/tlInventoryInquiryPage1QuantityAndWeight"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtInventoryInquiryProductInformation" />
+
+    <!-- 在庫個数＆重量 -->
+    <TableLayout
+        android:id="@+id/tlInventoryInquiryPage1QuantityAndWeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/btnInventoryInquiryPage1Proceed">
+
+        <TableRow android:background="@color/heavenlyblue">
+
+            <!-- 在庫個数 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:text="在庫個数"
+                android:textSize="@dimen/font_size_16" />
+
+            <!-- 在庫重量 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:text="在庫重量"
+                android:textSize="@dimen/font_size_16" />
+
+        </TableRow>
+
+        <TableRow android:background="@color/white">
+
+            <!-- 在庫個数 -->
+            <TextView
+                android:id="@+id/txtInventoryInquiryPage1Quantity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_24" />
+
+            <!-- 在庫重量 -->
+            <TextView
+                android:id="@+id/txtInventoryInquiryPage1Weight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:textColor="@color/black"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textSize="@dimen/font_size_24" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <!-- 進行ボタン -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnInventoryInquiryPage1Proceed"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:backgroundTint="@color/orientalblue"
+        android:bufferType="spannable"
+        android:gravity="center"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:onClick="btnInventoryInquiryPage1Proceed_Click"
+        android:padding="0dp"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:cornerRadius="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/raw_style">
+
+    <!-- 伝票情報 -->
+    <TextView
+        android:id="@+id/txtInventoryInquiryPage1Info"
+        style="@style/raw_text_style"
+        android:layout_width="match_parent"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="@dimen/space_size_8"
+        tools:ignore="RtlHardcoded,RtlSymmetry" />
+
+</LinearLayout>

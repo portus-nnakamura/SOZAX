@@ -1,0 +1,45 @@
+<resources>
+
+    <!-- Application Name -->
+    <string name="app_name">在庫管理システム</string>
+    <!-- Application Version -->
+    <string name="app_version">Ver.1.0.000</string>
+    <!-- Application Copyright -->
+    <string name="app_copyright">Copyright © 2021 Portus Inc. All Rights Reserved.</string>
+
+    <!-- ボタンのテキスト -->
+    <string name="btnStart_text">開　　始</string>
+    <string name="btnLogin_text">ログイン</string>
+
+    <!-- テキスト入力レイアウトのヒントテキスト -->
+    <string name="tilOffice_hint">事業所</string>
+    <string name="tilRepresentative_hint">担当者</string>
+    <string name="tilWarehouse_hint">倉庫</string>
+
+    <!-- Menu Text -->
+    <string name="MenuText_GoodsIssueProcess">出　　庫</string>
+    <string name="MenuText_GoodsIssueList">出庫一覧</string>
+    <string name="MenuText_InventoryInquiry">在庫照会</string>
+
+    <!-- 進行状況 -->
+    <string name="text_goods_issue_progress_phase1">出庫受付</string>
+    <string name="text_goods_issue_progress_phase2">在庫確認中</string>
+    <string name="text_goods_issue_progress_phase3">出庫作業中</string>
+    <string name="text_goods_issue_progress_phase4">受領確認</string>
+
+    <!-- ガイダンス -->
+    <string name="text_function_menu_guidance"><big>機能を選択してください</big></string>
+    <string name="text_goods_issue_guidance_phase1"><big>出庫伝票のQRをスキャン</big>\n<small>（QRが無いときは「＋」を押して下さい）</small></string>
+    <string name="text_goods_issue_guidance_phase2"><big>表示票のQRをスキャン</big>\n<small>（スキャンができない時は目視で確認）</small></string>
+    <string name="text_goods_issue_guidance_phase3"><big>作業後に完了ボタンを押下</big></string>
+    <string name="text_goods_issue_guidance_phase4"><big>ドライバーに受領確認を依頼</big></string>
+    <string name="text_goods_issue_guidance_partition">></string>
+    <string name="text_inventory_inquiry_guidance"><big>表示票のQRをスキャン</big></string>
+
+    <!-- 出庫処理ボタン -->
+    <string name="button_text_goods_issue_progress_phase1"><big>出庫作業開始</big>\n<small>（全伝票スキャン後に押して下さい）</small></string>
+
+    <!-- 在庫照会ボタン -->
+    <!-- TODO: Remove or change this placeholder text -->
+
+</resources>

@@ -1,0 +1,30 @@
+<resources>
+
+    <!-- フォントのサイズ -->
+    <dimen name="font_size_12">12sp</dimen>
+    <dimen name="font_size_16">16sp</dimen>
+    <dimen name="font_size_20">20sp</dimen>
+    <dimen name="font_size_24">24sp</dimen>
+    <dimen name="font_size_28">28sp</dimen>
+    <dimen name="font_size_32">32sp</dimen>
+
+    <!-- 余白のサイズ -->
+    <dimen name="space_size_minus_2">-2dp</dimen>
+    <dimen name="space_size_0">0dp</dimen>
+    <dimen name="space_size_4">4dp</dimen>
+    <dimen name="space_size_8">8dp</dimen>
+    <dimen name="space_size_12">12dp</dimen>
+    <dimen name="space_size_16">16dp</dimen>
+    <dimen name="space_size_20">20dp</dimen>
+    <dimen name="space_size_24">24dp</dimen>
+    <dimen name="space_size_28">28dp</dimen>
+    <dimen name="space_size_32">32dp</dimen>
+    <dimen name="space_size_36">36dp</dimen>
+    <dimen name="space_size_40">40dp</dimen>
+    <dimen name="space_size_44">44dp</dimen>
+    <dimen name="space_size_48">48dp</dimen>
+    <dimen name="space_size_52">52dp</dimen>
+    <dimen name="space_size_56">56dp</dimen>
+    <dimen name="space_size_60">60dp</dimen>
+
+</resources>

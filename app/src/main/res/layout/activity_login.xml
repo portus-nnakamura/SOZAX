@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.LoginActivity">
+
+    <!-- ヘッダロゴ -->
+    <ImageView
+        android:id="@+id/imgHeaderLogo"
+        style="@style/header_logo_style"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+    <!-- 事業所 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilOffice"
+        style="@style/spinner_style"
+        android:hint="@string/tilOffice_hint"
+        android:layout_marginTop="@dimen/space_size_40"
+        app:layout_constraintBottom_toTopOf="@+id/tilRepresentative"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imgHeaderLogo">
+
+        <AutoCompleteTextView
+            android:id="@+id/txtOffice"
+            style="@style/spinner_text_style"
+            tools:ignore="LabelFor" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 担当者 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilRepresentative"
+        style="@style/spinner_style"
+        android:hint="@string/tilRepresentative_hint"
+        app:layout_constraintBottom_toTopOf="@+id/tilWarehouse"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tilOffice">
+
+        <AutoCompleteTextView
+            android:id="@+id/txtRepresentative"
+            style="@style/spinner_text_style"
+            tools:ignore="LabelFor" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- 倉庫 -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilWarehouse"
+        style="@style/spinner_style"
+        android:hint="@string/tilWarehouse_hint"
+        android:layout_marginTop="@dimen/space_size_32"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tilRepresentative">
+
+        <AutoCompleteTextView
+            android:id="@+id/txtWarehouse"
+            style="@style/spinner_text_style"
+            tools:ignore="LabelFor" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- ログイン -->
+    <Button
+        android:id="@+id/btnLogin"
+        style="@style/top_and_login_button_style"
+        android:onClick="btnLogin_Click"
+        android:text="@string/btnLogin_text"
+        app:layout_constraintBottom_toTopOf="@id/lblCopyright"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <!-- コピーライト -->
+    <TextView
+        android:id="@+id/lblCopyright"
+        style="@style/copyright_style"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

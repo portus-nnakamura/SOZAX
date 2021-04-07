@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.InventoryInquiryPage2Activity">
+
+    <!-- アイコンバー -->
+    <LinearLayout
+        android:id="@+id/llInventoryInquiryPage2Header"
+        style="@style/header_icon_bar_style"
+        android:background="@color/black"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- アプリ終了 -->
+        <ImageButton
+            android:id="@+id/btnExit"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_logout_48"
+            tools:ignore="ContentDescription" />
+
+        <!-- ログイン情報 -->
+        <TextView
+            android:id="@+id/txtLoginInfo"
+            style="@style/login_info_text_style"
+            android:layout_weight="0.5"
+            android:background="@drawable/text_border_white" />
+
+        <!-- 並び替え -->
+        <ImageButton
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:onClick="btnSort_Click"
+            android:src="@drawable/icon_sort_48"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
+
+    <!-- 在庫履歴明細（列ヘッダ） -->
+    <LinearLayout
+        android:id="@+id/llInventoryInquiryPage2ColumnHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/heavenlyblue"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llInventoryInquiryPage2Header"
+        app:layout_constraintBottom_toTopOf="@+id/lvInventoryInquiryPage2Detail"
+        >
+
+        <!-- 年月日 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="年月日"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <!-- 入庫 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="入庫"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <!-- 出庫 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="出庫"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <!-- 残 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="残"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- 在庫履歴明細（行） -->
+    <ListView
+        android:id="@+id/lvInventoryInquiryPage2Detail"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:divider="@color/darkgray"
+        android:dividerHeight="1dp"
+        android:background="@color/frostygray"
+        app:layout_constraintBottom_toTopOf="@+id/tlInventoryInquiryPage2QuantityAndWeight"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llInventoryInquiryPage2ColumnHeader" />
+
+    <!-- 在庫個数・重量 -->
+    <TableLayout
+        android:id="@+id/tlInventoryInquiryPage2QuantityAndWeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/bgInventoryInquiryPage2Footer"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lvInventoryInquiryPage2Detail">
+
+        <TableRow android:background="@color/heavenlyblue"
+            android:layout_height="24dp"
+            >
+
+            <!-- 在庫個数（列ヘッダ） -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:text="在庫個数"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_16" />
+
+            <!-- 在庫重量（列ヘッダ） -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:text="在庫重量"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_16" />
+
+        </TableRow>
+
+        <TableRow android:background="@color/white"
+            android:layout_height="32dp"
+            >
+
+            <!-- 在庫個数 -->
+            <TextView
+                android:id="@+id/txtInventoryInquiryPage2Quantity"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_24" />
+
+            <!-- 在庫重量 -->
+            <TextView
+                android:id="@+id/txtInventoryInquiryPage2Weight"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_24" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <!-- フッタ -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/bgInventoryInquiryPage2Footer"
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <!-- 数量切替 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInventoryInquiryPage2Quantity"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:gravity="center"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:onClick="btnInventoryInquiryPage2Quantity_Click"
+            android:text="個数"
+            android:textColor="@color/iconcolor"
+            android:textSize="32dp"
+            android:textStyle="bold"
+            app:cornerRadius="0dp"
+            app:icon="@drawable/icon_quantity_48"
+            app:iconGravity="textStart"
+            app:iconTint="@color/iconcolor" />
+
+        <!-- 重量切替 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInventoryInquiryPage2Weight"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5"
+            android:gravity="center"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:onClick="btnInventoryInquiryPage2Weight_Click"
+            android:text="重量"
+            android:textColor="@color/iconcolor"
+            android:textSize="32dp"
+            android:textStyle="bold"
+            app:cornerRadius="0dp"
+            app:icon="@drawable/icon_weight_48"
+            app:iconGravity="textStart"
+            app:iconTint="@color/iconcolor" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

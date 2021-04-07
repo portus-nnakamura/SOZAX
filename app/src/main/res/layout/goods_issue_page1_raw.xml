@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/list_item_selecter"
+    style="@style/raw_style">
+
+    <!-- No. -->
+    <TextView
+        android:id="@+id/txtGoodsIssueNo"
+        style="@style/raw_text_style"
+        android:layout_weight="0.1"
+        android:gravity="center" />
+
+    <!-- 出庫伝票番号 -->
+    <TextView
+        android:id="@+id/txtGoodsIssueSlipNo"
+        style="@style/raw_text_style"
+        android:layout_weight="0.6"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="@dimen/space_size_8"
+        tools:ignore="RtlHardcoded,RtlSymmetry" />
+
+    <!-- 状況(受付or在庫確認or作業中or受領確認) -->
+    <TextView
+        android:id="@+id/txtGoodsIssueStatus"
+        style="@style/raw_text_style"
+        android:layout_weight="0.3"
+        android:gravity="center" />
+
+</LinearLayout>

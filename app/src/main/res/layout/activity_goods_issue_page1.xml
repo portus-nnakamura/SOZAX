@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.GoodsIssuePage1Activity">
+
+    <!-- アイコンバー -->
+    <LinearLayout
+        android:id="@+id/llGoodsIssuePage1Header"
+        style="@style/header_icon_bar_style"
+        android:background="@color/black"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- アプリ終了 -->
+        <ImageButton
+            android:id="@+id/btnExit"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_logout_48"
+            tools:ignore="ContentDescription" />
+
+        <!-- ログイン情報 -->
+        <TextView
+            android:id="@+id/txtLoginInfo"
+            style="@style/login_info_text_style"
+            android:layout_weight="0.5"
+            android:background="@drawable/text_border_white" />
+
+        <!-- 伝票追加 -->
+        <ImageButton
+            android:id="@+id/btnSlipAdd"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_add_48"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
+
+    <!-- 進行状況 -->
+    <TextView
+        android:id="@+id/txtProgressPhase1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/signalred"
+        android:text="@string/text_goods_issue_progress_phase1"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/txtGoodsIssuePage1Guidance"
+        app:layout_constraintTop_toBottomOf="@+id/llGoodsIssuePage1Header" />
+
+    <!-- ガイダンス -->
+    <TextView
+        android:id="@+id/txtGoodsIssuePage1Guidance"
+        style="@style/guidance_text_style"
+        android:text="@string/text_goods_issue_guidance_phase1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/llGoodsIssueListColumnHeader"
+        app:layout_constraintTop_toBottomOf="@+id/txtProgressPhase1" />
+
+    <!-- 出庫伝票一覧（カラムヘッダ） -->
+    <LinearLayout
+        android:id="@+id/llGoodsIssueListColumnHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/heavenlyblue"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/lvGoodsIssueList"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtGoodsIssuePage1Guidance" >
+
+        <!-- 行番号 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.1"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="No"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+        <!-- 出庫伝票番号-->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="出庫伝票番号"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- 出庫伝票一覧（行） -->
+    <ListView
+        android:id="@+id/lvGoodsIssueList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@color/darkgray"
+        android:dividerHeight="1dp"
+        android:background="@color/frostygray"
+        app:layout_constraintBottom_toTopOf="@+id/tlGoodsIssuePage1Detail"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llGoodsIssueListColumnHeader" />
+
+    <!-- 出庫伝票明細 -->
+    <TableLayout
+        android:id="@+id/tlGoodsIssuePage1Detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/tlGoodsIssuePage1QuantityAndWeight"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lvGoodsIssueList">
+
+        <!-- 荷主 -->
+        <TableRow android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="荷　主:"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtGoodsIssuePage1DetailNinushi"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </TableRow>
+
+        <!-- 荷渡先 -->
+        <TableRow android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="荷渡先:"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtGoodsIssuePage1DetailNiwatashi"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </TableRow>
+
+        <!-- 品名 -->
+        <TableRow android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:textColor="@color/black"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="品　名:"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtGoodsIssuePage1DetailProductName"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <!-- 出庫個数＆重量 -->
+    <TableLayout
+        android:id="@+id/tlGoodsIssuePage1QuantityAndWeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/tlGoodsIssuePage1Detail"
+        app:layout_constraintBottom_toTopOf="@+id/btnGoodsIssuePage1Proceed"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <TableRow android:background="@color/heavenlyblue">
+
+            <!-- 出庫個数 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:textColor="@color/black"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:text="出庫個数"
+                android:textSize="@dimen/font_size_16" />
+
+            <!-- 出庫重量 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:textColor="@color/black"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:text="出庫重量"
+                android:textSize="@dimen/font_size_16" />
+
+        </TableRow>
+
+        <TableRow android:background="@color/white">
+
+            <!-- 出庫個数 -->
+            <TextView
+                android:id="@+id/txtGoodsIssuePage1Quantity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:textColor="@color/black"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textSize="@dimen/font_size_24" />
+
+            <!-- 出庫重量 -->
+            <TextView
+                android:id="@+id/txtGoodsIssuePage1Weight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:textColor="@color/black"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textSize="@dimen/font_size_24" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <!-- 進行ボタン -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGoodsIssuePage1Proceed"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="62dp"
+        android:bufferType="spannable"
+        android:backgroundTint="@color/orientalblue"
+        android:gravity="center"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:onClick="btnGoodsIssuePage1Proceed_Click"
+        android:textAllCaps="false"
+        android:padding="0dp"
+        android:text="@string/button_text_goods_issue_progress_phase1"
+        android:textColor="@color/white"
+        android:textSize="24sp"
+        app:cornerRadius="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

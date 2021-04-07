@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/raw_style">
+
+    <!-- 出庫伝票番号 -->
+    <TextView
+        android:id="@+id/txtGoodsIssuePage2ProductInformation"
+        style="@style/raw_text_style"
+        android:layout_weight="0.85"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="@dimen/space_size_8"
+        tools:ignore="RtlHardcoded,RtlSymmetry" />
+
+    <!-- 状況(OKorNG) -->
+    <TextView
+        android:id="@+id/txtGoodsIssuePage2Status"
+        style="@style/raw_text_style"
+        android:layout_weight="0.15"
+        android:gravity="center"
+        android:textSize="@dimen/font_size_24" />
+
+</LinearLayout>

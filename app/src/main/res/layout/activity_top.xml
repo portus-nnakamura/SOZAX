@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.TopActivity">
+
+    <!-- ヘッダロゴ -->
+    <ImageView
+        android:id="@+id/imgHeaderLogo"
+        style="@style/header_logo_style"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+    <!-- メインロゴ -->
+    <ImageView
+        android:id="@+id/imgMainLogo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/space_size_16"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toTopOf="@+id/txtAppName"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgHeaderLogo"
+        app:srcCompat="@drawable/image_logo"
+        tools:ignore="ContentDescription" />
+
+    <!-- アプリ名 -->
+    <TextView
+        android:id="@+id/txtAppName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/space_size_16"
+        android:background="@color/transparent"
+        android:gravity="center"
+        android:text="@string/app_name"
+        android:textColor="@color/heavenlyblue"
+        android:textSize="@dimen/font_size_28"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/txtVersionName"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgMainLogo"
+        tools:ignore="MissingConstraints" />
+
+    <!-- バージョン -->
+    <TextView
+        android:id="@+id/txtVersionName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/space_size_16"
+        android:background="@color/transparent"
+        android:gravity="center"
+        android:text="@string/app_version"
+        android:textColor="@color/black"
+        android:textSize="@dimen/font_size_24"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toTopOf="@id/btnStart"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtAppName"
+        tools:ignore="MissingConstraints" />
+
+    <!-- 開始 -->
+    <Button
+        android:id="@+id/btnStart"
+        style="@style/top_and_login_button_style"
+        android:onClick="btnStart_Click"
+        android:text="@string/btnStart_text"
+        app:layout_constraintBottom_toTopOf="@id/txtCopyright"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+
+    <!-- コピーライト -->
+    <TextView
+        android:id="@+id/txtCopyright"
+        style="@style/copyright_style"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

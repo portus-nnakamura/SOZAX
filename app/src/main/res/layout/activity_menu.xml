@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/frostygray"
+    tools:context=".ui.MenuActivity">
+
+    <!-- ヘッダのアイコンバー -->
+    <LinearLayout
+        android:id="@+id/llFunctionMenuHeader"
+        style="@style/header_icon_bar_style"
+        android:background="@color/black"
+        app:layout_constraintBottom_toTopOf="@+id/txtFunctionMenuGuidance"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- アプリ終了 -->
+        <ImageButton
+            android:id="@+id/btnExit"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_logout_48"
+            tools:ignore="ContentDescription" />
+
+        <!-- ログイン情報 -->
+        <TextView
+            android:id="@+id/txtLoginInfo"
+            style="@style/login_info_text_style"
+            android:layout_weight="0.5"
+            android:background="@drawable/text_border_white" />
+
+        <!-- 再ログイン -->
+        <ImageButton
+            android:id="@+id/btnReLogin"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:onClick="btnReLogin_Click"
+            android:src="@drawable/icon_user_48"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
+
+    <!-- ガイダンス -->
+    <TextView
+        android:id="@+id/txtFunctionMenuGuidance"
+        style="@style/guidance_text_style"
+        android:background="@color/white"
+        android:text="@string/text_function_menu_guidance"
+        app:layout_constraintBottom_toTopOf="@+id/txtPartition"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llFunctionMenuHeader" />
+
+    <!-- 仕切り -->
+    <TextView
+        android:id="@+id/txtPartition"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/heavenlyblue"
+        android:paddingVertical="@dimen/space_size_8"
+        android:textSize="@dimen/font_size_16"
+        app:layout_constraintBottom_toTopOf="@+id/llDate"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtFunctionMenuGuidance" />
+
+    <!-- 日付レイアウト -->
+    <LinearLayout
+        android:id="@+id/llDate"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/space_size_60"
+        android:layout_marginVertical="@dimen/space_size_16"
+        android:background="@color/transparent"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/btnGoodsIssue"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtPartition">
+
+        <!-- 日付 -->
+        <TextView
+            android:id="@+id/lblDate"
+            android:layout_width="@dimen/space_size_0"
+            android:layout_height="match_parent"
+            android:layout_weight="0.65"
+            android:text="12月31日(日)"
+            android:gravity="end|center_vertical"
+            android:textColor="@color/iconcolor"
+            android:textSize="@dimen/font_size_24" />
+
+        <!-- 日付変更 -->
+        <ImageButton
+            android:id="@+id/btnDateChange"
+            style="@style/image_button_style"
+            android:layout_gravity="start"
+            android:layout_weight="0.35"
+            android:background="@color/transparent"
+            android:onClick="btnDateChange_Click"
+            android:paddingStart="-60dp"
+            android:src="@drawable/icon_calendar_32"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
+
+    <!-- 出　　庫 -->
+    <Button
+        android:id="@+id/btnGoodsIssue"
+        style="@style/menu_button_style"
+        android:drawableLeft="@drawable/icon_truck_48"
+        android:onClick="btnGoodsIssue_Click"
+        android:text="@string/MenuText_GoodsIssueProcess"
+        app:layout_constraintBottom_toTopOf="@id/btnGoodsIssueList"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/llDate"
+        tools:ignore="RtlHardcoded" />
+
+    <!-- 出庫一覧 -->
+    <Button
+        android:id="@+id/btnGoodsIssueList"
+        style="@style/menu_button_style"
+        android:drawableLeft="@drawable/icon_list_48"
+        android:onClick="btnGoodsIssueList_Click"
+        android:text="@string/MenuText_GoodsIssueList"
+        app:layout_constraintBottom_toTopOf="@id/btnInventoryInquiry"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnGoodsIssue"
+        tools:ignore="RtlHardcoded" />
+
+    <!-- 在庫照会 -->
+    <Button
+        android:id="@+id/btnInventoryInquiry"
+        style="@style/menu_button_style"
+        android:drawableLeft="@drawable/icon_magnifying_glass_48"
+        android:onClick="btnInventoryInquiry_Click"
+        android:text="@string/MenuText_InventoryInquiry"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnGoodsIssueList"
+        tools:ignore="RtlHardcoded" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

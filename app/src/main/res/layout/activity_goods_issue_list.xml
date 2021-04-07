@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.GoodsIssueListActivity">
+
+    <!-- アイコンバー -->
+    <LinearLayout
+        android:id="@+id/llGoodsIssueSlipListHeader"
+        style="@style/header_icon_bar_style"
+        android:background="@color/black"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- アプリ終了 -->
+        <ImageButton
+            android:id="@+id/btnExit"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_logout_48"
+            tools:ignore="ContentDescription" />
+
+
+        <!-- ログイン情報 -->
+        <TextView
+            android:id="@+id/txtLoginInfo"
+            style="@style/login_info_text_style"
+            android:layout_weight="0.5"
+            android:background="@drawable/text_border_white" />
+
+        <!-- 出庫 -->
+        <ImageButton
+            android:id="@+id/btnGoodsIssue"
+            style="@style/image_button_style"
+            android:layout_weight="0.25"
+            android:background="@color/transparent"
+            android:src="@drawable/icon_truck_48"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
+
+    <!-- 出庫伝票番号（カラムヘッダ） -->
+    <LinearLayout
+        android:id="@+id/llGoodsIssueSlipListColumnHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/heavenlyblue"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/lvGoodsIssueSlipList"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llGoodsIssueSlipListHeader" >
+
+        <!-- 行番号 -->
+        <TextView
+            android:layout_width="@dimen/space_size_0"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.1"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="No"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_size_16" />
+
+        <!-- 出庫伝票番号 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:background="@drawable/text_border_dimgray"
+            android:gravity="center"
+            android:text="出庫伝票番号"
+            android:textColor="@color/black"
+            android:textSize="@dimen/font_size_16" />
+
+    </LinearLayout>
+
+    <!-- 在庫品情報（行） -->
+    <ListView
+        android:id="@+id/lvGoodsIssueSlipList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@color/darkgray"
+        android:dividerHeight="1sp"
+        android:background="@color/frostygray"
+        app:layout_constraintBottom_toTopOf="@+id/tlGoodsIssueSlipListDetail"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llGoodsIssueSlipListColumnHeader" />
+
+    <!-- 出庫伝票明細 -->
+    <TableLayout
+        android:id="@+id/tlGoodsIssueSlipListDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/tlGoodsIssueSlipListQuantityAndWeight"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lvGoodsIssueSlipList">
+
+        <!-- 荷主 -->
+        <TableRow android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/lblGoodsIssueSlipListDetailNinushi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="荷　主:"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtGoodsIssueSlipListDetailNinushi"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </TableRow>
+
+        <!-- 荷渡先 -->
+        <TableRow android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="荷渡先:"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtGoodsIssueSlipListDetailNiwatashi"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </TableRow>
+
+        <!-- 品名 -->
+        <TableRow android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:textColor="@color/black"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:text="品　名:"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtGoodsIssueSlipListDetailProductName"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:gravity="left"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <!-- 出庫個数＆重量 -->
+    <TableLayout
+        android:id="@+id/tlGoodsIssueSlipListQuantityAndWeight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <TableRow android:background="@color/heavenlyblue">
+
+            <!-- 出庫個数 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:text="出庫個数"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_16" />
+
+            <!-- 出庫重量 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="center"
+                android:text="出庫重量"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_16" />
+
+        </TableRow>
+
+        <TableRow android:background="@color/white">
+
+            <!-- 出庫個数 -->
+            <TextView
+                android:id="@+id/txtGoodsIssueSlipListQuantity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="-0.5dp"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.4"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_24" />
+
+            <!-- 出庫重量 -->
+            <TextView
+                android:id="@+id/txtGoodsIssueSlipListWeight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-0.5dp"
+                android:layout_marginRight="-0.5dp"
+                android:layout_marginBottom="-0.5dp"
+                android:layout_weight="0.6"
+                android:background="@drawable/text_border_dimgray"
+                android:gravity="right"
+                android:textColor="@color/black"
+                android:textSize="@dimen/font_size_24" />
+
+        </TableRow>
+
+    </TableLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
