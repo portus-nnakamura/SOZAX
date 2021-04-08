@@ -1,6 +1,6 @@
 package com.example.sozax.ui;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -56,10 +56,8 @@ public class TopActivity extends CommonActivity {
         // 画面にバージョン名を出力
         ((TextView) findViewById(R.id.txtVersionName)).setText(app_version_info.Versionnm);
 
-
         // DB内のバージョン情報を取得
-        GetVersionInfoTask getVersionInfoTask = new GetVersionInfoTask(this);
-        getVersionInfoTask.execute();
+        new GetVersionInfoTask().execute();
     }
 
     //endregion
@@ -119,13 +117,8 @@ public class TopActivity extends CommonActivity {
 
     //region バージョン情報取得
 
+    @SuppressLint("StaticFieldLeak")
     public class GetVersionInfoTask extends VersionInfoController.GetVersionInfoTask {
-
-        private final Activity mainActivity;
-
-        public GetVersionInfoTask(Activity activity) {
-            mainActivity = activity;
-        }
 
         /**
          * バックグランド処理が完了し、UIスレッドに反映する
@@ -138,7 +131,7 @@ public class TopActivity extends CommonActivity {
 
             // エラー発生
             if (db_version_info.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
                 builder.setTitle("エラー");
                 builder.setMessage(db_version_info.Message);
 
@@ -148,8 +141,7 @@ public class TopActivity extends CommonActivity {
 
             // 該当データなし
             if (db_version_info.Versioncd == 0) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
-                builder.setTitle("エラー");
+                AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
                 builder.setMessage("最新のバージョン情報が見つかりませんでした。");
 
                 builder.show();
@@ -159,7 +151,7 @@ public class TopActivity extends CommonActivity {
             // アプリ内とDBの、バージョンコードを比較して、
             // 最新のバージョンであるかチェックする
             if (db_version_info.Versioncd > app_version_info.Versioncd) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
                 builder.setTitle("お知らせ");
                 builder.setMessage("最新のバージョンにアップデート可能です。");
 

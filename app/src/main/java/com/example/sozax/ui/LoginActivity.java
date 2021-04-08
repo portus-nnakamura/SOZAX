@@ -13,6 +13,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.SgytantoController;
 import com.example.sozax.bl.controllers.SoukoController;
@@ -173,7 +175,6 @@ public class LoginActivity extends CommonActivity {
             // 該当データなし
             if (tensyosModel.Tensyos == null) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                builder.setTitle("エラー");
                 builder.setMessage("事業所データがありません。");
 
                 builder.show();
@@ -187,7 +188,7 @@ public class LoginActivity extends CommonActivity {
                 items.add(tensyoModel.Tennm);
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
+            UniqueArrayAdapter arrayAdapter = new UniqueArrayAdapter(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
 
             final AutoCompleteTextView txtTensyos = findViewById(R.id.txtTensyo);
             txtTensyos.setAdapter(arrayAdapter);
@@ -212,11 +213,11 @@ public class LoginActivity extends CommonActivity {
                     txtTensyos.setText(tensyos.Tensyos[tensyoSelectedIndex].Tennm);
                 }
 
-                // 作業担当者一覧を取得
-                new GetSgytantosTask().execute(loginInfo);
-
                 // 倉庫一覧を取得
                 new GetSoukosTask().execute(loginInfo);
+
+                // 作業担当者一覧を取得
+                new GetSgytantosTask().execute(loginInfo);
             }
         }
     }
@@ -250,8 +251,7 @@ public class LoginActivity extends CommonActivity {
             // 該当データなし
             if (sgytantosModel.Sgytantos == null) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                builder.setTitle("エラー");
-                builder.setMessage("作業担当者データがありません。");
+                builder.setMessage("担当者データがありません。");
 
                 builder.show();
                 return;
@@ -264,7 +264,7 @@ public class LoginActivity extends CommonActivity {
                 items.add(SgytantoModel.Sgytantonm);
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
+            UniqueArrayAdapter arrayAdapter = new UniqueArrayAdapter(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
 
             final AutoCompleteTextView txtSgytantos = findViewById(R.id.txtSgytanto);
             txtSgytantos.setAdapter(arrayAdapter);
@@ -321,8 +321,6 @@ public class LoginActivity extends CommonActivity {
             // 該当データなし
             if (soukosModel.Soukos == null) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-
-                builder.setTitle("エラー");
                 builder.setMessage("倉庫データがありません。");
 
                 builder.show();
@@ -336,7 +334,7 @@ public class LoginActivity extends CommonActivity {
                 items.add(SoukoModel.Soukonm);
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
+            UniqueArrayAdapter arrayAdapter = new UniqueArrayAdapter(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
 
             final AutoCompleteTextView txtSoukos = findViewById(R.id.txtSouko);
             txtSoukos.setAdapter(arrayAdapter);
@@ -384,6 +382,7 @@ public class LoginActivity extends CommonActivity {
                 sgytantosModel = null;
                 sgytantoSelectedIndex = -1;
                 final AutoCompleteTextView txtSgytantos = findViewById(R.id.txtSgytanto);
+                txtSgytantos.setText("");
                 txtSgytantos.setAdapter(null);
 
                 // ログイン情報の倉庫をクリア
@@ -392,6 +391,7 @@ public class LoginActivity extends CommonActivity {
                 soukosModel = null;
                 soukoSelectedIndex = -1;
                 final AutoCompleteTextView txtSoukos = findViewById(R.id.txtSouko);
+                txtSoukos.setText("");
                 txtSoukos.setAdapter(null);
 
                 // 作業担当者一覧を取得
@@ -447,8 +447,20 @@ public class LoginActivity extends CommonActivity {
     }
 
     //endregion
-    
-    class SampleArrayFilter extends Filter {
+
+    //region 独自のアダプター
+
+    private class UniqueArrayAdapter extends ArrayAdapter<String> {
+        public UniqueArrayAdapter(@NonNull Context context, int resource , ArrayList<String> items) {
+            super(context, resource,items);
+        }
+        @Override
+        public Filter getFilter() {
+            return new UniqueFilter();
+        }
+    }
+
+    private class UniqueFilter extends Filter {
         @Override
         protected FilterResults performFiltering(CharSequence prefix) {
             return new FilterResults();
@@ -456,11 +468,8 @@ public class LoginActivity extends CommonActivity {
 
         @Override
         protected void publishResults(CharSequence constraint, FilterResults results) {
-            if (results.count > 0) {
-                //notifyDataSetChanged();
-            } else {
-                //notifyDataSetInvalidated();
-            }
         }
     }
+
+    //endregion
 }
