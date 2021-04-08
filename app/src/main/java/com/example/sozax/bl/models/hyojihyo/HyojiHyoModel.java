@@ -1,9 +1,11 @@
 package com.example.sozax.bl.models.hyojihyo;
 
+import com.example.sozax.common.ResultClass;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class HyojiHyoModel {
+public class HyojiHyoModel extends ResultClass {
 
     public long Syukeicd = 0L;
     

@@ -1,6 +1,8 @@
 package com.example.sozax.bl.models.bar_chk_komk;
 
-public class BarChkKomkModel {
+import com.example.sozax.common.ResultClass;
+
+public class BarChkKomkModel extends ResultClass {
 
     public int Hinbuncd = 0;
 

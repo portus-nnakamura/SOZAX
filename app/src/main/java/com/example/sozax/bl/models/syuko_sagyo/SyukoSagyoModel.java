@@ -1,10 +1,11 @@
 package com.example.sozax.bl.models.syuko_sagyo;
 
 import com.example.sozax.bl.models.hyojihyo.HyojiHyoModel;
+import com.example.sozax.common.ResultClass;
 
 import java.util.Date;
 
-public class SyukoSagyoModel {
+public class SyukoSagyoModel extends ResultClass {
 
     public long Syukono = 0L;
 

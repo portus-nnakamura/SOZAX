@@ -2,11 +2,12 @@ package com.example.sozax.bl.models.syuko_denpyo;
 
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
+import com.example.sozax.common.ResultClass;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class SyukoDenpyoModel {
+public class SyukoDenpyoModel extends ResultClass {
 
     public long Syukono = 0L;
 
