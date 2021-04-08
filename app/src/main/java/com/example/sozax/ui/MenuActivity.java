@@ -1,103 +1,94 @@
 package com.example.sozax.ui;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
 import com.example.sozax.R;
-import com.example.sozax.bl.goods_issue.GoodsIssueSlip;
+import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.common.CommonActivity;
 
-import java.math.BigDecimal;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 public class MenuActivity extends CommonActivity {
 
-    //region Create
+    //region インスタンス変数
 
+    //endregion
+
+    //region 初回起動
+
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
-        // ログイン情報を表示
-//        TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
-//        txtLoginInfo.setText(logininfo.getOfficeInfo().getName() + " " + logininfo.getRepresentativeInfo().getName() + "\n" + logininfo.getWarehouseInfo().getName());
-//
-//        TextView lblStatus = findViewById(R.id.lblDate);
-//        SimpleDateFormat sdf = new SimpleDateFormat("M/dd (E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-//        lblStatus.setText(sdf.format(logininfo.getWorkingday()));
-
-        // デモデータをセット
-        SetDemoData();
-
-        // アプリ終了
+        // アプリ終了イベントを追加
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(MenuActivity.this));
+
+        // ログイン情報を表示
+        TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
+        txtLoginInfo.setText(loginInfo.Tensyonm + "　" + loginInfo.Sgytantonm + "\n" + loginInfo.Soukonm);
+
+        // 作業日を表示
+        TextView lblSgydate = findViewById(R.id.lblSgydate);
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
+        lblSgydate.setText(sdf.format(loginInfo.Sgydate));
     }
 
     //endregion
 
-    //region 出庫ボタンをクリック
+    //region アプリ終了アイコンをクリック
 
-    private static final int REQUEST_CODE = 1;
+    // CommonActivity内に処理を記述済み
 
-    public void btnGoodsIssue_Click(View view) {
-        Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-        intent.putExtra("LOGININFO", loginInfo);
-        intent.putExtra("DEMODATA",demoData);
-        startActivityForResult(intent, REQUEST_CODE);
+    //endregion
+
+    //region 再ログインアイコンをクリック
+
+    public void btnReLogin_Click(View view) {
+        Intent intent = new Intent(getApplication(), LoginActivity.class);
+        intent.putExtra("LoginInfo", loginInfo);
+        intent.putExtra("PreviousActivityName", this.getComponentName().getClassName());
+        startActivity(intent);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        switch (requestCode) {
-            case REQUEST_CODE:
+        if (resultCode == RESULT_OK) {
 
-                demoData = (ArrayList<GoodsIssueSlip>) data.getSerializableExtra("DEMODATA");
+            // ログイン情報を反映
+            loginInfo = (LoginInfoModel) data.getSerializableExtra("LoginInfo");
 
-                break;
-            default:
-                break;
+            // ログイン情報を表示
+            TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
+            txtLoginInfo.setText(loginInfo.Tensyonm + "　" + loginInfo.Sgytantonm + "\n" + loginInfo.Soukonm);
+
         }
     }
 
     //endregion
 
-    //region 出庫一覧ボタンをクリック
+    //region 作業日変更アイコンをクリック
 
-    public void btnGoodsIssueList_Click(View view) {
-        Intent intent = new Intent(getApplication(), GoodsIssueListActivity.class);
-        intent.putExtra("LOGININFO", loginInfo);
-        intent.putExtra("DEMODATA",demoData);
-        startActivityForResult(intent, REQUEST_CODE);
-    }
-
-    //endregion
-
-    //region 在庫照会ボタンをクリック
-
-    public void btnInventoryInquiry_Click(View view) {
-        Intent intent = new Intent(getApplication(), InventoryInquiryPage1Activity.class);
-        intent.putExtra("LOGININFO", loginInfo);
-        startActivity(intent);
-    }
-
-    //endregion
-
-    //region 日付変更
-
-    public void btnDateChange_Click(View view) {
+    public void btnSgydateChange_Click(View view) {
 
         final Calendar c = Calendar.getInstance();
+        c.setTime(loginInfo.Sgydate);
+
         int year = c.get(Calendar.YEAR);
         int month = c.get(Calendar.MONTH);
         int day = c.get(Calendar.DAY_OF_MONTH);
@@ -111,82 +102,55 @@ public class MenuActivity extends CommonActivity {
         public void onDateSet(android.widget.DatePicker datePicker, int year,
                               int monthOfYear, int dayOfMonth) {
 
-//            logininfo.setWorkingday(new Date(year, monthOfYear, dayOfMonth));
-//            TextView lblStatus = findViewById(R.id.lblDate);
-//            SimpleDateFormat sdf = new SimpleDateFormat("M/dd (E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-//            lblStatus.setText(sdf.format(logininfo.getWorkingday()));
+            // ログイン情報に作業日をセット
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, monthOfYear);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            loginInfo.Sgydate = calendar.getTime();
+
+            // ログイン情報を書き込み
+            SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+
+            editor.putLong("Sgydate", loginInfo.Sgydate.getTime());
+
+            // 作業日を再表示
+            TextView lblSgydate = findViewById(R.id.lblSgydate);
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
+            lblSgydate.setText(sdf.format(loginInfo.Sgydate));
         }
     };
 
+
     //endregion
 
-    //region ログイン
+    //region 出庫ボタンをクリック
 
-    public void btnLogin_Click(View view) {
-
+    public void btnGoodsIssue_Click(View view) {
+        Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
+        intent.putExtra("LoginInfo", loginInfo);
+        startActivity(intent);
     }
 
     //endregion
 
-    //region 設定
+    //region 出庫一覧ボタンをクリック
 
-    public void btnConfig_Click(View view) {
+    public void btnGoodsIssueList_Click(View view) {
+        Intent intent = new Intent(getApplication(), GoodsIssueListActivity.class);
+        intent.putExtra("LoginInfo", loginInfo);
+        startActivity(intent);
     }
 
     //endregion
 
-    //region デモデータ
+    //region 在庫照会ボタンをクリック
 
-    private ArrayList<GoodsIssueSlip> demoData = null;
-
-    private void SetDemoData()
-    {
-        demoData = new ArrayList<GoodsIssueSlip>();
-
-        // その１
-        GoodsIssueSlip tmp1 = new GoodsIssueSlip();
-        tmp1.setSlipNo("20210115186");
-        tmp1.setNinushiName("シーアイマテックス㈱");
-        tmp1.setNiwatashiName("シーアイマテックス㈱");
-        tmp1.setProductName("ＮＳ２０８Ｎａ");
-        tmp1.setNisugataName("バラ");
-        tmp1.setNijirushiName("");
-        tmp1.setKikaku("中国");
-        tmp1.setFuneName("CHANCE STAR");
-        tmp1.setQuantity(BigDecimal.valueOf(0));
-        tmp1.setWeight(BigDecimal.valueOf(130));
-        tmp1.setProgressState(GoodsIssueSlip.ProgressStateEnum.未着手);
-        demoData.add(tmp1);
-
-        // その２
-        GoodsIssueSlip tmp2 = new GoodsIssueSlip();
-        tmp2.setSlipNo("20210212249");
-        tmp2.setNinushiName("三井物産アグロビジネス㈱札幌");
-        tmp2.setNiwatashiName("㈱扶相");
-        tmp2.setProductName("ＰＫ化成肥料　20KG");
-        tmp2.setNisugataName("ポリ袋");
-        tmp2.setNijirushiName("ﾕﾆﾊﾞｰｻﾙ66");
-        tmp2.setKikaku("66号");
-        tmp2.setFuneName("");
-        tmp2.setQuantity(BigDecimal.valueOf(1000));
-        tmp2.setWeight(BigDecimal.valueOf(20000));
-        tmp2.setProgressState(GoodsIssueSlip.ProgressStateEnum.未着手);
-        demoData.add(tmp2);
-
-        // その３
-        GoodsIssueSlip tmp3 = new GoodsIssueSlip();
-        tmp3.setSlipNo("20210215217");
-        tmp3.setNinushiName("三菱商事アグリサービス㈱");
-        tmp3.setNiwatashiName("㈱サンキョウ");
-        tmp3.setProductName("硫酸加里　1,000KG");
-        tmp3.setNisugataName("ＴＢ");
-        tmp3.setNijirushiName("");
-        tmp3.setKikaku("粒 台湾");
-        tmp3.setFuneName("HAI XU");
-        tmp3.setQuantity(BigDecimal.valueOf(20));
-        tmp3.setWeight(BigDecimal.valueOf(20000));
-        tmp3.setProgressState(GoodsIssueSlip.ProgressStateEnum.未着手);
-        demoData.add(tmp3);
+    public void btnInventoryInquiry_Click(View view) {
+        Intent intent = new Intent(getApplication(), InventoryInquiryPage1Activity.class);
+        intent.putExtra("LoginInfo", loginInfo);
+        startActivity(intent);
     }
 
     //endregion
@@ -195,10 +159,6 @@ public class MenuActivity extends CommonActivity {
 
     @Override
     public void onKeyRemapCreated() {
-    }
-
-    public void btnReLogin_Click(View view) {
-        finish();
     }
 
     //endregion

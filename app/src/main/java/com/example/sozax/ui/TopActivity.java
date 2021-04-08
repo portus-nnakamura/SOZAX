@@ -108,6 +108,7 @@ public class TopActivity extends CommonActivity {
             // 更新日と現在日が一致しない場合、ログイン画面に遷移
             Intent intent = new Intent(getApplication(), LoginActivity.class);
             intent.putExtra("LoginInfo", loginInfo);
+            intent.putExtra("PreviousActivityName", this.getComponentName().getClassName());
 
             startActivity(intent);
         }
