@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
-import com.example.sozax.bl.com.LoginInfo;
+import com.example.sozax.bl.models.login_info.LoginInfoModel;
 
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -29,7 +29,7 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
     public KeyRemapLibrary mKeyRemapLibrary;
 
     // ログイン情報
-    public LoginInfo logininfo;
+    public LoginInfoModel loginInfo;
 
     //endregion
 
@@ -42,7 +42,7 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
 
         // ログイン情報を取得
         Intent intent = getIntent();
-        logininfo = (LoginInfo) intent.getSerializableExtra("LOGININFO");
+        loginInfo = (LoginInfoModel) intent.getSerializableExtra("LOGININFO");
     }
 
     //endregion

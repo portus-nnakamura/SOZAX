@@ -1,9 +1,14 @@
-package com.example.sozax.bl.com;
+package com.example.sozax.bl.models.login_info;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public class LoginInfo implements Serializable {
+public class LoginInfoModel implements Serializable {
+
+    // 会社コード
+    public int Kaicd = 0;
+    // 会社名
+    public String Kainm = "";
 
     // 店所コード
     public int Tensyocd = 0;

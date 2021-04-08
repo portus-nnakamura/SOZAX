@@ -115,7 +115,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
         {
             // 在庫履歴に遷移
             Intent intent = new Intent(this, InventoryInquiryPage2Activity.class);
-            intent.putExtra("LOGININFO", logininfo);
+            intent.putExtra("LOGININFO", loginInfo);
             startActivity(intent);
         }
     }

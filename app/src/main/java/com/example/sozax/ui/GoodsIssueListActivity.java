@@ -86,7 +86,7 @@ public class GoodsIssueListActivity extends CommonActivity {
             }
 
             Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-            intent.putExtra("LOGININFO", logininfo);
+            intent.putExtra("LOGININFO", loginInfo);
             intent.putExtra("DEMODATA",demoData);
             startActivityForResult(intent, REQUEST_CODE);
         }

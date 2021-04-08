@@ -50,7 +50,7 @@ public class MenuActivity extends CommonActivity {
 
     public void btnGoodsIssue_Click(View view) {
         Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-        intent.putExtra("LOGININFO", logininfo);
+        intent.putExtra("LOGININFO", loginInfo);
         intent.putExtra("DEMODATA",demoData);
         startActivityForResult(intent, REQUEST_CODE);
     }
@@ -76,7 +76,7 @@ public class MenuActivity extends CommonActivity {
 
     public void btnGoodsIssueList_Click(View view) {
         Intent intent = new Intent(getApplication(), GoodsIssueListActivity.class);
-        intent.putExtra("LOGININFO", logininfo);
+        intent.putExtra("LOGININFO", loginInfo);
         intent.putExtra("DEMODATA",demoData);
         startActivityForResult(intent, REQUEST_CODE);
     }
@@ -87,7 +87,7 @@ public class MenuActivity extends CommonActivity {
 
     public void btnInventoryInquiry_Click(View view) {
         Intent intent = new Intent(getApplication(), InventoryInquiryPage1Activity.class);
-        intent.putExtra("LOGININFO", logininfo);
+        intent.putExtra("LOGININFO", loginInfo);
         startActivity(intent);
     }
 

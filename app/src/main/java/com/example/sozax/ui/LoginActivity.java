@@ -1,22 +1,27 @@
 package com.example.sozax.ui;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 
 import com.example.sozax.R;
-import com.example.sozax.bl.com.LoginInfo;
-import com.example.sozax.bl.models.office.ROffice;
-import com.example.sozax.bl.models.office.ROfficeMainte;
-import com.example.sozax.bl.models.representative.RRepresentative;
-import com.example.sozax.bl.models.representative.RRepresentativeMainte;
-import com.example.sozax.bl.models.warehouse.RWarehouse;
-import com.example.sozax.bl.models.warehouse.RWarehouseMainte;
+import com.example.sozax.bl.controllers.SgytantoController;
+import com.example.sozax.bl.controllers.SoukoController;
+import com.example.sozax.bl.controllers.TensyoController;
+import com.example.sozax.bl.models.login_info.LoginInfoModel;
+import com.example.sozax.bl.models.sgytanto.SgytantoModel;
+import com.example.sozax.bl.models.sgytanto.SgytantosModel;
+import com.example.sozax.bl.models.souko.SoukoModel;
+import com.example.sozax.bl.models.souko.SoukosModel;
+import com.example.sozax.bl.models.tensyo.TensyoModel;
+import com.example.sozax.bl.models.tensyo.TensyosModel;
 import com.example.sozax.common.CommonActivity;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -25,524 +30,384 @@ import java.util.Date;
 
 public class LoginActivity extends CommonActivity {
 
-    //region Create
+    //region インスタンス変数
+
+    // 店所一覧
+    private TensyosModel tensyosModel;
+    // 作業担当者一覧
+    private SgytantosModel sgytantosModel;
+    // 倉庫一覧
+    private SoukosModel soukosModel;
+
+    //endregion
+
+    //region 初回起動
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-//        boolean b;
-//        try {
-//            String s = postWebAPI();
-//            Gson gson = new Gson();
-//            b = gson.fromJson(s,boolean.class);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        // 前回ログイン情報があるか
+        boolean exsistsPreviousLoginInfo = loginInfo != null;
 
-//        TensyoModel t;
-//        try {
-//            getWebAPI();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        if (!exsistsPreviousLoginInfo) {
+            // ログイン情報がない場合、インスタンス生成
+            loginInfo = new LoginInfoModel();
 
-        // バージョン名を表示
-        PackageInfo pckInfo = null;
-
-        try {
-            pckInfo = getPackageManager().getPackageInfo(getPackageName(),0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            // 会社コード
+            loginInfo.Kaicd = 40;
         }
 
-        // Controlsを初期化
-        InitializeControls();
-
-        final AutoCompleteTextView spnOffice = findViewById(R.id.txtOffice);
-        final AutoCompleteTextView txtRepresentative = findViewById(R.id.txtRepresentative);
-        final AutoCompleteTextView txtWarehouse = findViewById(R.id.txtWarehouse);
-
-        // 事務所リストを取得
-        ArrayList<ROffice> officeArrayList = new ROfficeMainte().GetOfficeArraySampleList();
-
-        ArrayList<String> stringArrayList = new ArrayList<String>();
-        for (ROffice rOffice: officeArrayList){
-            stringArrayList.add(rOffice.getName());
-        }
-
-        // 事務所リストをスピナーにセット
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.dropdown_menu_popup_item,stringArrayList);
-        spnOffice.setAdapter(arrayAdapter);
-
-
-
-        // 担当者リストを取得
-        ArrayList<RRepresentative> representativeArrayList = new RRepresentativeMainte().GetRepresentativeArraySampleList();
-
-        ArrayList<String> stringArrayList2= new ArrayList<String>();
-        for (RRepresentative representative: representativeArrayList){
-            stringArrayList2.add(representative.getName());
-        }
-
-        // 担当者リストをスピナーにセット
-        ArrayAdapter<String> arrayAdapter2 = new ArrayAdapter<String>(this, R.layout.dropdown_menu_popup_item,stringArrayList2);
-        txtRepresentative.setAdapter(arrayAdapter2);
-
-
-
-        // 倉庫リストを取得
-        ArrayList<RWarehouse> warehouseArrayList = new RWarehouseMainte().GetWarehouseArraySampleList();
-
-        ArrayList<String> stringArrayList3= new ArrayList<String>();
-        for (RWarehouse warehouse: warehouseArrayList){
-            stringArrayList3.add(warehouse.getName());
-        }
-
-        // 倉庫リストをスピナーにセット
-        ArrayAdapter<String> arrayAdapter3 = new ArrayAdapter<String>(this, R.layout.dropdown_menu_popup_item,stringArrayList3);
-        txtWarehouse.setAdapter(arrayAdapter3);
+        // 店所一覧を取得
+        getTensyosTask.execute(loginInfo);
     }
 
     //endregion
 
-    //region Controlsを初期化
-
-    private void InitializeControls()
-    {
-        final TextInputLayout spnOffice = findViewById(R.id.tilOffice);                   // 事務所
-//        final Spinner spnRepresentative = findViewById(R.id.spnRepresentative);   // 担当者スピナー
-//        final Spinner spnWarehouse = findViewById(R.id.spnWarehouse);             // 倉庫スピナー
-        final Button btnStart = findViewById(R.id.btnStart);                      // 開始ボタン
-
-//        spnOffice.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-//
-//            public void onItemClick(AdapterView parent,View view,int position,long id){
-//
-//                ROffice selectedOfficeValue = (ROffice) parent.getSelectedItem();
-//
-//                // ログイン情報が未登録の場合、
-//                // 保存しているログイン情報と異なる場合、
-//                // 前値と相違している場合は、事業所情報をログイン情報にセット＆担当者情報を取得
-//                if (logininfo == null ||
-//                        logininfo.getOfficeInfo() == null ||
-//                        logininfo.getOfficeInfo().getCode() != selectedOfficeValue.getCode())
-//                {
-//                    // 今回選択した事業所をログイン情報にセット
-//                    logininfo = new LoginInfo();
-//                    logininfo.setOfficeInfo(selectedOfficeValue);
-//
-//                    // 担当者リストを取得
-//                    ArrayList<RRepresentative> representativeArrayList = new RRepresentativeMainte().getRepresentativeArrayList(logininfo.getOfficeInfo().getCode());
-//
-//                    // 担当者リストをスピナーにセット
-//                    ArrayAdapter<RRepresentative> arrayAdapter = new ArrayAdapter<RRepresentative>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item);
-//                    arrayAdapter.addAll(representativeArrayList);
-//                    //spnRepresentative.setAdapter(arrayAdapter);
-//                }
-//
-//                // 担当者スピナーを 有効化
-//                //spnRepresentative.setEnabled(true);
-//
-//                // 倉庫スピナーを 無効化
-//                //spnWarehouse.setEnabled(false);
-//
-//                // 倉庫スピナーの 項目削除
-//                //spnWarehouse.setAdapter(null);
-//
-//                // [開始]ボタンを無効化
-//                btnStart.setEnabled(false);
-//            }
-//        });
-
-        // 事務所スピナーの選択イベントを追加
-//        spnOffice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//
-//            //何も選択されなかった時の動作
-//            @Override
-//            public void onNothingSelected(AdapterView adapterView) {
-//
-//                // 担当者 , 倉庫 スピナーを 無効化
-//                spnRepresentative.setEnabled(false);
-//                spnWarehouse.setEnabled(false);
-//
-//                // 担当者 , 倉庫 スピナーの 項目削除
-//                spnRepresentative.setAdapter(null);
-//                spnWarehouse.setAdapter(null);
-//
-//                // [開始]ボタンを無効化
-//                btnStart.setEnabled(false);
-//            }
-//
-//            @Override
-//            public void onItemSelected(AdapterView parent, View view, int position, long id) {
-//
-//                ROffice selectedOfficeValue = (ROffice) parent.getSelectedItem();
-//
-//                // ログイン情報が未登録の場合、
-//                // 保存しているログイン情報と異なる場合、
-//                // 前値と相違している場合は、事業所情報をログイン情報にセット＆担当者情報を取得
-//                if (logininfo == null ||
-//                    logininfo.getOfficeInfo() == null ||
-//                    logininfo.getOfficeInfo().getCode() != selectedOfficeValue.getCode())
-//                {
-//                    // 今回選択した事業所をログイン情報にセット
-//                    logininfo = new LoginInfo();
-//                    logininfo.setOfficeInfo(selectedOfficeValue);
-//
-//                    // 担当者リストを取得
-//                    ArrayList<RRepresentative> representativeArrayList = new RRepresentativeMainte().getRepresentativeArrayList(logininfo.getOfficeInfo().getCode());
-//
-//                    // 担当者リストをスピナーにセット
-//                    ArrayAdapter<RRepresentative> arrayAdapter = new ArrayAdapter<RRepresentative>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item);
-//                    arrayAdapter.addAll(representativeArrayList);
-//                    spnRepresentative.setAdapter(arrayAdapter);
-//                }
-//
-//                // 担当者スピナーを 有効化
-//                spnRepresentative.setEnabled(true);
-//
-//                // 倉庫スピナーを 無効化
-//                spnWarehouse.setEnabled(false);
-//
-//                // 倉庫スピナーの 項目削除
-//                spnWarehouse.setAdapter(null);
-//
-//                // [開始]ボタンを無効化
-//                btnStart.setEnabled(false);
-//            }
-//        });//
-
-        // 担当者スピナーの選択イベントを追加
-
-//        spnRepresentative.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-//            public void onItemClick(AdapterView parent,View view,int position,long id){
-//                RRepresentative selectedRepresentativeValue = (RRepresentative) parent.getSelectedItem();
-//
-//                // ログイン情報が未登録の場合、
-//                // 保存しているログイン情報と異なる場合、
-//                // 前値と相違している場合は、担当者情報をログイン情報にセット＆倉庫情報を取得
-//                if (logininfo.getRepresentativeInfo() == null ||
-//                        logininfo.getRepresentativeInfo().getCode() != selectedRepresentativeValue.getCode()) {
-//
-//                    // 今回選択した担当者をログイン情報にセット
-//                    logininfo.setRepresentativeInfo(selectedRepresentativeValue);
-//
-//                    // 倉庫リストを取得
-//                    ArrayList<RWarehouse> warehouseArrayList = new RWarehouseMainte().getWarehouseArrayList(logininfo.getOfficeInfo().getCode(),logininfo.getRepresentativeInfo().getCode());
-//
-//                    // 倉庫リストをスピナーにセット
-//                    ArrayAdapter<RWarehouse> arrayAdapter = new ArrayAdapter<RWarehouse>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item);
-//                    arrayAdapter.addAll(warehouseArrayList);
-//                    spnWarehouse.setAdapter(arrayAdapter);
-//                }
-//
-//                // 倉庫スピナーを 有効化
-//                spnWarehouse.setEnabled(true);
-//
-//                // [開始]ボタンを無効化
-//                btnStart.setEnabled(false);
-//            }
-//        });
-
-//        spnRepresentative.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//
-//            //何も選択されなかった時の動作
-//            @Override
-//            public void onNothingSelected(AdapterView adapterView) {
-//
-//                // 倉庫スピナーを 無効化
-//                spnWarehouse.setEnabled(false);
-//
-//                // 倉庫スピナーの 項目削除
-//                spnWarehouse.setAdapter(null);
-//
-//                // [開始]ボタンを無効化
-//                btnStart.setEnabled(false);
-//            }
-//
-//            @Override
-//            public void onItemSelected(AdapterView parent, View view, int position, long id) {
-//
-//                if (spnRepresentative.isFocused() == false)
-//                {
-//                    return;
-//                }
-//
-//                RRepresentative selectedRepresentativeValue = (RRepresentative) parent.getSelectedItem();
-//
-//                // ログイン情報が未登録の場合、
-//                // 保存しているログイン情報と異なる場合、
-//                // 前値と相違している場合は、担当者情報をログイン情報にセット＆倉庫情報を取得
-//                if (logininfo.getRepresentativeInfo() == null ||
-//                        logininfo.getRepresentativeInfo().getCode() != selectedRepresentativeValue.getCode()) {
-//
-//                    // 今回選択した担当者をログイン情報にセット
-//                    logininfo.setRepresentativeInfo(selectedRepresentativeValue);
-//
-//                    // 倉庫リストを取得
-//                    ArrayList<RWarehouse> warehouseArrayList = new RWarehouseMainte().getWarehouseArrayList(logininfo.getOfficeInfo().getCode(),logininfo.getRepresentativeInfo().getCode());
-//
-//                    // 倉庫リストをスピナーにセット
-//                    ArrayAdapter<RWarehouse> arrayAdapter = new ArrayAdapter<RWarehouse>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item);
-//                    arrayAdapter.addAll(warehouseArrayList);
-//                    spnWarehouse.setAdapter(arrayAdapter);
-//                }
-//
-//                // 倉庫スピナーを 有効化
-//                spnWarehouse.setEnabled(true);
-//
-//                // [開始]ボタンを無効化
-//                btnStart.setEnabled(false);
-//            }
-//        });
-
-//        spnWarehouse.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-//            public void onItemClick(AdapterView parent,View view,int position,long id){
-//                RWarehouse selectedWarehouseValue = (RWarehouse)parent.getSelectedItem();
-//
-//                // ログイン情報が未登録の場合、
-//                // 保存しているログイン情報と異なる場合、
-//                // 前値と相違している場合は、倉庫情報をログイン情報にセット
-//                if (logininfo.getWarehouseInfo() == null ||
-//                        logininfo.getWarehouseInfo().getCode() != selectedWarehouseValue.getCode()) {
-//
-//                    // 今回選択した倉庫をログイン情報にセット
-//                    logininfo.setWarehouseInfo(selectedWarehouseValue);
-//                }
-//
-//                // [開始]ボタンを有効化
-//                btnStart.setEnabled(true);
-//            }
-//        });
-
-//        // 倉庫スピナーの選択イベントを追加
-//        spnWarehouse.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//
-//            //何も選択されなかった時の動作
-//            @Override
-//            public void onNothingSelected(AdapterView adapterView) { }
-//
-//            @Override
-//            public void onItemSelected(AdapterView parent, View view, int position, long id) {
-//
-//                if (spnWarehouse.isFocused() == false)
-//                {
-//                    return;
-//                }
-//
-//                RWarehouse selectedWarehouseValue = (RWarehouse)parent.getSelectedItem();
-//
-//                // ログイン情報が未登録の場合、
-//                // 保存しているログイン情報と異なる場合、
-//                // 前値と相違している場合は、倉庫情報をログイン情報にセット
-//                if (logininfo.getWarehouseInfo() == null ||
-//                        logininfo.getWarehouseInfo().getCode() != selectedWarehouseValue.getCode()) {
-//
-//                    // 今回選択した倉庫をログイン情報にセット
-//                    logininfo.setWarehouseInfo(selectedWarehouseValue);
-//                }
-//
-//                // [開始]ボタンを有効化
-//                btnStart.setEnabled(true);
-//            }
-//        });
-    }
-
-    //endregion
-
-    //region 開始ボタンをクリックして、メニュー画面に遷移
+    //region ログインボタンをクリック
 
     public void btnLogin_Click(View view) {
 
-        final AutoCompleteTextView spnOffice = findViewById(R.id.txtOffice);
-        final AutoCompleteTextView txtRepresentative = findViewById(R.id.txtRepresentative);
-        final AutoCompleteTextView txtWarehouse = findViewById(R.id.txtWarehouse);
+        final TextInputLayout tilTensyo = findViewById(R.id.tilTensyo);
+        final TextInputLayout tilSgytanto = findViewById(R.id.tilSgytanto);
+        final TextInputLayout tilSouko = findViewById(R.id.tilSouko);
 
+        final AutoCompleteTextView txtTensyo = findViewById(R.id.txtTensyo);
+        final AutoCompleteTextView txtSgytanto = findViewById(R.id.txtSgytanto);
+        final AutoCompleteTextView txtSouko = findViewById(R.id.txtSouko);
 
-                TextInputLayout tilOffice = findViewById(R.id.tilOffice);
-                TextInputLayout tilRepresentative = findViewById(R.id.tilRepresentative);
-                TextInputLayout tilWarehouse = findViewById(R.id.tilWarehouse);
+        boolean isErr = false;
+        if (txtTensyo.getText().toString().isEmpty()) {
+            tilTensyo.setError("事業所を選択して下さい");
+            isErr = true;
+        } else {
+            tilTensyo.setError("");
+        }
 
-                Boolean isErr = false;
-                if(spnOffice.getText().toString().isEmpty())
-                {
-                    tilOffice.setError("事業所を選択して下さい");
-                    isErr = true;
-                }
-                else
-                {
-                    tilOffice.setError("");
-                }
+        if (txtSgytanto.getText().toString().isEmpty()) {
+            tilSgytanto.setError("担当者を選択して下さい");
+            isErr = true;
+        } else {
+            tilSgytanto.setError("");
+        }
 
-                if(txtRepresentative.getText().toString().isEmpty())
-                {
-                    tilRepresentative.setError("担当者を選択して下さい");
-                    isErr = true;
-                }
-                else
-                {
-                    tilRepresentative.setError("");
-                }
+        if (txtSouko.getText().toString().isEmpty()) {
+            txtSouko.setError("倉庫を選択して下さい");
+            isErr = true;
+        } else {
+            tilSouko.setError("");
+        }
 
-                if(txtWarehouse.getText().toString().isEmpty())
-                {
-                    tilWarehouse.setError("倉庫を選択して下さい");
-                    isErr = true;
-                }
-                else
-                {
-                    tilWarehouse.setError("");
-                }
+        if (isErr) {
+            // エラー時に振動する
+            Vibrate();
+            return;
+        }
 
-                if(isErr == true)
-                {
-                    Vibrate();
-                    return;
-                }
-                
-                logininfo = new LoginInfo();
-                
-//                ROffice tmpOffice = new ROffice();
-//                tmpOffice.setCode(0);
-//                tmpOffice.setName(spnOffice.getText().toString());
-//                logininfo.setOfficeInfo(tmpOffice);
-//
-//                RRepresentative tmpRepresentative = new RRepresentative();
-//                tmpRepresentative.setCode(0);
-//                tmpRepresentative.setName(txtRepresentative.getText().toString());
-//                logininfo.setRepresentativeInfo(tmpRepresentative);
-//
-//                RWarehouse tmpWarehouse = new RWarehouse();
-//                tmpWarehouse.setCode(0);
-//                tmpWarehouse.setName(txtWarehouse.getText().toString());
-//                logininfo.setWarehouseInfo(tmpWarehouse);
-//
-//                logininfo.setWorkingday(new Date());
+        // ログイン情報セット
 
-                // メニュー画面に遷移
-                Intent intent = new Intent(getApplication(), MenuActivity.class);
-                intent.putExtra("LOGININFO", logininfo);
+        // 会社
+        loginInfo.Kaicd = 40;
 
-                try {
-                    startActivity(intent);
-                }catch(Exception ex)
-                {
-                    ex.getMessage();
-                }
+        // 店所
+        loginInfo.Tensyocd = tensyosModel.Tensyos[txtTensyo.getListSelection()].Tencd;
+        loginInfo.Tensyonm = tensyosModel.Tensyos[txtTensyo.getListSelection()].Tennm;
+
+        // 作業担当者
+        loginInfo.Sgytantocd = sgytantosModel.Sgytantos[txtSgytanto.getListSelection()].Sgytantocd;
+        loginInfo.Sgytantonm = sgytantosModel.Sgytantos[txtSgytanto.getListSelection()].Sgytantonm;
+
+        // 倉庫
+        loginInfo.Soukocd = soukosModel.Soukos[txtSouko.getListSelection()].Soukocd;
+        loginInfo.Soukonm = soukosModel.Soukos[txtSouko.getListSelection()].Soukonm;
+
+        // 作業日時
+        if (loginInfo.Sgydate == null)
+        {
+            loginInfo.Sgydate = new Date();
+        }
+
+        // 更新日時
+        loginInfo.Updatedate = new Date();
+
+        // ログイン情報書き込み
+        SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        // 会社
+        editor.putInt("Kaicd",loginInfo.Kaicd);
+
+        // 店所
+        editor.putInt("Tensyocd",loginInfo.Tensyocd);
+        editor.putString("Tensyonm",loginInfo.Tensyonm);
+
+        // 作業担当者
+        editor.putInt("Sgytantocd",loginInfo.Sgytantocd);
+        editor.putString("Sgytantonm",loginInfo.Sgytantonm);
+
+        // 倉庫
+        editor.putInt("Soukocd",loginInfo.Soukocd);
+        editor.putString("Soukonm",loginInfo.Soukonm);
+
+        // 作業日時
+        editor.putLong("Sgydate",loginInfo.Sgydate.getTime());
+
+        // 更新日時
+        editor.putLong("Updatedate",loginInfo.Updatedate.getTime());
+
+        // 反映
+        editor.apply();
+
+        // メニュー画面に遷移
+        Intent intent = new Intent(getApplication(), MenuActivity.class);
+        intent.putExtra("LOGININFO", loginInfo);
+
+        startActivity(intent);
     }
 
     //endregion
 
-    //region お試し登録
+    //region 店所一覧取得
 
-//    private String CreateJSON()
-//    {
-//        TensyoModel tensyoModel = new TensyoModel();
-//        tensyoModel.Tencd = 9999;
-//        tensyoModel.Tennm = String.valueOf(9999) + "倉庫";
-//
-//        Gson gson = new Gson();
-//        return gson.toJson(tensyoModel);
-//    }
-//
-//    private  String postWebAPI() throws IOException {
-//        final Map<String,String> httpHeaders = new LinkedHashMap<String,String>();
-//        final String resultStr = doPost("http://192.168.244.181:52200/post/tensyo","UTF-8",httpHeaders,CreateJSON());
-//
-//        return resultStr;
-//    }
-//
-//    private String CreateJSON2()
-//    {
-//        Gson gson = new Gson();
-//        return gson.toJson(Integer.valueOf(1));
-//    }
-//
-//    private  void getWebAPI() throws IOException {
-//        final Map<String,String> httpHeaders = new LinkedHashMap<String,String>();
-//        doPost2("http://192.168.244.181:52200/get/tensyo/1","UTF-8",httpHeaders);
-//    }
-//
-//    public  String doPost(String url, String encoding,Map<String,String> headers, String json) throws IOException {
-//        final okhttp3.MediaType mediaTypeJson = okhttp3.MediaType.parse("application/json; charset=" + encoding);
-//
-//        final RequestBody requestBody = RequestBody.create(mediaTypeJson, json);
-//
-//        final Request request = new Request.Builder()
-//                .url(url)
-//                .headers(Headers.of(headers))
-//                .post(requestBody)
-//                .build();
-//
-//        final OkHttpClient client = new OkHttpClient.Builder()
-//                .build();
-//
-//        AsyncHttpRequest task = new AsyncHttpRequest(this);
-//        final String resultStr = String.valueOf(task.execute(client.newCall(request)));
-//        return resultStr;
-//    }
-//
-//    public  void doPost2(String url, String encoding,Map<String,String> headers) throws IOException {
-//        final okhttp3.MediaType mediaTypeJson = okhttp3.MediaType.parse("application/json; charset=" + encoding);
-//
-//        final Request request = new Request.Builder()
-//                .url(url)
-//                .headers(Headers.of(headers))
-//                .build();
-//
-//        final OkHttpClient client = new OkHttpClient.Builder()
-//                .build();
-//
-//        AsyncHttpRequest task = new AsyncHttpRequest(this);
-//        Response response = null;
-//
-//        task.execute(client.newCall(request));
-//    }
-//
-//    class AsyncHttpRequest extends AsyncTask<Call, Void, TensyoModel> {
-//
-//        private Activity mainActivity;
-//
-//        public AsyncHttpRequest(Activity activity) {
-//
-//            // 呼び出し元のアクティビティ
-//            this.mainActivity = activity;
-//        }
-//
-//        @Override
-//        protected TensyoModel doInBackground(okhttp3.Call... call) {
-//
-//            TensyoModel ret = null;
-//
-//            try {
-//                String s2 = call[0].execute().body().string();
-//
-//                TensyoModel tmp = new TensyoModel();
-//                tmp.Tencd = 1;
-//                tmp.Tennm = "あいう";
-//
-//                Gson gson = new Gson();
-//
-//                String s1 = gson.toJson(tmp,TensyoModel.class);
-//                //String s2 =body.string();
-//
-//                        ret = gson.fromJson(s1,TensyoModel.class);
-//                ret = gson.fromJson(s2,TensyoModel.class);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            return  ret;
-//        }
-//    }
+    private final GetTensyosTask getTensyosTask = new GetTensyosTask(this);
+
+    @SuppressLint("StaticFieldLeak")
+    private  class GetTensyosTask extends TensyoController.GetTensyosTask {
+
+        private final Activity mainActivity;
+
+        public GetTensyosTask(Activity activity) {
+            mainActivity = activity;
+        }
+
+        /**
+         * バックグランド処理が完了し、UIスレッドに反映する
+         */
+        @Override
+        protected void onPostExecute(TensyosModel tensyos) {
+
+            // 取得結果をセット
+            tensyosModel = tensyos;
+
+            // エラー発生
+            if (tensyosModel.Is_error) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setTitle("エラー");
+                builder.setMessage(tensyosModel.Message);
+
+                builder.show();
+                return;
+            }
+
+            // 該当データなし
+            if (tensyosModel.Tensyos == null) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setTitle("エラー");
+                builder.setMessage("事業所データがありません。");
+
+                builder.show();
+                return;
+            }
+
+            // コントロールにデータを追加
+            ArrayList<String> items = new ArrayList<String>();
+
+            for (TensyoModel tensyoModel : tensyosModel.Tensyos) {
+                items.add(tensyoModel.Tennm);
+            }
+
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(mainActivity, R.layout.dropdown_menu_popup_item, items);
+
+            final AutoCompleteTextView txtTensyos = findViewById(R.id.txtTensyo);
+            txtTensyos.setAdapter(arrayAdapter);
+
+            // 前回ログイン情報がある場合、前回の店所を選択する
+            if (loginInfo != null && loginInfo.Tensyocd > 0) {
+                // 前回ログイン時の店所を取得
+                int i = 0;
+                int selectedIndex = -1;
+                for (TensyoModel tensyoModel : tensyosModel.Tensyos) {
+
+                    if (tensyoModel.Tencd == loginInfo.Tensyocd) {
+                        selectedIndex = i;
+                        break;
+                    }
+
+                    i++;
+                }
+
+                // 前回ログイン時の店所を選択
+                if (selectedIndex > -1) {
+                    txtTensyos.setSelection(selectedIndex);
+                }
+
+                // 作業担当者一覧を取得
+                getSgytantosTask.execute(loginInfo);
+
+                // 倉庫一覧を取得
+                getSoukosTask.execute(loginInfo);
+            }
+        }
+    }
 
     //endregion
 
-    //region お試し取得
+    //region 作業担当者一覧取得
 
+    private final GetSgytantosTask getSgytantosTask = new GetSgytantosTask(this);
 
+    @SuppressLint("StaticFieldLeak")
+    private class GetSgytantosTask extends SgytantoController.GetSgytantosTask {
+
+        private final Activity mainActivity;
+
+        public GetSgytantosTask(Activity activity) {
+            mainActivity = activity;
+        }
+
+        /**
+         * バックグランド処理が完了し、UIスレッドに反映する
+         */
+        @Override
+        protected void onPostExecute(SgytantosModel sgytantos) {
+
+            // 取得結果をセット
+            sgytantosModel = sgytantos;
+
+            // エラー発生
+            if (sgytantosModel.Is_error) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setTitle("エラー");
+                builder.setMessage(sgytantosModel.Message);
+
+                builder.show();
+                return;
+            }
+
+            // 該当データなし
+            if (sgytantosModel.Sgytantos == null) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setTitle("エラー");
+                builder.setMessage("作業担当者データがありません。");
+
+                builder.show();
+                return;
+            }
+
+            // コントロールにデータを追加
+            ArrayList<String> items = new ArrayList<String>();
+
+            for (SgytantoModel SgytantoModel : sgytantosModel.Sgytantos) {
+                items.add(SgytantoModel.Sgytantonm);
+            }
+
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(mainActivity, R.layout.dropdown_menu_popup_item, items);
+
+            final AutoCompleteTextView txtSgytantos = findViewById(R.id.txtSgytanto);
+            txtSgytantos.setAdapter(arrayAdapter);
+
+            // 前回ログイン情報がある場合、前回の作業担当者を選択する
+            if (loginInfo != null && loginInfo.Sgytantocd > 0) {
+                // 前回ログイン時の作業担当者を取得
+                int i = 0;
+                int selectedIndex = -1;
+                for (SgytantoModel sgytantoModel : sgytantosModel.Sgytantos) {
+
+                    if (sgytantoModel.Sgytantocd == loginInfo.Sgytantocd) {
+                        selectedIndex = i;
+                        break;
+                    }
+
+                    i++;
+                }
+
+                // 前回ログイン時の作業担当者を選択
+                if (selectedIndex > -1) {
+                    txtSgytantos.setSelection(selectedIndex);
+                }
+            }
+        }
+    }
+
+    //endregion
+
+    //region 倉庫一覧取得
+
+    private final GetSoukosTask getSoukosTask = new GetSoukosTask(this);
+
+    @SuppressLint("StaticFieldLeak")
+    private class GetSoukosTask extends SoukoController.GetSoukosTask {
+
+        private final Activity mainActivity;
+
+        public GetSoukosTask(Activity activity) {
+            mainActivity = activity;
+        }
+
+        /**
+         * バックグランド処理が完了し、UIスレッドに反映する
+         */
+        @Override
+        protected void onPostExecute(SoukosModel soukos) {
+
+            // 取得結果をセット
+            soukosModel = soukos;
+
+            // エラー発生
+            if (soukosModel.Is_error) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setTitle("エラー");
+                builder.setMessage(soukosModel.Message);
+
+                builder.show();
+                return;
+            }
+
+            // 該当データなし
+            if (soukosModel.Soukos == null) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                builder.setTitle("エラー");
+                builder.setMessage("倉庫データがありません。");
+
+                builder.show();
+                return;
+            }
+
+            // コントロールにデータを追加
+            ArrayList<String> items = new ArrayList<String>();
+
+            for (SoukoModel SoukoModel : soukosModel.Soukos) {
+                items.add(SoukoModel.Soukonm);
+            }
+
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(mainActivity, R.layout.dropdown_menu_popup_item, items);
+
+            final AutoCompleteTextView txtSoukos = findViewById(R.id.txtSouko);
+            txtSoukos.setAdapter(arrayAdapter);
+
+            // 前回ログイン情報がある場合、前回の倉庫を選択する
+            if (loginInfo != null && loginInfo.Soukocd > 0) {
+                // 前回ログイン時の倉庫を取得
+                int i = 0;
+                int selectedIndex = -1;
+                for (SoukoModel soukoModel : soukosModel.Soukos) {
+
+                    if (soukoModel.Soukocd == loginInfo.Soukocd) {
+                        selectedIndex = i;
+                        break;
+                    }
+
+                    i++;
+                }
+
+                // 前回ログイン時の作業担当者を選択
+                if (selectedIndex > -1) {
+                    txtSoukos.setSelection(selectedIndex);
+                }
+            }
+        }
+    }
 
     //endregion
 

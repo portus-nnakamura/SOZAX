@@ -252,7 +252,7 @@ public class GoodsIssuePage1Activity extends CommonActivity {
 
         } else {
             Intent intent = new Intent(this, GoodsIssuePage2Activity.class);
-            intent.putExtra("LOGININFO", logininfo);
+            intent.putExtra("LOGININFO", loginInfo);
             intent.putExtra("DISPLAYDATA", displayData);
             intent.putExtra("CURRENTSLIPINDEX", CurrentSlipIndex);
 

@@ -17,17 +17,17 @@
 
     <!-- 事業所 -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilOffice"
+        android:id="@+id/tilTensyo"
         style="@style/spinner_style"
         android:hint="@string/tilOffice_hint"
         android:layout_marginTop="@dimen/space_size_40"
-        app:layout_constraintBottom_toTopOf="@+id/tilRepresentative"
+        app:layout_constraintBottom_toTopOf="@+id/tilSgytanto"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imgHeaderLogo">
 
         <AutoCompleteTextView
-            android:id="@+id/txtOffice"
+            android:id="@+id/txtTensyo"
             style="@style/spinner_text_style"
             tools:ignore="LabelFor" />
 
@@ -35,16 +35,16 @@
 
     <!-- 担当者 -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilRepresentative"
+        android:id="@+id/tilSgytanto"
         style="@style/spinner_style"
         android:hint="@string/tilRepresentative_hint"
-        app:layout_constraintBottom_toTopOf="@+id/tilWarehouse"
+        app:layout_constraintBottom_toTopOf="@+id/tilSouko"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tilOffice">
+        app:layout_constraintTop_toBottomOf="@+id/tilTensyo">
 
         <AutoCompleteTextView
-            android:id="@+id/txtRepresentative"
+            android:id="@+id/txtSgytanto"
             style="@style/spinner_text_style"
             tools:ignore="LabelFor" />
 
@@ -52,16 +52,16 @@
 
     <!-- 倉庫 -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilWarehouse"
+        android:id="@+id/tilSouko"
         style="@style/spinner_style"
         android:hint="@string/tilWarehouse_hint"
         android:layout_marginTop="@dimen/space_size_32"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tilRepresentative">
+        app:layout_constraintTop_toBottomOf="@+id/tilSgytanto">
 
         <AutoCompleteTextView
-            android:id="@+id/txtWarehouse"
+            android:id="@+id/txtSouko"
             style="@style/spinner_text_style"
             tools:ignore="LabelFor" />
 
