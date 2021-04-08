@@ -42,7 +42,7 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
 
         // ログイン情報を取得
         Intent intent = getIntent();
-        loginInfo = (LoginInfoModel) intent.getSerializableExtra("LOGININFO");
+        loginInfo = (LoginInfoModel) intent.getSerializableExtra("LoginInfo");
     }
 
     //endregion

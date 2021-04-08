@@ -5,10 +5,8 @@ import java.util.Date;
 
 public class LoginInfoModel implements Serializable {
 
-    // 会社コード
-    public int Kaicd = 0;
-    // 会社名
-    public String Kainm = "";
+    // 会社コード(固定)
+    public int Kaicd = 40;
 
     // 店所コード
     public int Tensyocd = 0;

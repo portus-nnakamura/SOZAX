@@ -1,7 +1,6 @@
 package com.example.sozax.ui;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -11,12 +10,13 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Filter;
+import android.widget.Toast;
 
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.SgytantoController;
 import com.example.sozax.bl.controllers.SoukoController;
 import com.example.sozax.bl.controllers.TensyoController;
-import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantosModel;
 import com.example.sozax.bl.models.souko.SoukoModel;
@@ -27,7 +27,6 @@ import com.example.sozax.common.CommonActivity;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 public class LoginActivity extends CommonActivity {
 
@@ -40,6 +39,13 @@ public class LoginActivity extends CommonActivity {
     // 倉庫一覧
     private SoukosModel soukosModel;
 
+    // 店所選択Index
+    private int tensyoSelectedIndex = -1;
+    // 作業担当者選択Index
+    private int sgytantoSelectedIndex = -1;
+    // 倉庫選択Index
+    private int soukoSelectedIndex = -1;
+
     //endregion
 
     //region 初回起動
@@ -49,57 +55,17 @@ public class LoginActivity extends CommonActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // 店所選択イベント追加
+        // 選択イベント追加
         final AutoCompleteTextView txtTensyos = findViewById(R.id.txtTensyo);
-        txtTensyos.setOnItemSelectedListener(new TensyoItemSelectedListener());
-
-        // 前回ログイン情報があるか
-        boolean exsistsPreviousLoginInfo = loginInfo != null;
-
-        if (!exsistsPreviousLoginInfo) {
-            // ログイン情報がない場合、インスタンス生成
-            loginInfo = new LoginInfoModel();
-
-            // 会社コード
-            loginInfo.Kaicd = 40;
-        }
+        txtTensyos.setOnItemClickListener(new TensyoItemClickListener());
+        final AutoCompleteTextView txtSgytantos = findViewById(R.id.txtSgytanto);
+        txtSgytantos.setOnItemClickListener(new SgytantoItemClickListener());
+        final AutoCompleteTextView txtSoukos = findViewById(R.id.txtSouko);
+        txtSoukos.setOnItemClickListener(new SoukoItemClickListener());
 
         // 店所一覧を取得
-        getTensyosTask.execute(loginInfo);
+        new GetTensyosTask().execute(loginInfo);
     }
-
-    //endregion
-
-    //region 店所を選択
-
-    private class TensyoItemSelectedListener implements  AdapterView.OnItemSelectedListener
-        {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                // ログイン情報に選択した店所をセット
-                loginInfo.Tensyocd = tensyosModel.Tensyos[position].Tencd;
-                loginInfo.Tensyonm = tensyosModel.Tensyos[position].Tennm;
-
-                // ログイン情報の作業担当者をクリア
-                loginInfo.Sgytantocd = 0;
-                loginInfo.Sgytantonm = "";
-
-                // ログイン情報の倉庫をクリア
-                loginInfo.Soukocd = 0;
-                loginInfo.Soukonm = "";
-
-                // 作業担当者一覧を取得
-                getSgytantosTask.execute(loginInfo);
-
-                // 倉庫一覧を取得
-                getSoukosTask.execute(loginInfo);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        }
 
     //endregion
 
@@ -131,7 +97,7 @@ public class LoginActivity extends CommonActivity {
         }
 
         if (txtSouko.getText().toString().isEmpty()) {
-            txtSouko.setError("倉庫を選択して下さい");
+            tilSouko.setError("倉庫を選択して下さい");
             isErr = true;
         } else {
             tilSouko.setError("");
@@ -143,56 +109,30 @@ public class LoginActivity extends CommonActivity {
             return;
         }
 
-        // ログイン情報セット
-
-        // 会社
-        loginInfo.Kaicd = 40;
-
-        // 店所
-        loginInfo.Tensyocd = tensyosModel.Tensyos[txtTensyo.getListSelection()].Tencd;
-        loginInfo.Tensyonm = tensyosModel.Tensyos[txtTensyo.getListSelection()].Tennm;
-
-        // 作業担当者
-        loginInfo.Sgytantocd = sgytantosModel.Sgytantos[txtSgytanto.getListSelection()].Sgytantocd;
-        loginInfo.Sgytantonm = sgytantosModel.Sgytantos[txtSgytanto.getListSelection()].Sgytantonm;
-
-        // 倉庫
-        loginInfo.Soukocd = soukosModel.Soukos[txtSouko.getListSelection()].Soukocd;
-        loginInfo.Soukonm = soukosModel.Soukos[txtSouko.getListSelection()].Soukonm;
-
-        // 作業日時
-        if (loginInfo.Sgydate == null)
-        {
-            loginInfo.Sgydate = new Date();
-        }
-
-        // 更新日時
-        loginInfo.Updatedate = new Date();
-
         // ログイン情報書き込み
         SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
 
         // 会社
-        editor.putInt("Kaicd",loginInfo.Kaicd);
+        editor.putInt("Kaicd", loginInfo.Kaicd);
 
         // 店所
-        editor.putInt("Tensyocd",loginInfo.Tensyocd);
-        editor.putString("Tensyonm",loginInfo.Tensyonm);
+        editor.putInt("Tensyocd", loginInfo.Tensyocd);
+        editor.putString("Tensyonm", loginInfo.Tensyonm);
 
         // 作業担当者
-        editor.putInt("Sgytantocd",loginInfo.Sgytantocd);
-        editor.putString("Sgytantonm",loginInfo.Sgytantonm);
+        editor.putInt("Sgytantocd", loginInfo.Sgytantocd);
+        editor.putString("Sgytantonm", loginInfo.Sgytantonm);
 
         // 倉庫
-        editor.putInt("Soukocd",loginInfo.Soukocd);
-        editor.putString("Soukonm",loginInfo.Soukonm);
+        editor.putInt("Soukocd", loginInfo.Soukocd);
+        editor.putString("Soukonm", loginInfo.Soukonm);
 
         // 作業日時
-        editor.putLong("Sgydate",loginInfo.Sgydate.getTime());
+        editor.putLong("Sgydate", loginInfo.Sgydate.getTime());
 
         // 更新日時
-        editor.putLong("Updatedate",loginInfo.Updatedate.getTime());
+        editor.putLong("Updatedate", loginInfo.Updatedate.getTime());
 
         // 反映
         editor.apply();
@@ -208,16 +148,8 @@ public class LoginActivity extends CommonActivity {
 
     //region 店所一覧を取得
 
-    private final GetTensyosTask getTensyosTask = new GetTensyosTask(this);
-
     @SuppressLint("StaticFieldLeak")
-    private  class GetTensyosTask extends TensyoController.GetTensyosTask {
-
-        private final Activity mainActivity;
-
-        public GetTensyosTask(Activity activity) {
-            mainActivity = activity;
-        }
+    private class GetTensyosTask extends TensyoController.GetTensyosTask {
 
         /**
          * バックグランド処理が完了し、UIスレッドに反映する
@@ -230,7 +162,7 @@ public class LoginActivity extends CommonActivity {
 
             // エラー発生
             if (tensyosModel.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                 builder.setTitle("エラー");
                 builder.setMessage(tensyosModel.Message);
 
@@ -240,7 +172,7 @@ public class LoginActivity extends CommonActivity {
 
             // 該当データなし
             if (tensyosModel.Tensyos == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                 builder.setTitle("エラー");
                 builder.setMessage("事業所データがありません。");
 
@@ -255,20 +187,20 @@ public class LoginActivity extends CommonActivity {
                 items.add(tensyoModel.Tennm);
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(mainActivity, R.layout.dropdown_menu_popup_item, items);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
 
             final AutoCompleteTextView txtTensyos = findViewById(R.id.txtTensyo);
             txtTensyos.setAdapter(arrayAdapter);
 
             // 前回ログイン情報がある場合、前回の店所を選択する
+            tensyoSelectedIndex = -1;
             if (loginInfo != null && loginInfo.Tensyocd > 0) {
                 // 前回ログイン時の店所を取得
                 int i = 0;
-                int selectedIndex = -1;
                 for (TensyoModel tensyoModel : tensyosModel.Tensyos) {
 
                     if (tensyoModel.Tencd == loginInfo.Tensyocd) {
-                        selectedIndex = i;
+                        tensyoSelectedIndex = i;
                         break;
                     }
 
@@ -276,15 +208,15 @@ public class LoginActivity extends CommonActivity {
                 }
 
                 // 前回ログイン時の店所を選択
-                if (selectedIndex > -1) {
-                    txtTensyos.setSelection(selectedIndex);
+                if (tensyoSelectedIndex > -1) {
+                    txtTensyos.setText(tensyos.Tensyos[tensyoSelectedIndex].Tennm);
                 }
 
                 // 作業担当者一覧を取得
-                getSgytantosTask.execute(loginInfo);
+                new GetSgytantosTask().execute(loginInfo);
 
                 // 倉庫一覧を取得
-                getSoukosTask.execute(loginInfo);
+                new GetSoukosTask().execute(loginInfo);
             }
         }
     }
@@ -293,16 +225,8 @@ public class LoginActivity extends CommonActivity {
 
     //region 作業担当者一覧を取得
 
-    private final GetSgytantosTask getSgytantosTask = new GetSgytantosTask(this);
-
     @SuppressLint("StaticFieldLeak")
     private class GetSgytantosTask extends SgytantoController.GetSgytantosTask {
-
-        private final Activity mainActivity;
-
-        public GetSgytantosTask(Activity activity) {
-            mainActivity = activity;
-        }
 
         /**
          * バックグランド処理が完了し、UIスレッドに反映する
@@ -315,7 +239,7 @@ public class LoginActivity extends CommonActivity {
 
             // エラー発生
             if (sgytantosModel.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                 builder.setTitle("エラー");
                 builder.setMessage(sgytantosModel.Message);
 
@@ -325,7 +249,7 @@ public class LoginActivity extends CommonActivity {
 
             // 該当データなし
             if (sgytantosModel.Sgytantos == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                 builder.setTitle("エラー");
                 builder.setMessage("作業担当者データがありません。");
 
@@ -340,20 +264,20 @@ public class LoginActivity extends CommonActivity {
                 items.add(SgytantoModel.Sgytantonm);
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(mainActivity, R.layout.dropdown_menu_popup_item, items);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
 
             final AutoCompleteTextView txtSgytantos = findViewById(R.id.txtSgytanto);
             txtSgytantos.setAdapter(arrayAdapter);
 
             // 前回ログイン情報がある場合、前回の作業担当者を選択する
+            sgytantoSelectedIndex = -1;
             if (loginInfo != null && loginInfo.Sgytantocd > 0) {
                 // 前回ログイン時の作業担当者を取得
                 int i = 0;
-                int selectedIndex = -1;
                 for (SgytantoModel sgytantoModel : sgytantosModel.Sgytantos) {
 
                     if (sgytantoModel.Sgytantocd == loginInfo.Sgytantocd) {
-                        selectedIndex = i;
+                        sgytantoSelectedIndex = i;
                         break;
                     }
 
@@ -361,8 +285,8 @@ public class LoginActivity extends CommonActivity {
                 }
 
                 // 前回ログイン時の作業担当者を選択
-                if (selectedIndex > -1) {
-                    txtSgytantos.setSelection(selectedIndex);
+                if (sgytantoSelectedIndex > -1) {
+                    txtSgytantos.setText(sgytantos.Sgytantos[sgytantoSelectedIndex].Sgytantonm);
                 }
             }
         }
@@ -372,16 +296,8 @@ public class LoginActivity extends CommonActivity {
 
     //region 倉庫一覧を取得
 
-    private final GetSoukosTask getSoukosTask = new GetSoukosTask(this);
-
     @SuppressLint("StaticFieldLeak")
     private class GetSoukosTask extends SoukoController.GetSoukosTask {
-
-        private final Activity mainActivity;
-
-        public GetSoukosTask(Activity activity) {
-            mainActivity = activity;
-        }
 
         /**
          * バックグランド処理が完了し、UIスレッドに反映する
@@ -394,7 +310,7 @@ public class LoginActivity extends CommonActivity {
 
             // エラー発生
             if (soukosModel.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                 builder.setTitle("エラー");
                 builder.setMessage(soukosModel.Message);
 
@@ -404,7 +320,8 @@ public class LoginActivity extends CommonActivity {
 
             // 該当データなし
             if (soukosModel.Soukos == null) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+
                 builder.setTitle("エラー");
                 builder.setMessage("倉庫データがありません。");
 
@@ -419,20 +336,20 @@ public class LoginActivity extends CommonActivity {
                 items.add(SoukoModel.Soukonm);
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(mainActivity, R.layout.dropdown_menu_popup_item, items);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
 
             final AutoCompleteTextView txtSoukos = findViewById(R.id.txtSouko);
             txtSoukos.setAdapter(arrayAdapter);
 
             // 前回ログイン情報がある場合、前回の倉庫を選択する
+            soukoSelectedIndex = -1;
             if (loginInfo != null && loginInfo.Soukocd > 0) {
                 // 前回ログイン時の倉庫を取得
                 int i = 0;
-                int selectedIndex = -1;
                 for (SoukoModel soukoModel : soukosModel.Soukos) {
 
                     if (soukoModel.Soukocd == loginInfo.Soukocd) {
-                        selectedIndex = i;
+                        soukoSelectedIndex = i;
                         break;
                     }
 
@@ -440,10 +357,84 @@ public class LoginActivity extends CommonActivity {
                 }
 
                 // 前回ログイン時の作業担当者を選択
-                if (selectedIndex > -1) {
-                    txtSoukos.setSelection(selectedIndex);
+                if (soukoSelectedIndex > -1) {
+                    txtSoukos.setText(soukos.Soukos[soukoSelectedIndex].Soukonm);
                 }
             }
+        }
+    }
+
+    //endregion
+
+    //region 店所を選択
+
+    private class TensyoItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            try {
+                // ログイン情報に選択した店所をセット
+                loginInfo.Tensyocd = tensyosModel.Tensyos[position].Tencd;
+                loginInfo.Tensyonm = tensyosModel.Tensyos[position].Tennm;
+                tensyoSelectedIndex = position;
+
+                // 作業担当者をクリア
+                loginInfo.Sgytantocd = 0;
+                loginInfo.Sgytantonm = "";
+                sgytantosModel = null;
+                sgytantoSelectedIndex = -1;
+                final AutoCompleteTextView txtSgytantos = findViewById(R.id.txtSgytanto);
+                txtSgytantos.setAdapter(null);
+
+                // ログイン情報の倉庫をクリア
+                loginInfo.Soukocd = 0;
+                loginInfo.Soukonm = "";
+                soukosModel = null;
+                soukoSelectedIndex = -1;
+                final AutoCompleteTextView txtSoukos = findViewById(R.id.txtSouko);
+                txtSoukos.setAdapter(null);
+
+                // 作業担当者一覧を取得
+                new GetSgytantosTask().execute(loginInfo);
+
+                // 倉庫一覧を取得
+                new GetSoukosTask().execute(loginInfo);
+
+            } catch (Exception ex) {
+                Toast.makeText(getBaseContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    //endregion
+
+    //region 作業担当者を選択
+
+    private class SgytantoItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            // ログイン情報に選択した作業担当者をセット
+            loginInfo.Sgytantocd = sgytantosModel.Sgytantos[position].Sgytantocd;
+            loginInfo.Sgytantonm = sgytantosModel.Sgytantos[position].Sgytantonm;
+            sgytantoSelectedIndex = position;
+
+        }
+    }
+
+    //endregion
+
+    //region 倉庫を選択
+
+    private class SoukoItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            // ログイン情報に選択した倉庫をセット
+            loginInfo.Soukocd = soukosModel.Soukos[position].Soukocd;
+            loginInfo.Soukonm = soukosModel.Soukos[position].Soukonm;
+            soukoSelectedIndex = position;
+
         }
     }
 
@@ -456,4 +447,20 @@ public class LoginActivity extends CommonActivity {
     }
 
     //endregion
+    
+    class SampleArrayFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence prefix) {
+            return new FilterResults();
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            if (results.count > 0) {
+                //notifyDataSetChanged();
+            } else {
+                //notifyDataSetInvalidated();
+            }
+        }
+    }
 }

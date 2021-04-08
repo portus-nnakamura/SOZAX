@@ -1,6 +1,5 @@
 package com.example.sozax.ui;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,7 +18,6 @@ import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.common.CommonActivity;
 
 import java.util.Date;
-import java.util.concurrent.ExecutionException;
 
 public class TopActivity extends CommonActivity {
 
@@ -70,50 +68,32 @@ public class TopActivity extends CommonActivity {
 
     public void btnStart_Click(View view) {
 
-        try {
+        // ログイン情報を取得
+        loginInfo = new LoginInfoModel();
+        SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
 
-            // ログイン情報を取得
-            loginInfo = new LoginInfoModel();
-            SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
+        // 会社
+        loginInfo.Kaicd = preferences.getInt("Kaicd", 40);
 
-            // 会社
-            loginInfo.Kaicd = preferences.getInt("Kaicd", 0);
-            loginInfo.Kainm = preferences.getString("Kainm", "");
+        // 店所
+        loginInfo.Tensyocd = preferences.getInt("Tensyocd", 0);
+        loginInfo.Tensyonm = preferences.getString("Tensyonm", "");
 
-            // 店所
-            loginInfo.Tensyocd = preferences.getInt("Tensyocd", 0);
-            loginInfo.Tensyonm = preferences.getString("Tensyonm", "");
+        // 作業担当者
+        loginInfo.Sgytantocd = preferences.getInt("Sgytantocd", 0);
+        loginInfo.Sgytantonm = preferences.getString("Sgytantonm", "");
 
-            // 作業担当者
-            loginInfo.Sgytantocd = preferences.getInt("Sgytantocd", 0);
-            loginInfo.Sgytantonm = preferences.getString("Sgytantonm", "");
+        // 倉庫
+        loginInfo.Soukocd = preferences.getInt("Soukocd", 0);
+        loginInfo.Soukonm = preferences.getString("Soukonm", "");
 
-            // 倉庫
-            loginInfo.Soukocd = preferences.getInt("Soukocd", 0);
-            loginInfo.Soukonm = preferences.getString("Soukonm", "");
+        // 作業日時
+        long sgydate = preferences.getLong("Sgydate", new Date().getTime());
+        loginInfo.Sgydate = new Date(sgydate);
 
-            // 作業日時
-            long sgydate = preferences.getLong("Sgydate", 0);
-            loginInfo.Sgydate = new Date(sgydate);
-
-            // 更新日時
-            long updatedate = preferences.getLong("Updatedate", 0);
-            loginInfo.Updatedate = new Date(updatedate);
-
-        } catch (Exception ex) {
-            // エラー内容を出力
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("エラー");
-            builder.setMessage(ex.getMessage());
-
-            builder.show();
-
-            // ログイン画面に遷移
-            Intent intent = new Intent(getApplication(), LoginActivity.class);
-
-            startActivity(intent);
-            return;
-        }
+        // 更新日時
+        long updatedate = preferences.getLong("Updatedate", 0);
+        loginInfo.Updatedate = new Date(updatedate);
 
         // 現在日時を取得
         Date nowDate = new Date();
@@ -123,13 +103,13 @@ public class TopActivity extends CommonActivity {
                 loginInfo.Updatedate.getDay() == nowDate.getDay()) {
             // 更新日と現在日が一致する場合、メニュー画面に遷移
             Intent intent = new Intent(getApplication(), MenuActivity.class);
-            intent.putExtra("LogionInfo", loginInfo);
+            intent.putExtra("LoginInfo", loginInfo);
 
             startActivity(intent);
         } else {
             // 更新日と現在日が一致しない場合、ログイン画面に遷移
             Intent intent = new Intent(getApplication(), LoginActivity.class);
-            intent.putExtra("LogionInfo", loginInfo);
+            intent.putExtra("LoginInfo", loginInfo);
 
             startActivity(intent);
         }
@@ -141,10 +121,9 @@ public class TopActivity extends CommonActivity {
 
     public class GetVersionInfoTask extends VersionInfoController.GetVersionInfoTask {
 
-        private Activity mainActivity;
+        private final Activity mainActivity;
 
-        public GetVersionInfoTask(Activity activity)
-        {
+        public GetVersionInfoTask(Activity activity) {
             mainActivity = activity;
         }
 
