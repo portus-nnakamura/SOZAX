@@ -29,6 +29,7 @@ import com.example.sozax.common.CommonActivity;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class LoginActivity extends CommonActivity {
 
@@ -134,16 +135,31 @@ public class LoginActivity extends CommonActivity {
         editor.putLong("Sgydate", loginInfo.Sgydate.getTime());
 
         // 更新日時
-        editor.putLong("Updatedate", loginInfo.Updatedate.getTime());
+        editor.putLong("Updatedate", new Date().getTime());
 
         // 反映
         editor.apply();
 
-        // メニュー画面に遷移
-        Intent intent = new Intent(getApplication(), MenuActivity.class);
-        intent.putExtra("LOGININFO", loginInfo);
+        // 前画面のアクティビティ名を取得
+        String previousActivityName =  getIntent().getStringExtra("PreviousActivityName");
 
-        startActivity(intent);
+        if(previousActivityName.equals(TopActivity.class.getName()))
+        {
+            // 前画面がトップ画面の場合、メニュー画面に遷移
+            Intent intent = new Intent(getApplication(), MenuActivity.class);
+            intent.putExtra("LOGININFO", loginInfo);
+
+            startActivity(intent);
+        }
+        else if(previousActivityName.equals(MenuActivity.class.getName()))
+        {
+            // 前画面がメニュー画面の場合、閉じる
+            Intent intent = new Intent();
+            intent.putExtra("LOGININFO", loginInfo);
+            setResult(RESULT_OK, intent);
+
+            finish();
+        }
     }
 
     //endregion

@@ -59,23 +59,6 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
 
     //endregion
 
-    //region 非同期処理
-
-    public class Async extends AsyncTask<String, Void, String> {
-        private Activity mActivity;
-
-        public Async(Activity activity) {
-            mActivity = activity;
-        }
-
-        @Override
-        protected String doInBackground(String... string) {
-            return null;
-        }
-    }
-
-    //endregion
-
     //region アプリ終了ボタンの処理
 
     public class btnExit_Click implements View.OnClickListener {
