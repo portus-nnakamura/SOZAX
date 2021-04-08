@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 
@@ -48,6 +49,10 @@ public class LoginActivity extends CommonActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // 店所選択イベント追加
+        final AutoCompleteTextView txtTensyos = findViewById(R.id.txtTensyo);
+        txtTensyos.setOnItemSelectedListener(new TensyoItemSelectedListener());
+
         // 前回ログイン情報があるか
         boolean exsistsPreviousLoginInfo = loginInfo != null;
 
@@ -62,6 +67,39 @@ public class LoginActivity extends CommonActivity {
         // 店所一覧を取得
         getTensyosTask.execute(loginInfo);
     }
+
+    //endregion
+
+    //region 店所を選択
+
+    private class TensyoItemSelectedListener implements  AdapterView.OnItemSelectedListener
+        {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                // ログイン情報に選択した店所をセット
+                loginInfo.Tensyocd = tensyosModel.Tensyos[position].Tencd;
+                loginInfo.Tensyonm = tensyosModel.Tensyos[position].Tennm;
+
+                // ログイン情報の作業担当者をクリア
+                loginInfo.Sgytantocd = 0;
+                loginInfo.Sgytantonm = "";
+
+                // ログイン情報の倉庫をクリア
+                loginInfo.Soukocd = 0;
+                loginInfo.Soukonm = "";
+
+                // 作業担当者一覧を取得
+                getSgytantosTask.execute(loginInfo);
+
+                // 倉庫一覧を取得
+                getSoukosTask.execute(loginInfo);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        }
 
     //endregion
 
@@ -168,7 +206,7 @@ public class LoginActivity extends CommonActivity {
 
     //endregion
 
-    //region 店所一覧取得
+    //region 店所一覧を取得
 
     private final GetTensyosTask getTensyosTask = new GetTensyosTask(this);
 
@@ -253,7 +291,7 @@ public class LoginActivity extends CommonActivity {
 
     //endregion
 
-    //region 作業担当者一覧取得
+    //region 作業担当者一覧を取得
 
     private final GetSgytantosTask getSgytantosTask = new GetSgytantosTask(this);
 
@@ -332,7 +370,7 @@ public class LoginActivity extends CommonActivity {
 
     //endregion
 
-    //region 倉庫一覧取得
+    //region 倉庫一覧を取得
 
     private final GetSoukosTask getSoukosTask = new GetSoukosTask(this);
 
