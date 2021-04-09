@@ -21,7 +21,7 @@ public class SyukoSagyoModel  {
 
     public Date Sgydate = new Date(Long.MIN_VALUE);
 
-    public int Sgyjyokyokbn = 0;
+    public int Sgyjokyokbn = 0;
 
     public long Syukeicd = 0;
 

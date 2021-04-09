@@ -25,10 +25,7 @@ import com.example.sozax.common.ResultClass;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 public class TopActivity extends CommonActivity {
 
@@ -72,12 +69,12 @@ public class TopActivity extends CommonActivity {
 
         // お試し出庫作業登録
         SyukoDenpyoModel syukoDenpyoModel = new SyukoDenpyoModel();
-        syukoDenpyoModel.Syukosgyjyokyo = new SyukoSagyoModel();
-        syukoDenpyoModel.Syukosgyjyokyo.Syukono = 1;
-        syukoDenpyoModel.Syukosgyjyokyo.Kaicd = 66;
-        syukoDenpyoModel.Syukosgyjyokyo.Tencd = 2;
-        syukoDenpyoModel.Syukosgyjyokyo.Sgytantocd = 2;
-        syukoDenpyoModel.Syukosgyjyokyo.Soukocd = 777;
+        syukoDenpyoModel.Syukosgyjokyo = new SyukoSagyoModel();
+        syukoDenpyoModel.Syukosgyjokyo.Syukono = 1;
+        syukoDenpyoModel.Syukosgyjokyo.Kaicd = 66;
+        syukoDenpyoModel.Syukosgyjokyo.Tencd = 2;
+        syukoDenpyoModel.Syukosgyjokyo.Sgytantocd = 2;
+        syukoDenpyoModel.Syukosgyjokyo.Soukocd = 777;
         String strDate = "2015-10-24";
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Date date = null;
@@ -86,9 +83,9 @@ public class TopActivity extends CommonActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        syukoDenpyoModel.Syukosgyjyokyo.Sgydate = date;
-        syukoDenpyoModel.Syukosgyjyokyo.Sgyjyokyokbn = 1;
-        syukoDenpyoModel.Syukosgyjyokyo.Syukeicd = 123;
+        syukoDenpyoModel.Syukosgyjokyo.Sgydate = date;
+        syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = 1;
+        syukoDenpyoModel.Syukosgyjokyo.Syukeicd = 123;
 
         SyukoDenpyosModel syukoDenpyosModel = new SyukoDenpyosModel();
         syukoDenpyosModel.SyukoDenpyos = new SyukoDenpyoModel[1];

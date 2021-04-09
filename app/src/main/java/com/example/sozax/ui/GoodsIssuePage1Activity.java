@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -24,19 +23,14 @@ import android.widget.Toast;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.SyukoDenpyoController;
-import com.example.sozax.bl.controllers.VersionInfoController;
 import com.example.sozax.bl.goods_issue.GoodsIssueSlip;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
-import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.common.CommonActivity;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.example.sozax.ui.InventoryInquiryPage2Activity.toFullWidth;
@@ -436,11 +430,11 @@ public class GoodsIssuePage1Activity extends CommonActivity {
             }
 
             // 別のユーザーが、作業中
-            if(syukoDenpyoModel.Syukosgyjyokyo != null && syukoDenpyoModel.Syukosgyjyokyo.Sgytantocd != loginInfo.Sgytantocd)
+            if(syukoDenpyoModel.Syukosgyjokyo != null && syukoDenpyoModel.Syukosgyjokyo.Sgytantocd != loginInfo.Sgytantocd)
             {
                 AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
                 builder.setTitle("エラー");
-                builder.setMessage(syukoDenpyoModel.Syukosgyjyokyo.Sgytantonm + "が作業中のため、追加できません");
+                builder.setMessage(syukoDenpyoModel.Syukosgyjokyo.Sgytantonm + "が作業中のため、追加できません");
 
                 builder.show();
                 return;

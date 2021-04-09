@@ -175,7 +175,7 @@ public class SyukoDenpyoModel extends ResultClass {
 
     public BarChkKomkModel BarChkKomk = null;
 
-    public SyukoSagyoModel Syukosgyjyokyo = null;
+    public SyukoSagyoModel Syukosgyjokyo = null;
 
 
 
