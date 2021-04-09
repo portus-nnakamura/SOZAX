@@ -5,7 +5,7 @@ import com.example.sozax.common.ResultClass;
 
 import java.util.Date;
 
-public class SyukoSagyoModel extends ResultClass {
+public class SyukoSagyoModel  {
 
     public long Syukono = 0L;
 

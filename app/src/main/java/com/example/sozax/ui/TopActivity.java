@@ -10,14 +10,23 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.sozax.R;
+import com.example.sozax.bl.controllers.SyukoSagyoController;
 import com.example.sozax.bl.controllers.VersionInfoController;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.ResultClass;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class TopActivity extends CommonActivity {
 
@@ -58,6 +67,17 @@ public class TopActivity extends CommonActivity {
 
         // DB内のバージョン情報を取得
         new GetVersionInfoTask().execute();
+
+        // お試し出庫作業登録
+        SyukoDenpyoModel syukoDenpyoModel = new SyukoDenpyoModel();
+        syukoDenpyoModel.Syukosgyjyokyo = new SyukoSagyoModel();
+        syukoDenpyoModel.Syukosgyjyokyo.Syukono = 1;
+
+        SyukoDenpyosModel syukoDenpyosModel = new SyukoDenpyosModel();
+        syukoDenpyosModel.SyukoDenpyos = new SyukoDenpyoModel[1];
+        syukoDenpyosModel.SyukoDenpyos[0] = syukoDenpyoModel;
+
+        new PostSyukoSagyosTask().execute(syukoDenpyosModel);
     }
 
     //endregion
@@ -162,6 +182,27 @@ public class TopActivity extends CommonActivity {
     }
 
     //endregion
+
+    //region バージョン情報取得
+
+    @SuppressLint("StaticFieldLeak")
+    public class PostSyukoSagyosTask extends SyukoSagyoController.PostSyukoSagyosTask {
+
+        /**
+         * バックグランド処理が完了し、UIスレッドに反映する
+         */
+        @Override
+        protected void onPostExecute(ResultClass resultClass) {
+
+            if(resultClass.Is_error)
+            {
+                Toast.makeText(TopActivity.this,resultClass.Message,Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            Toast.makeText(TopActivity.this,"更新に成功しました。",Toast.LENGTH_LONG).show();
+        }
+    }
 
     //region DENSO固有ボタンの設定
 
