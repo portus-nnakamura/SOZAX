@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkConditionModel;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -41,6 +42,14 @@ public class BarChkKomkController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new BarChkKomkModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";

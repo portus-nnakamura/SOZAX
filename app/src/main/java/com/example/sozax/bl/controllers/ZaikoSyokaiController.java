@@ -2,6 +2,7 @@ package com.example.sozax.bl.controllers;
 
 import android.os.AsyncTask;
 
+import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiConditionModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.google.gson.Gson;
@@ -40,6 +41,14 @@ public class ZaikoSyokaiController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new ZaikoSyokaiModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";

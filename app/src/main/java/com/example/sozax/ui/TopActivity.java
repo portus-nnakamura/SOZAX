@@ -23,6 +23,8 @@ import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.common.CommonActivity;
 import com.example.sozax.common.ResultClass;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -72,12 +74,27 @@ public class TopActivity extends CommonActivity {
         SyukoDenpyoModel syukoDenpyoModel = new SyukoDenpyoModel();
         syukoDenpyoModel.Syukosgyjyokyo = new SyukoSagyoModel();
         syukoDenpyoModel.Syukosgyjyokyo.Syukono = 1;
+        syukoDenpyoModel.Syukosgyjyokyo.Kaicd = 66;
+        syukoDenpyoModel.Syukosgyjyokyo.Tencd = 2;
+        syukoDenpyoModel.Syukosgyjyokyo.Sgytantocd = 2;
+        syukoDenpyoModel.Syukosgyjyokyo.Soukocd = 777;
+        String strDate = "2015-10-24";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = null;
+        try {
+            date = dateFormat.parse(strDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        syukoDenpyoModel.Syukosgyjyokyo.Sgydate = date;
+        syukoDenpyoModel.Syukosgyjyokyo.Sgyjyokyokbn = 1;
+        syukoDenpyoModel.Syukosgyjyokyo.Syukeicd = 123;
 
         SyukoDenpyosModel syukoDenpyosModel = new SyukoDenpyosModel();
         syukoDenpyosModel.SyukoDenpyos = new SyukoDenpyoModel[1];
         syukoDenpyosModel.SyukoDenpyos[0] = syukoDenpyoModel;
 
-        new PostSyukoSagyosTask().execute(syukoDenpyosModel);
+        new DeleteSyukoSagyosTask().execute(syukoDenpyosModel);
     }
 
     //endregion
@@ -186,7 +203,7 @@ public class TopActivity extends CommonActivity {
     //region バージョン情報取得
 
     @SuppressLint("StaticFieldLeak")
-    public class PostSyukoSagyosTask extends SyukoSagyoController.PostSyukoSagyosTask {
+    public class DeleteSyukoSagyosTask extends SyukoSagyoController.DeleteSyukoSagyosTask {
 
         /**
          * バックグランド処理が完了し、UIスレッドに反映する

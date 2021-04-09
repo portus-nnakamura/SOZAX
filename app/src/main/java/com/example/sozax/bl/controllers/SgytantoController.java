@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantosModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.tensyo.TensyosModel;
 import com.google.gson.Gson;
 
@@ -41,6 +42,14 @@ public class SgytantoController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new SgytantosModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";

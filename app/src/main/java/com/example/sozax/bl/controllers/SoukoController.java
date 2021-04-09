@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantosModel;
 import com.example.sozax.bl.models.souko.SoukosModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -41,6 +42,14 @@ public class SoukoController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new SoukosModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";

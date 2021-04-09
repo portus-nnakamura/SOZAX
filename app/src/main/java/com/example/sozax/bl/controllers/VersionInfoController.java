@@ -42,6 +42,14 @@ public class VersionInfoController {
                 return  ret;
             }
 
+            if (response.isSuccessful() == false)
+            {
+                ret = new VersionInfoModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
+            }
+
             String s = "";
             try {
                 s = response.body().string();

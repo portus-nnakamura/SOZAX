@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.tensyo.TensyosModel;
+import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class TensyoController {
             TensyosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/tensyo/get/" + loginInfoModel[0].Kaicd)
+                    .url("http://192.168.244.156:55500/api/tensyo/get/" + loginInfoModel[0].Kaicd)
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -40,6 +41,14 @@ public class TensyoController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new TensyosModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";

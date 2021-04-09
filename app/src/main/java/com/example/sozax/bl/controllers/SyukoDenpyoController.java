@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -45,6 +46,14 @@ public class SyukoDenpyoController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new SyukoDenpyoModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";
@@ -94,6 +103,14 @@ public class SyukoDenpyoController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new SyukoDenpyosModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";
@@ -146,6 +163,14 @@ public class SyukoDenpyoController {
                 return ret;
             }
 
+            if (response.isSuccessful() == false)
+            {
+                ret = new SyukoDenpyosModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
+            }
+
             String s = "";
             try {
                 s = response.body().string();
@@ -192,6 +217,14 @@ public class SyukoDenpyoController {
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
+            }
+
+            if (response.isSuccessful() == false)
+            {
+                ret = new SyukoDenpyosModel();
+                ret.Is_error = true;
+                ret.Message = response.message();
+                return  ret;
             }
 
             String s = "";
