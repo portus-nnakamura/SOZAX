@@ -1,9 +1,11 @@
 package com.example.sozax.bl.models.zaiko_syokai;
 
+import com.example.sozax.common.ResultClass;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class ZaikoSyokaiModel {
+public class ZaikoSyokaiModel extends ResultClass {
 
     public long Syukeicd = 0L;
 
@@ -15,13 +17,13 @@ public class ZaikoSyokaiModel {
 
     public String Ninusinm = "";
 
-    public Date Nyukodate = new Date(Long.MIN_VALUE);
+    public Date Nyukodate = null;
 
     public int Nyukosyudankbn = 0;
 
     public int Sdosecd = 0;
 
-    public Date Sdosenyuymd = new Date(Long.MIN_VALUE);
+    public Date Sdosenyuymd = null;
 
     public String Funenm = "";
 

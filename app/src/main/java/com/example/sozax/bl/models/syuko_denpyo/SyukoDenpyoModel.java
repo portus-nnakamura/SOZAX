@@ -65,23 +65,23 @@ public class SyukoDenpyoModel extends ResultClass {
 
     public int Kamokbn = 0;
 
-    public Date Yunyudate = new Date(Long.MIN_VALUE);
+    public Date Yunyudate = null;
 
     public int Niduksgyokbn = 0;
 
     public int Nyukosyudankbn = 0;
 
-    public Date Nyukodate = new Date(Long.MIN_VALUE);
+    public Date Nyukodate = null;
 
     public BigDecimal Tanjuryo = BigDecimal.ZERO;
 
     public int Zaikokbn = 0;
 
-    public Date Syonindate = new Date(Long.MIN_VALUE);
+    public Date Syonindate = null;
 
     public long Syoninno = 0L;
 
-    public Date Tukandate = new Date(Long.MIN_VALUE);
+    public Date Tukandate = null;
 
     public long Tukanno = 0L;
 
@@ -103,7 +103,7 @@ public class SyukoDenpyoModel extends ResultClass {
 
     public String Id = "";
 
-    public Date Oltdate = new Date(Long.MIN_VALUE);
+    public Date Oltdate = null;
 
     public long Oltno = 0L;
 

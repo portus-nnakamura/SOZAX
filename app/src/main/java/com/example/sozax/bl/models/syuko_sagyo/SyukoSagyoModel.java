@@ -1,6 +1,6 @@
 package com.example.sozax.bl.models.syuko_sagyo;
 
-import com.example.sozax.bl.models.hyojihyo.HyojiHyoModel;
+import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
 import com.example.sozax.common.ResultClass;
 
 import java.util.Date;
@@ -25,5 +25,5 @@ public class SyukoSagyoModel  {
 
     public long Syukeicd = 0;
 
-    public HyojiHyoModel HyojiHyo = null;
+    public HyojihyoModel HyojiHyo = null;
 }
