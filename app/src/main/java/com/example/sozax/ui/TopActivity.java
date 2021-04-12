@@ -32,7 +32,7 @@ public class TopActivity extends CommonActivity {
     //region インスタンス変数
 
     // アプリ内のバージョン情報
-    VersionInfoModel app_version_info = new VersionInfoModel();
+    VersionInfoModel app_version_info;
     // DB内のバージョン情報
     VersionInfoModel db_version_info;
 
@@ -47,17 +47,26 @@ public class TopActivity extends CommonActivity {
 
         // アプリ内のバージョン情報を取得
         try {
-            PackageInfo pckInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-
+            PackageInfo pckInfo = getPackageManager().getPackageInfo("dadsadsadsa", 0);
+            app_version_info = new VersionInfoModel();
             app_version_info.Versioncd = pckInfo.versionCode;
             app_version_info.Versionnm = pckInfo.versionName;
         } catch (PackageManager.NameNotFoundException ex) {
             // エラー内容を出力
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("エラー");
-            builder.setMessage(ex.getMessage());
+            String template = "アプリ内のバージョン情報の取得に失敗しました\r\nパッケージ名：{0}が見つかりません";
+            builder.setMessage(java.text.MessageFormat.format(template,ex.getMessage()));
 
-            builder.show();
+            AlertDialog alertDialog = builder.create();
+
+            // アラートダイアログを表示
+            alertDialog.show();
+
+            // メッセージのフォントサイズを変更
+            TextView msgTxt = alertDialog.findViewById(android.R.id.message);
+            //msgTxt.setTextSize((float) 11.2);
+
             return;
         }
 
