@@ -7,27 +7,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
+import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.sozax.R;
-import com.example.sozax.bl.controllers.SyukoSagyoController;
 import com.example.sozax.bl.controllers.VersionInfoController;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
-import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
-import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
-import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.common.CommonActivity;
-import com.example.sozax.common.ResultClass;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TopActivity extends CommonActivity {
@@ -59,7 +50,7 @@ public class TopActivity extends CommonActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("エラー");
             String template = "アプリ内のバージョン情報の取得に失敗しました。\r\nパッケージ名：{0}が見つかりません。";
-            builder.setMessage(java.text.MessageFormat.format(template,ex.getMessage()));
+            builder.setMessage(java.text.MessageFormat.format(template, ex.getMessage()));
 
             builder.show();
             return;
@@ -137,14 +128,12 @@ public class TopActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // プログレスバーを表示
-            ProgressBar progressBar = ((ProgressBar)findViewById(R.id.progressBar));
-            progressBar.setVisibility(View.VISIBLE);
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-            // 開始ボタンを押下不可に
-            Button btnStart =((Button)findViewById(R.id.btnStart));
-            btnStart.setEnabled(false);
-            btnStart.setBackgroundColor(getResources().getColor(R.color.darkgray));
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
         }
 
         /**
@@ -163,7 +152,7 @@ public class TopActivity extends CommonActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
                     builder.setTitle("エラー");
                     String template = "最新のバージョン情報の取得に失敗しました。\r\n{0}";
-                    builder.setMessage(java.text.MessageFormat.format(template,db_version_info.Message));
+                    builder.setMessage(java.text.MessageFormat.format(template, db_version_info.Message));
 
                     builder.show();
                     return;
@@ -190,14 +179,12 @@ public class TopActivity extends CommonActivity {
 
             } finally {
 
-                // 開始ボタンを押下可能に
-                Button btnStart =((Button)findViewById(R.id.btnStart));
-                btnStart.setEnabled(true);
-                btnStart.setBackgroundColor(getResources().getColor(R.color.orientalblue));
-
                 // プログレスバーを非表示
-                ProgressBar progressBar = ((ProgressBar)findViewById(R.id.progressBar));
+                ProgressBar progressBar = findViewById(R.id.progressBar);
                 progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
             }
         }
