@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +50,7 @@ public class TopActivity extends CommonActivity {
 
         // アプリ内のバージョン情報を取得
         try {
-            PackageInfo pckInfo = getPackageManager().getPackageInfo("dadsadsadsa", 0);
+            PackageInfo pckInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             app_version_info = new VersionInfoModel();
             app_version_info.Versioncd = pckInfo.versionCode;
             app_version_info.Versionnm = pckInfo.versionName;
@@ -55,18 +58,10 @@ public class TopActivity extends CommonActivity {
             // エラー内容を出力
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("エラー");
-            String template = "アプリ内のバージョン情報の取得に失敗しました\r\nパッケージ名：{0}が見つかりません";
+            String template = "アプリ内のバージョン情報の取得に失敗しました。\r\nパッケージ名：{0}が見つかりません。";
             builder.setMessage(java.text.MessageFormat.format(template,ex.getMessage()));
 
-            AlertDialog alertDialog = builder.create();
-
-            // アラートダイアログを表示
-            alertDialog.show();
-
-            // メッセージのフォントサイズを変更
-            TextView msgTxt = alertDialog.findViewById(android.R.id.message);
-            //msgTxt.setTextSize((float) 11.2);
-
+            builder.show();
             return;
         }
 
@@ -75,32 +70,6 @@ public class TopActivity extends CommonActivity {
 
         // DB内のバージョン情報を取得
         new GetVersionInfoTask().execute();
-
-        // お試し出庫作業登録
-        SyukoDenpyoModel syukoDenpyoModel = new SyukoDenpyoModel();
-        syukoDenpyoModel.Syukosgyjokyo = new SyukoSagyoModel();
-        syukoDenpyoModel.Syukosgyjokyo.Syukono = 1;
-        syukoDenpyoModel.Syukosgyjokyo.Kaicd = 66;
-        syukoDenpyoModel.Syukosgyjokyo.Tencd = 2;
-        syukoDenpyoModel.Syukosgyjokyo.Sgytantocd = 2;
-        syukoDenpyoModel.Syukosgyjokyo.Soukocd = 777;
-        String strDate = "2015-10-24";
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = null;
-        try {
-            date = dateFormat.parse(strDate);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        syukoDenpyoModel.Syukosgyjokyo.Sgydate = date;
-        syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = 1;
-        syukoDenpyoModel.Syukosgyjokyo.Syukeicd = 123;
-
-        SyukoDenpyosModel syukoDenpyosModel = new SyukoDenpyosModel();
-        syukoDenpyosModel.SyukoDenpyos = new SyukoDenpyoModel[1];
-        syukoDenpyosModel.SyukoDenpyos[0] = syukoDenpyoModel;
-
-        new DeleteSyukoSagyosTask().execute(syukoDenpyosModel);
     }
 
     //endregion
@@ -164,68 +133,77 @@ public class TopActivity extends CommonActivity {
     @SuppressLint("StaticFieldLeak")
     public class GetVersionInfoTask extends VersionInfoController.GetVersionInfoTask {
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // プログレスバーを表示
+            ProgressBar progressBar = ((ProgressBar)findViewById(R.id.progressBar));
+            progressBar.setVisibility(View.VISIBLE);
+
+            // 開始ボタンを押下不可に
+            Button btnStart =((Button)findViewById(R.id.btnStart));
+            btnStart.setEnabled(false);
+            btnStart.setBackgroundColor(getResources().getColor(R.color.darkgray));
+        }
+
         /**
          * バックグランド処理が完了し、UIスレッドに反映する
          */
         @Override
         protected void onPostExecute(VersionInfoModel versionInfo) {
 
-            // DBの取得結果をセット
-            db_version_info = versionInfo;
+            try {
 
-            // エラー発生
-            if (db_version_info.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                builder.setTitle("エラー");
-                builder.setMessage(db_version_info.Message);
+                // DBの取得結果をセット
+                db_version_info = versionInfo;
 
-                builder.show();
-                return;
-            }
+                // エラー発生
+                if (db_version_info.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
+                    builder.setTitle("エラー");
+                    String template = "最新のバージョン情報の取得に失敗しました。\r\n{0}";
+                    builder.setMessage(java.text.MessageFormat.format(template,db_version_info.Message));
 
-            // 該当データなし
-            if (db_version_info.Versioncd == 0) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                builder.setMessage("最新のバージョン情報が見つかりませんでした。");
+                    builder.show();
+                    return;
+                }
 
-                builder.show();
-                return;
-            }
+                // 該当データなし
+                if (db_version_info.Versioncd == 0) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
+                    builder.setMessage("最新のバージョン情報が見つかりませんでした。");
 
-            // アプリ内とDBの、バージョンコードを比較して、
-            // 最新のバージョンであるかチェックする
-            if (db_version_info.Versioncd > app_version_info.Versioncd) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                builder.setTitle("お知らせ");
-                builder.setMessage("最新のバージョンにアップデート可能です。");
+                    builder.show();
+                    return;
+                }
 
-                builder.show();
+                // アプリ内とDBの、バージョンコードを比較して、
+                // 最新のバージョンであるかチェックする
+                if (db_version_info.Versioncd > app_version_info.Versioncd) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
+                    builder.setTitle("お知らせ");
+                    builder.setMessage("最新のバージョンにアップデート可能です。");
+
+                    builder.show();
+                }
+
+            } finally {
+
+                // 開始ボタンを押下可能に
+                Button btnStart =((Button)findViewById(R.id.btnStart));
+                btnStart.setEnabled(true);
+                btnStart.setBackgroundColor(getResources().getColor(R.color.orientalblue));
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = ((ProgressBar)findViewById(R.id.progressBar));
+                progressBar.setVisibility(View.INVISIBLE);
+
             }
         }
     }
 
     //endregion
-
-    //region バージョン情報取得
-
-    @SuppressLint("StaticFieldLeak")
-    public class DeleteSyukoSagyosTask extends SyukoSagyoController.DeleteSyukoSagyosTask {
-
-        /**
-         * バックグランド処理が完了し、UIスレッドに反映する
-         */
-        @Override
-        protected void onPostExecute(ResultClass resultClass) {
-
-            if(resultClass.Is_error)
-            {
-                Toast.makeText(TopActivity.this,resultClass.Message,Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            Toast.makeText(TopActivity.this,"更新に成功しました。",Toast.LENGTH_LONG).show();
-        }
-    }
 
     //region DENSO固有ボタンの設定
 
