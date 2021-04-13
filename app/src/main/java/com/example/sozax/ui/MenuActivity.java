@@ -115,6 +115,8 @@ public class MenuActivity extends CommonActivity {
 
             editor.putLong(getResources().getString(R.string.login_preferences_key_sgydate), loginInfo.Sgydate.getTime());
 
+            editor.apply();
+
             // 作業日を再表示
             TextView lblSgydate = findViewById(R.id.lblSgydate);
             @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));

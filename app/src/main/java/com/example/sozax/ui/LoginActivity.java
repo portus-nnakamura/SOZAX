@@ -3,6 +3,7 @@ package com.example.sozax.ui;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -155,12 +156,13 @@ public class LoginActivity extends CommonActivity {
             intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
 
             startActivity(intent);
+            finish();
         } else if (previousActivityName.equals(MenuActivity.class.getName())) {
             // 前画面がメニュー画面の場合、閉じる
             Intent intent = new Intent();
             intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
-            setResult(RESULT_OK, intent);
 
+            setResult(RESULT_OK, intent);
             finish();
         }
     }
@@ -203,11 +205,17 @@ public class LoginActivity extends CommonActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                     builder.setTitle("エラー");
                     builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message4), tensyos.Message));
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+
+                            // すべての一覧をクリア
+                            ClearListData();
+
+                        }
+                    });
 
                     builder.show();
-
-                    // すべての一覧をクリア
-                    ClearListData();
 
                     return;
                 }
@@ -217,11 +225,17 @@ public class LoginActivity extends CommonActivity {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                     builder.setMessage(getResources().getString(R.string.login_activity_message7));
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+
+                            // すべての一覧をクリア
+                            ClearListData();
+
+                        }
+                    });
 
                     builder.show();
-
-                    // すべての一覧をクリア
-                    ClearListData();
 
                     return;
                 }
@@ -328,11 +342,17 @@ public class LoginActivity extends CommonActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                     builder.setTitle("エラー");
                     builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message5), sgytantos.Message));
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+
+                            // すべての一覧をクリア
+                            ClearListData();
+
+                        }
+                    });
 
                     builder.show();
-
-                    // すべての一覧をクリア
-                    ClearListData();
 
                     return;
                 }
@@ -342,11 +362,17 @@ public class LoginActivity extends CommonActivity {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                     builder.setMessage(getResources().getString(R.string.login_activity_message8));
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+
+                            // すべての一覧をクリア
+                            ClearListData();
+
+                        }
+                    });
 
                     builder.show();
-
-                    // すべての一覧をクリア
-                    ClearListData();
 
                     return;
                 }
@@ -454,11 +480,17 @@ public class LoginActivity extends CommonActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                     builder.setTitle("エラー");
                     builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message6), soukos.Message));
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+
+                            // すべての一覧をクリア
+                            ClearListData();
+
+                        }
+                    });
 
                     builder.show();
-
-                    // すべての一覧をクリア
-                    ClearListData();
 
                     return;
                 }
@@ -468,11 +500,17 @@ public class LoginActivity extends CommonActivity {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
                     builder.setMessage(getResources().getString(R.string.login_activity_message9));
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+
+                            // すべての一覧をクリア
+                            ClearListData();
+
+                        }
+                    });
 
                     builder.show();
-
-                    // すべての一覧をクリア
-                    ClearListData();
 
                     return;
                 }

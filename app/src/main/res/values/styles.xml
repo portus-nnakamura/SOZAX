@@ -9,8 +9,8 @@
         <item name="android:layout_marginRight">@dimen/space_size_32</item>
         <item name="backgroundTint">@color/white</item>
         <item name="android:textColor">@color/iconcolor</item>
-        <item name="android:textSize">@dimen/font_size_32</item>
-        <item name="android:gravity">right</item>
+        <item name="android:textSize">@dimen/font_size_24</item>
+        <item name="android:gravity">right|center_vertical</item>
     </style>
 
     <!-- 行のレイアウト -->
@@ -43,7 +43,7 @@
         <item name="android:gravity">center</item>
         <item name="android:padding">@dimen/space_size_0</item>
         <item name="android:textColor">@color/heavenlyblue</item>
-        <item name="android:textSize">@dimen/font_size_12</item>
+        <item name="android:textSize">@dimen/font_size_10</item>
         <item name="android:textStyle">bold</item>
         <item name="android:text">@string/app_copyright</item>
     </style>
@@ -56,6 +56,7 @@
         <item name="android:layout_marginBottom">@dimen/space_size_16</item>
         <item name="android:layout_marginLeft">@dimen/space_size_16</item>
         <item name="android:layout_marginRight">@dimen/space_size_16</item>
+        <item name="android:textSize">@dimen/font_size_16</item>
         <item name="android:textColor">@color/black</item>
     </style>
 
@@ -64,7 +65,7 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:inputType">none</item>
-        <item name="android:textSize">@dimen/font_size_20</item>
+        <item name="android:textSize">@dimen/font_size_16</item>
         <item name="android:textColor">@color/black</item>
     </style>
 
@@ -127,7 +128,6 @@
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/heavenlyblue</item>
         <item name="android:textSize">@dimen/font_size_16</item>
-        <item name="android:textStyle">bold</item>
         <item name="backgroundColor">@color/white</item>
     </style>
 

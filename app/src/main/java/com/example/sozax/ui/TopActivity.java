@@ -106,6 +106,7 @@ public class TopActivity extends CommonActivity {
             intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
 
             startActivity(intent);
+            finish();
         } else {
             // 更新日と現在日が一致しない場合、ログイン画面に遷移
             Intent intent = new Intent(getApplication(), LoginActivity.class);
@@ -113,6 +114,7 @@ public class TopActivity extends CommonActivity {
             intent.putExtra(getResources().getString(R.string.intent_key_previous_activity_name), this.getComponentName().getClassName());
 
             startActivity(intent);
+            finish();
         }
     }
 
