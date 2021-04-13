@@ -2,8 +2,6 @@
 
     <!-- Application Name -->
     <string name="app_name">在庫管理システム</string>
-    <!-- Application Version -->
-    <string name="app_version">Ver.1.0.000</string>
     <!-- Application Copyright -->
     <string name="app_copyright">Copyright © 2021 Portus Inc. All Rights Reserved.</string>
 
@@ -39,7 +37,36 @@
     <!-- 出庫処理ボタン -->
     <string name="button_text_goods_issue_progress_phase1"><big>出庫作業開始</big>\n<small>（全伝票スキャン後に押して下さい）</small></string>
 
-    <!-- 在庫照会ボタン -->
-    <!-- TODO: Remove or change this placeholder text -->
+    <!-- TopActivityで使用するメッセージ -->
+    <string name="top_activity_message1">アプリ内のバージョン情報の取得に失敗しました。\nパッケージ名：{0}が見つかりません。</string>
+    <string name="top_activity_message2">最新のバージョン情報の取得に失敗しました。\n{0}</string>
+    <string name="top_activity_message3">最新のバージョン情報が見つかりませんでした。</string>
+    <string name="top_activity_message4">最新のバージョンにアップデート可能です。</string>
 
+    <!-- LoginActivityで使用するメッセージ -->
+    <string name="login_activity_message1">事業所を選択して下さい。</string>
+    <string name="login_activity_message2">担当者を選択して下さい。</string>
+    <string name="login_activity_message3">倉庫を選択して下さい。</string>
+    <string name="login_activity_message4">事業所の取得に失敗しました。\n{0}</string>
+    <string name="login_activity_message5">担当者の取得に失敗しました。\n{0}</string>
+    <string name="login_activity_message6">倉庫の取得に失敗しました。\n{0}</string>
+    <string name="login_activity_message7">該当する事業所のデータがありません。</string>
+    <string name="login_activity_message8">該当する担当者のデータがありません。</string>
+    <string name="login_activity_message9">該当する倉庫のデータがありません。</string>
+
+    <!-- ログインコンフィグで使用するファイル名&キー -->
+    <string name="login_preferences_file_name">LoginInfo</string>
+    <string name="login_preferences_key_kaicd">Kaicd</string>
+    <string name="login_preferences_key_tensyocd">Tensyocd</string>
+    <string name="login_preferences_key_tensyonm">Tensyonm</string>
+    <string name="login_preferences_key_sgytantocd">Sgytantocd</string>
+    <string name="login_preferences_key_sgytantonm">Sgytantonm</string>
+    <string name="login_preferences_key_soukocd">Soukocd</string>
+    <string name="login_preferences_key_soukonm">Soukonm</string>
+    <string name="login_preferences_key_sgydate">Sgydate</string>
+    <string name="login_preferences_key_updatedate">Updatedate</string>
+
+    <!-- 画面遷移で使用するキー -->
+    <string name="intent_key_login_info">LoginInfo</string>
+    <string name="intent_key_previous_activity_name">PreviousActivityName</string>
 </resources>

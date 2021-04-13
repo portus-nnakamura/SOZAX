@@ -58,8 +58,8 @@ public class MenuActivity extends CommonActivity {
 
     public void btnReLogin_Click(View view) {
         Intent intent = new Intent(getApplication(), LoginActivity.class);
-        intent.putExtra("LoginInfo", loginInfo);
-        intent.putExtra("PreviousActivityName", this.getComponentName().getClassName());
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_previous_activity_name), this.getComponentName().getClassName());
         startActivity(intent);
     }
 
@@ -71,7 +71,7 @@ public class MenuActivity extends CommonActivity {
         if (resultCode == RESULT_OK) {
 
             // ログイン情報を反映
-            loginInfo = (LoginInfoModel) data.getSerializableExtra("LoginInfo");
+            loginInfo = (LoginInfoModel) data.getSerializableExtra(getResources().getString(R.string.intent_key_login_info));
 
             // ログイン情報を表示
             TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
@@ -110,10 +110,10 @@ public class MenuActivity extends CommonActivity {
             loginInfo.Sgydate = calendar.getTime();
 
             // ログイン情報を書き込み
-            SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
+            SharedPreferences preferences = getSharedPreferences(getResources().getString(R.string.login_preferences_file_name), Context.MODE_PRIVATE);
+            @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = preferences.edit();
 
-            editor.putLong("Sgydate", loginInfo.Sgydate.getTime());
+            editor.putLong(getResources().getString(R.string.login_preferences_key_sgydate), loginInfo.Sgydate.getTime());
 
             // 作業日を再表示
             TextView lblSgydate = findViewById(R.id.lblSgydate);
@@ -129,7 +129,7 @@ public class MenuActivity extends CommonActivity {
 
     public void btnGoodsIssue_Click(View view) {
         Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-        intent.putExtra("LoginInfo", loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
     }
 
@@ -139,7 +139,7 @@ public class MenuActivity extends CommonActivity {
 
     public void btnGoodsIssueList_Click(View view) {
         Intent intent = new Intent(getApplication(), GoodsIssueListActivity.class);
-        intent.putExtra("LoginInfo", loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
     }
 
@@ -149,7 +149,7 @@ public class MenuActivity extends CommonActivity {
 
     public void btnInventoryInquiry_Click(View view) {
         Intent intent = new Intent(getApplication(), InventoryInquiryPage1Activity.class);
-        intent.putExtra("LoginInfo", loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
     }
 

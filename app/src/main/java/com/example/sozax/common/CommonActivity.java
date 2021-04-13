@@ -1,27 +1,22 @@
 package com.example.sozax.common;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-
-public abstract class CommonActivity extends AppCompatActivity implements KeyRemapLibrary.KeyRemapListener{
+public abstract class CommonActivity extends AppCompatActivity implements KeyRemapLibrary.KeyRemapListener {
 
     //region メンバ変数
 
@@ -38,7 +33,6 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_common);
 
         // ログイン情報を取得
         Intent intent = getIntent();
@@ -50,8 +44,7 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
     //region ログイン情報を表示
 
     // ログイン情報を表示
-    public void DisplayLoginInfo()
-    {
+    public void DisplayLoginInfo() {
 //        TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
 //        SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
 //        txtLoginInfo.setText(logininfo.getOfficeInfo().getName() + "　" + logininfo.getRepresentativeInfo().getName() + "\n" + sdf.format(logininfo.getWorkingday()) + "　" + logininfo.getWarehouseInfo().getName());
@@ -63,10 +56,9 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
 
     public class btnExit_Click implements View.OnClickListener {
 
-        private Activity activity;
+        private final Activity activity;
 
-        public btnExit_Click(Activity _activity)
-        {
+        public btnExit_Click(Activity _activity) {
             activity = _activity;
         }
 
@@ -98,8 +90,7 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
 
     //region 振動する
 
-    public void Vibrate()
-    {
+    public void Vibrate() {
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         long[] vibratePattern = {0, 500, 100, 500};
         vibrator.vibrate(vibratePattern, -1); // ここの-1を1にするとリピートします。

@@ -49,8 +49,7 @@ public class TopActivity extends CommonActivity {
             // エラー内容を出力
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("エラー");
-            String template = "アプリ内のバージョン情報の取得に失敗しました。\r\nパッケージ名：{0}が見つかりません。";
-            builder.setMessage(java.text.MessageFormat.format(template, ex.getMessage()));
+            builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.top_activity_message1), ex.getMessage()));
 
             builder.show();
             return;
@@ -71,29 +70,29 @@ public class TopActivity extends CommonActivity {
 
         // ログイン情報を取得
         loginInfo = new LoginInfoModel();
-        SharedPreferences preferences = getSharedPreferences("LoginInfo", Context.MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences(getResources().getString(R.string.login_preferences_file_name), Context.MODE_PRIVATE);
 
         // 会社
-        loginInfo.Kaicd = preferences.getInt("Kaicd", 40);
+        loginInfo.Kaicd = preferences.getInt(getResources().getString(R.string.login_preferences_key_kaicd), 40);
 
         // 店所
-        loginInfo.Tensyocd = preferences.getInt("Tensyocd", 0);
-        loginInfo.Tensyonm = preferences.getString("Tensyonm", "");
+        loginInfo.Tensyocd = preferences.getInt(getResources().getString(R.string.login_preferences_key_tensyocd), 0);
+        loginInfo.Tensyonm = preferences.getString(getResources().getString(R.string.login_preferences_key_tensyonm), "");
 
         // 作業担当者
-        loginInfo.Sgytantocd = preferences.getInt("Sgytantocd", 0);
-        loginInfo.Sgytantonm = preferences.getString("Sgytantonm", "");
+        loginInfo.Sgytantocd = preferences.getInt(getResources().getString(R.string.login_preferences_key_sgytantocd), 0);
+        loginInfo.Sgytantonm = preferences.getString(getResources().getString(R.string.login_preferences_key_sgytantonm), "");
 
         // 倉庫
-        loginInfo.Soukocd = preferences.getInt("Soukocd", 0);
-        loginInfo.Soukonm = preferences.getString("Soukonm", "");
+        loginInfo.Soukocd = preferences.getInt(getResources().getString(R.string.login_preferences_key_soukocd), 0);
+        loginInfo.Soukonm = preferences.getString(getResources().getString(R.string.login_preferences_key_soukonm), "");
 
         // 作業日時
-        long sgydate = preferences.getLong("Sgydate", new Date().getTime());
+        long sgydate = preferences.getLong(getResources().getString(R.string.login_preferences_key_sgydate), new Date().getTime());
         loginInfo.Sgydate = new Date(sgydate);
 
         // 更新日時
-        long updatedate = preferences.getLong("Updatedate", 0);
+        long updatedate = preferences.getLong(getResources().getString(R.string.login_preferences_key_updatedate), 0);
         loginInfo.Updatedate = new Date(updatedate);
 
         // 現在日時を取得
@@ -104,14 +103,14 @@ public class TopActivity extends CommonActivity {
                 loginInfo.Updatedate.getDay() == nowDate.getDay()) {
             // 更新日と現在日が一致する場合、メニュー画面に遷移
             Intent intent = new Intent(getApplication(), MenuActivity.class);
-            intent.putExtra("LoginInfo", loginInfo);
+            intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
 
             startActivity(intent);
         } else {
             // 更新日と現在日が一致しない場合、ログイン画面に遷移
             Intent intent = new Intent(getApplication(), LoginActivity.class);
-            intent.putExtra("LoginInfo", loginInfo);
-            intent.putExtra("PreviousActivityName", this.getComponentName().getClassName());
+            intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+            intent.putExtra(getResources().getString(R.string.intent_key_previous_activity_name), this.getComponentName().getClassName());
 
             startActivity(intent);
         }
@@ -151,8 +150,7 @@ public class TopActivity extends CommonActivity {
                 if (db_version_info.Is_error) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
                     builder.setTitle("エラー");
-                    String template = "最新のバージョン情報の取得に失敗しました。\r\n{0}";
-                    builder.setMessage(java.text.MessageFormat.format(template, db_version_info.Message));
+                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.top_activity_message2), db_version_info.Message));
 
                     builder.show();
                     return;
@@ -161,7 +159,7 @@ public class TopActivity extends CommonActivity {
                 // 該当データなし
                 if (db_version_info.Versioncd == 0) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                    builder.setMessage("最新のバージョン情報が見つかりませんでした。");
+                    builder.setMessage(getResources().getString(R.string.top_activity_message3));
 
                     builder.show();
                     return;
@@ -172,7 +170,7 @@ public class TopActivity extends CommonActivity {
                 if (db_version_info.Versioncd > app_version_info.Versioncd) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
                     builder.setTitle("お知らせ");
-                    builder.setMessage("最新のバージョンにアップデート可能です。");
+                    builder.setMessage(getResources().getString(R.string.top_activity_message4));
 
                     builder.show();
                 }

@@ -69,7 +69,6 @@
         android:layout_marginVertical="@dimen/space_size_16"
         android:background="@color/transparent"
         android:gravity="center"
-        android:text="@string/app_version"
         android:textColor="@color/black"
         android:textSize="@dimen/font_size_24"
         android:textStyle="normal"

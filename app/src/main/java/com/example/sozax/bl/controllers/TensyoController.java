@@ -26,7 +26,7 @@ public class TensyoController {
             TensyosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.244.156:55500/api/tensyo/get/" + loginInfoModel[0].Kaicd)
+                    .url("http://192.168.10.214:55500/api/tensyo/get/" + loginInfoModel[0].Kaicd)
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
