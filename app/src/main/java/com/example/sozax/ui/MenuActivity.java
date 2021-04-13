@@ -37,8 +37,12 @@ public class MenuActivity extends CommonActivity {
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(MenuActivity.this));
 
         // ログイン情報を表示
+        String dispTensyonm = String.format("%-10s",substringByBytes(loginInfo.Tensyonm, 10));
+        String dispSgytantonm = String.format("%-10s",substringByBytes(loginInfo.Sgytantonm, 10));
+        String dispSoukonm = String.format("%-10s",substringByBytes(loginInfo.Soukonm, 10));
+        String dispSgydate = String.format("%-10s","");
         TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
-        txtLoginInfo.setText(loginInfo.Tensyonm + "　" + loginInfo.Sgytantonm + "\n" + loginInfo.Soukonm);
+        txtLoginInfo.setText(dispTensyonm + " " + dispSgytantonm + "\n" + dispSoukonm);
 
         // 作業日を表示
         TextView lblSgydate = findViewById(R.id.lblSgydate);

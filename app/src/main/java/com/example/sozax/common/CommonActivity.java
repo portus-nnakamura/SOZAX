@@ -91,4 +91,37 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
     }
 
     //endregion
+
+    /**
+     * @param text    対象となる文字列
+     * @param index   切り出すバイト数
+     * @param charset 文字コード
+     * @return
+     */
+    public static String substringByBytes(String text, int index) {
+
+        String ret = "";
+
+        try {
+
+            int textByteCnt = 0;
+            for (int i = 0; i < text.length(); i++) {
+
+                //対象となる文字列を先頭から1文字切り出し、その文字のバイト数を調べます。
+                String tmpText = text.substring(i, i + 1);
+                byte[] tmpTextByte = tmpText.getBytes("Shift_JIS");
+
+                //切り出した文字を変数retに追加した際のバイト数が指定バイト数より大きければ、変数retを返します。
+                if (textByteCnt + tmpTextByte.length > index) {
+                    return ret;
+                } else {
+                    ret += tmpText;
+                    textByteCnt = textByteCnt + tmpTextByte.length;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return ret;
+    }
 }
