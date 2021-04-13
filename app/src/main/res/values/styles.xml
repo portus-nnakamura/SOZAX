@@ -103,16 +103,21 @@
         <item name="android:layout_height">match_parent</item>
     </style>
 
-    <!-- ログイン情報 -->
-    <style name="login_info_text_style">
+    <!-- ログイン情報(レイアウト) -->
+    <style name="login_info_layout">
         <item name="android:layout_width">@dimen/space_size_0</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_marginTop">@dimen/space_size_minus_2</item>
         <item name="android:layout_marginBottom">@dimen/space_size_minus_2</item>
-        <item name="android:gravity">center</item>
+    </style>
+
+    <!-- ログイン情報(テキスト) -->
+    <style name="login_info_text_style">
+        <item name="android:layout_width">@dimen/space_size_0</item>
+        <item name="android:layout_height">@dimen/space_size_32</item>
         <item name="android:textColor">@color/white</item>
         <item name="fontFamily">monospace</item>
-        <item name="android:textSize">@dimen/font_size_12</item>
+        <item name="android:textSize">@dimen/space_size_8</item>
     </style>
 
     <!-- ガイダンス -->

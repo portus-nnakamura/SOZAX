@@ -37,13 +37,7 @@ public class MenuActivity extends CommonActivity {
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(MenuActivity.this));
 
         // ログイン情報を表示
-        String s10  = "          ";
-        String dispTensyonm = substringByBytes(loginInfo.Tensyonm+s10, 10);
-        String dispSgytantonm = substringByBytes(loginInfo.Sgytantonm+s10, 10);
-        String dispSoukonm = substringByBytes(loginInfo.Soukonm+s10, 10);
-        String dispSgydate = s10;
-        TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
-        txtLoginInfo.setText(dispTensyonm + " " + dispSgytantonm + "\r\n" + dispSoukonm + " " + dispSgydate);
+        DisplayLoginInfo();
 
         // 作業日を表示
         TextView lblSgydate = findViewById(R.id.lblSgydate);
@@ -81,8 +75,7 @@ public class MenuActivity extends CommonActivity {
             loginInfo = (LoginInfoModel) data.getSerializableExtra(getResources().getString(R.string.intent_key_login_info));
 
             // ログイン情報を表示
-            TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
-            txtLoginInfo.setText(loginInfo.Tensyonm + "　" + loginInfo.Sgytantonm + "\n" + loginInfo.Soukonm);
+            DisplayLoginInfo();
 
         }
     }
@@ -161,6 +154,24 @@ public class MenuActivity extends CommonActivity {
     }
 
     //endregion
+
+    // region ログイン情報を表示する
+
+    public void DisplayLoginInfo()
+    {
+
+        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
+        txtLoginTensyo.setText(loginInfo.Tensyonm);
+
+        TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
+        txtLoginSgytanto.setText(loginInfo.Sgytantonm);
+
+        TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
+        txtLoginSouko.setText(loginInfo.Soukonm);
+
+    }
+
+    // endregion
 
     //region DENSO固有ボタンの設定
 

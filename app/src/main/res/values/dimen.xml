@@ -1,6 +1,7 @@
 <resources>
 
     <!-- フォントのサイズ -->
+    <dimen name="font_size_8">8sp</dimen>
     <dimen name="font_size_12">12sp</dimen>
     <dimen name="font_size_14">14sp</dimen>
     <dimen name="font_size_16">16sp</dimen>

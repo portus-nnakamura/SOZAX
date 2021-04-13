@@ -27,11 +27,58 @@
             tools:ignore="ContentDescription" />
 
         <!-- ログイン情報 -->
-        <TextView
-            android:id="@+id/txtLoginInfo"
-            style="@style/login_info_text_style"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            style="@style/login_info_layout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="0.5"
-            android:background="@drawable/text_border_white" />
+            android:background="@drawable/text_border_white">
+
+            <TextView
+                android:id="@+id/txtLoginTensyo"
+                style="@style/login_info_text_style"
+                android:layout_marginRight="1dp"
+                android:layout_marginBottom="1dp"
+                android:gravity="bottom|right"
+                app:layout_constraintBottom_toTopOf="@+id/txtLoginSouko"
+                app:layout_constraintEnd_toStartOf="@+id/txtLoginSgytanto"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/txtLoginSgytanto"
+                style="@style/login_info_text_style"
+                android:layout_marginLeft="1dp"
+                android:layout_marginBottom="1dp"
+                android:gravity="bottom|left"
+                app:layout_constraintBottom_toTopOf="@+id/txtLoginSgydate"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/txtLoginTensyo"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/txtLoginSouko"
+                style="@style/login_info_text_style"
+                android:layout_marginTop="1dp"
+                android:layout_marginRight="1dp"
+                android:gravity="top|right"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/txtLoginSgydate"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txtLoginTensyo" />
+
+            <TextView
+                android:id="@+id/txtLoginSgydate"
+                style="@style/login_info_text_style"
+                android:layout_marginLeft="1dp"
+                android:layout_marginTop="1dp"
+                android:gravity="top|left"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/txtLoginSouko"
+                app:layout_constraintTop_toBottomOf="@+id/txtLoginSgytanto" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- 再ログイン -->
         <ImageButton
@@ -88,8 +135,8 @@
             android:layout_width="@dimen/space_size_0"
             android:layout_height="match_parent"
             android:layout_weight="0.65"
-            android:text="12月31日(日)"
             android:gravity="end|center_vertical"
+            android:text="12月31日(日)"
             android:textColor="@color/iconcolor"
             android:textSize="@dimen/font_size_24" />
 
