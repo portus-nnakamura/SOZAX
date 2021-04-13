@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -36,7 +35,7 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
 
         // ログイン情報を取得
         Intent intent = getIntent();
-        loginInfo = (LoginInfoModel) intent.getSerializableExtra("LoginInfo");
+        loginInfo = (LoginInfoModel) intent.getSerializableExtra(getResources().getString(R.string.intent_key_login_info));
     }
 
     //endregion
@@ -70,19 +69,13 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                            moveTaskToBack(true);
+                            finishAndRemoveTask();
                         }
                     })
                     .setNegativeButton("キャンセル", null)
                     .setCancelable(true);
 
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
-
-            TextView msgTxt = alertDialog.findViewById(android.R.id.message);
-            msgTxt.setTextSize((float) 14.0);
-
+            builder.show();
         }
     }
 

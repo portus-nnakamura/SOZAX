@@ -56,11 +56,13 @@ public class MenuActivity extends CommonActivity {
 
     //region 再ログインアイコンをクリック
 
+    private final int requestCode = 1;
+
     public void btnReLogin_Click(View view) {
         Intent intent = new Intent(getApplication(), LoginActivity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         intent.putExtra(getResources().getString(R.string.intent_key_previous_activity_name), this.getComponentName().getClassName());
-        startActivity(intent);
+        startActivityForResult(intent,requestCode);
     }
 
     @SuppressLint("SetTextI18n")
