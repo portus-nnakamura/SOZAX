@@ -40,9 +40,7 @@ public class MenuActivity extends CommonActivity {
         DisplayLoginInfo();
 
         // 作業日を表示
-        TextView lblSgydate = findViewById(R.id.lblSgydate);
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-        lblSgydate.setText(sdf.format(loginInfo.Sgydate));
+        DisplaySgydate();
     }
 
     //endregion
@@ -117,10 +115,8 @@ public class MenuActivity extends CommonActivity {
 
             editor.apply();
 
-            // 作業日を再表示
-            TextView lblSgydate = findViewById(R.id.lblSgydate);
-            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-            lblSgydate.setText(sdf.format(loginInfo.Sgydate));
+            // 作業日を表示
+            DisplaySgydate();
         }
     };
 
@@ -157,28 +153,31 @@ public class MenuActivity extends CommonActivity {
 
     //endregion
 
-    // region ログイン情報を表示する
+    // region ログイン情報を表示
 
     public void DisplayLoginInfo()
     {
 
-        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
-        txtLoginTensyo.setText(loginInfo.Tensyonm);
+        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);;
+        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm,10));
 
         TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
-        txtLoginSgytanto.setText(loginInfo.Sgytantonm);
+        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm,10));
 
         TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(loginInfo.Soukonm);
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm,10));
 
     }
 
     // endregion
 
-    //region DENSO固有ボタンの設定
+    //region 作業日を表示
 
-    @Override
-    public void onKeyRemapCreated() {
+    public void DisplaySgydate()
+    {
+        TextView lblSgydate = findViewById(R.id.lblSgydate);
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
+        lblSgydate.setText(sdf.format(loginInfo.Sgydate));
     }
 
     //endregion

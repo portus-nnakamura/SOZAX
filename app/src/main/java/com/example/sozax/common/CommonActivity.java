@@ -15,7 +15,7 @@ import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 
-public abstract class CommonActivity extends AppCompatActivity implements KeyRemapLibrary.KeyRemapListener {
+public abstract class CommonActivity extends AppCompatActivity {
 
     //region メンバ変数
 

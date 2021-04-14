@@ -415,12 +415,4 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
     }
 
     //endregion
-
-    //region DENSO固有ボタンの設定
-
-    @Override
-    public void onKeyRemapCreated() {
-    }
-
-    //endregion
 }

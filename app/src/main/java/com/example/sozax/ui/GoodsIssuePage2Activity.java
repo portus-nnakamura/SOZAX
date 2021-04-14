@@ -50,8 +50,6 @@ public class GoodsIssuePage2Activity extends CommonActivity {
         // リフレッシュ
         Refresh(displayData.get(CurrentSlipIndex));
 
-        mKeyRemapLibrary = new KeyRemapLibrary();
-        mKeyRemapLibrary.createKeyRemap(this, this); // create
     }
 
     //endregion
@@ -745,39 +743,5 @@ public class GoodsIssuePage2Activity extends CommonActivity {
 
     //endregion
 
-    //region DENSO固有ボタンの設定
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // KeyRemapLibrary クラスのインスタンスを解放
-        mKeyRemapLibrary.disposeKeyRemap();
-    }
-    @Override
-    public void onKeyRemapCreated() {
-        // onCreate処理内のcreateKeyRemap完了時の処理
-
-        // M2キーにF2キーを割り当て
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_M2.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F2.getString());
-
-        // M3キーにF3キーを割り当て
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_M3.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F3.getString());
-
-        // 左トリガーにバーコードスキャンを割り当て
-//        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-//                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F5.getString());
-
-        // 右トリガーにバーコードスキャンを割り当て
-//        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-//                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F6.getString());
-    }
-
-    //endregion
 }

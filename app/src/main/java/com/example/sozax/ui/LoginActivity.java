@@ -681,14 +681,6 @@ public class LoginActivity extends CommonActivity {
 
     //endregion
 
-    //region DENSO固有ボタンの設定
-
-    @Override
-    public void onKeyRemapCreated() {
-    }
-
-    //endregion
-
     //region 独自のアダプター
 
     private class UniqueArrayAdapter extends ArrayAdapter<String> {

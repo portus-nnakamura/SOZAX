@@ -332,12 +332,4 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     }
     //endregion
-
-    //region DENSO固有ボタンの設定
-
-    @Override
-    public void onKeyRemapCreated() {
-    }
-
-    //endregion
 }

@@ -70,6 +70,9 @@
     <string name="intent_key_login_info">LoginInfo</string>
     <string name="intent_key_previous_activity_name">PreviousActivityName</string>
     <string name="intent_key_zaiko_syokai">ZaikoSyokai</string>
+    <string name="intent_key_sagyochu_syuko_denpyos">SagyochuSyukoDenpyos</string>
+    <string name="intent_key_selected_sagyochu_syuko_denpyo_index">SelectedSagyochuSyukoDenpyoIndex</string>
+
 
     <!-- InventoryInquiryPage1Activityで使用するメッセージ-->
     <string name="inventory_inquiry_page1_activity_failed_getdata_message">在庫照会データの取得に失敗しました。\n{0}</string>

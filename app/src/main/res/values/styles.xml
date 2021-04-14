@@ -118,7 +118,7 @@
         <item name="android:layout_height">@dimen/space_size_32</item>
         <item name="android:textColor">@color/white</item>
         <item name="fontFamily">monospace</item>
-        <item name="android:textSize">@dimen/space_size_8</item>
+        <item name="android:textSize">@dimen/font_size_12</item>
     </style>
 
     <!-- ガイダンス -->

@@ -28,11 +28,11 @@ import okhttp3.Response;
 
 public class SyukoSagyoController {
 
-    public static class PostSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, ResultClass> {
+    public static class PostSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, SyukoDenpyosModel> {
 
         // 非同期処理
         @Override
-        protected ResultClass doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
+        protected SyukoDenpyosModel doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
 
             ResultClass ret = new ResultClass();
 
@@ -50,17 +50,21 @@ public class SyukoSagyoController {
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .post(requestBody)
                     .build();
-            Common_SyukoSagyosTask(ret, request, gson);
+            ResultClass resultClass = new ResultClass();
+            Common_SyukoSagyosTask(resultClass, request, gson);
 
-            return ret;
+            syukoDenpyosModel[0].Is_error = resultClass.Is_error;
+            syukoDenpyosModel[0].Message = resultClass.Message;
+
+            return syukoDenpyosModel[0];
         }
     }
 
-    public static class PutSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, ResultClass> {
+    public static class PutSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, SyukoDenpyosModel> {
 
         // 非同期処理
         @Override
-        protected ResultClass doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
+        protected SyukoDenpyosModel doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
 
             ResultClass ret = new ResultClass();
 
@@ -79,18 +83,21 @@ public class SyukoSagyoController {
                     .put(requestBody)
                     .build();
 
-            //.url("http://192.168.10.214:55500/api/syukosagyo/post/")
-            Common_SyukoSagyosTask(ret, request, gson);
+            ResultClass resultClass = new ResultClass();
+            Common_SyukoSagyosTask(resultClass, request, gson);
 
-            return ret;
+            syukoDenpyosModel[0].Is_error = resultClass.Is_error;
+            syukoDenpyosModel[0].Message = resultClass.Message;
+
+            return syukoDenpyosModel[0];
         }
     }
 
-    public static class DeleteSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, ResultClass> {
+    public static class DeleteSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, SyukoDenpyosModel> {
 
         // 非同期処理
         @Override
-        protected ResultClass doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
+        protected SyukoDenpyosModel doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
 
             ResultClass ret = new ResultClass();
 
@@ -109,8 +116,13 @@ public class SyukoSagyoController {
                     .delete(requestBody)
                     .build();
 
-            Common_SyukoSagyosTask(ret, request, gson);
-            return ret;
+            ResultClass resultClass = new ResultClass();
+            Common_SyukoSagyosTask(resultClass, request, gson);
+
+            syukoDenpyosModel[0].Is_error = resultClass.Is_error;
+            syukoDenpyosModel[0].Message = resultClass.Message;
+
+            return syukoDenpyosModel[0];
         }
     }
 
