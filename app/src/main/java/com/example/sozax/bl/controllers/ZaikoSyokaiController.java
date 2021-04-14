@@ -6,6 +6,7 @@ import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiConditionModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -26,7 +27,7 @@ public class ZaikoSyokaiController {
             ZaikoSyokaiModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.244.156:55500/api/zaikosyokai/get/" + String.valueOf(syukeicd[0]))
+                    .url("http://192.168.10.214:55500/api/zaikosyokai/get/" + String.valueOf(syukeicd[0]))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -62,7 +63,7 @@ public class ZaikoSyokaiController {
             }
 
             // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
+            Gson gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
 
             try {
                 ret = gson.fromJson(s, ZaikoSyokaiModel.class);
