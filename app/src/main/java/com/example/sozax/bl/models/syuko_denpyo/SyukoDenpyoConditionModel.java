@@ -1,8 +1,9 @@
 package com.example.sozax.bl.models.syuko_denpyo;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class SyukoDenpyoConditionModel {
+public class SyukoDenpyoConditionModel implements Serializable {
 
     public long Syukono = 0L;
 

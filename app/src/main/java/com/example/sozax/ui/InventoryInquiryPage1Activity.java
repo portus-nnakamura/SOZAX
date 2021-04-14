@@ -45,8 +45,6 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
         // アプリ終了
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
 
-        mKeyRemapLibrary = new KeyRemapLibrary();
-        mKeyRemapLibrary.createKeyRemap(this, this); // create
     }
 
     //region サンプル
@@ -187,31 +185,4 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
 
     //endregion
 
-    //region DENSO固有ボタンの設定
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // KeyRemapLibrary クラスのインスタンスを解放
-        mKeyRemapLibrary.disposeKeyRemap();
-    }
-    @Override
-    public void onKeyRemapCreated() {
-        // onCreate処理内のcreateKeyRemap完了時の処理
-
-        // 左トリガーにバーコードスキャンを割り当て
-//        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-//                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F5.getString());
-
-        // 右トリガーにバーコードスキャンを割り当て
-//        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-//                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F6.getString());
-    }
-
-    //endregion
 }

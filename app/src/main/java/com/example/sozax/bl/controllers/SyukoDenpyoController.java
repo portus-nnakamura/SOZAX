@@ -192,7 +192,7 @@ public class SyukoDenpyoController {
     //endregion
 
     //region
-    public static class GetSyukos_SagyomichakusyuTask extends AsyncTask<SyukoDenpyoConditionModel, Void, SyukoDenpyosModel> {
+    public static class GetSyukoDenpyos_SagyomichakusyuTask extends AsyncTask<SyukoDenpyoConditionModel, Void, SyukoDenpyosModel> {
 
         // 非同期処理
         @Override

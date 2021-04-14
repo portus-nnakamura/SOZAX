@@ -5,45 +5,49 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.SyukoDenpyoController;
-import com.example.sozax.bl.goods_issue.GoodsIssueSlip;
+import com.example.sozax.bl.controllers.SyukoSagyoController;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.EnumClass;
 import com.google.android.material.button.MaterialButton;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
 
 import static com.example.sozax.ui.InventoryInquiryPage2Activity.toFullWidth;
 
-public class GoodsIssuePage1Activity extends CommonActivity {
+public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
 
     //region インスタンス変数
 
-    // 出庫伝票一覧
-    private SyukoDenpyosModel syukoDenpyos = null;
+    // 作業中の伝票リスト
+    private ArrayList<SyukoDenpyoModel> sagyochuSyukoDenpyos = null;
 
-    // 出庫伝票一覧のカレント行インデックス
-    private int currentSyukoDenpyoIndex = 0;
+    // 現在作業中の出庫伝票のインデックス
+    private int selectedSagyochuSyukoDenpyoIndex = -1;
+
+    // キー割り当てライブラリ(DENSO製)
+    public KeyRemapLibrary mKeyRemapLibrary;
 
     //endregion
 
@@ -71,14 +75,15 @@ public class GoodsIssuePage1Activity extends CommonActivity {
         // ログイン情報を表示
         DisplayLoginInfo();
 
-        // 作業中の出庫伝票一覧を取得
-        SyukoDenpyoConditionModel conditionModel = new SyukoDenpyoConditionModel();
-        conditionModel.Kaicd = loginInfo.Kaicd;
-        conditionModel.Sgytantocd= loginInfo.Sgytantocd;
-        conditionModel.Soukocd = loginInfo.Soukocd;
-        conditionModel.Sagyodate = loginInfo.Sgydate;
+        // 作業中の出庫伝票リストの取得条件を作成
+        SyukoDenpyoConditionModel syukoDenpyoConditionModel = new SyukoDenpyoConditionModel();
+        syukoDenpyoConditionModel.Kaicd = loginInfo.Kaicd;
+        syukoDenpyoConditionModel.Sgytantocd = loginInfo.Sgytantocd;
+        syukoDenpyoConditionModel.Soukocd = loginInfo.Soukocd;
+        syukoDenpyoConditionModel.Sagyodate = loginInfo.Sgydate;
 
-        new GetSyukoDenpyos_SagyochuTask().execute(conditionModel);
+        // 作業中の出庫伝票リストを取得
+        new GetSyukoDenpyos_SagyochuTask().execute(syukoDenpyoConditionModel);
     }
 
     //endregion
@@ -96,15 +101,25 @@ public class GoodsIssuePage1Activity extends CommonActivity {
         @Override
         public void onClick(View v) {
 
+            // 未着手の出庫伝票リストの取得条件を作成
+            SyukoDenpyoConditionModel syukoDenpyoConditionModel = new SyukoDenpyoConditionModel();
+            syukoDenpyoConditionModel.Kaicd = loginInfo.Kaicd;
+            syukoDenpyoConditionModel.Soukocd = loginInfo.Soukocd;
+            syukoDenpyoConditionModel.Sagyodate = loginInfo.Sgydate;
+
+            // 未着手の出庫伝票リストを取得
+            new GetSyukoDenpyos_SagyomichakusyuTask().execute(syukoDenpyoConditionModel);
 
         }
     }
 
     //endregion
 
-    //region 出庫作業のQRをスキャン
+
+    //region TODO 出庫作業のQRをスキャン
 
     //endregion
+
 
     //region 出庫伝票をクリック
 
@@ -115,13 +130,14 @@ public class GoodsIssuePage1Activity extends CommonActivity {
 
             view.setSelected(true);
 
-            GoodsIssueSlip goodsIssueSlip = displayData.get(position);
+            // 選択伝票Indexを更新
+            selectedSagyochuSyukoDenpyoIndex = position;
 
-            // 詳細表示
-            DisplayDetail(goodsIssueSlip);
+            // 荷主・荷渡先・品名を表示
+            DisplayNinuNiwaHin();
 
-            // 現在の伝票Index
-            CurrentSlipIndex = position;
+            // 数量・重量を表示
+            DisplaySuryoJuryo();
         }
     }
 
@@ -141,18 +157,14 @@ public class GoodsIssuePage1Activity extends CommonActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            displayData.get(position).setProgressState(GoodsIssueSlip.ProgressStateEnum.未着手);
-                            displayData.remove(position);
-                            adapter.notifyDataSetChanged();
+                            // 出庫作業削除用のデータを作成
+                            SyukoDenpyosModel deleteData = new SyukoDenpyosModel();
+                            deleteData.SyukoDenpyos = new SyukoDenpyoModel[0];
+                            deleteData.SyukoDenpyos[0] = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
 
-                            // 詳細情報をクリア
-                            ClearDetail();
-                            CurrentSlipIndex = -1;
+                            // 出庫作業削除
+                            new DeleteSyukoSagyosTask().execute(deleteData);
 
-                            Toast ts = Toast.makeText(GoodsIssuePage1Activity.this, "削除しました", Toast.LENGTH_SHORT);
-                            ts.setGravity(Gravity.CENTER, 0, 0);
-                            ts.show();
-                            return;
                         }
 
                     })
@@ -171,130 +183,46 @@ public class GoodsIssuePage1Activity extends CommonActivity {
 
     //region 出庫作業開始ボタンをクリック
 
-    // 現在の伝票Index
-    private int CurrentSlipIndex = -1;
-    private static final int REQUEST_CODE = 1;
+    private final int REQUESTCODE = 1;
 
     public void btnGoodsIssuePage1Proceed_Click(View view) {
 
-//        if (adapter == null || CurrentSlipIndex == -1) {
-//
-//
-//        } else {
-//            Intent intent = new Intent(this, GoodsIssuePage2Activity.class);
-//            intent.putExtra("LOGININFO", loginInfo);
-//            intent.putExtra("DISPLAYDATA", displayData);
-//            intent.putExtra("CURRENTSLIPINDEX", CurrentSlipIndex);
-//
-//            // 遷移
-//            startActivityForResult(intent, REQUEST_CODE);
-//        }
+        Intent intent = new Intent(getApplication(), GoodsIssuePage2Activity.class);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos), sagyochuSyukoDenpyos);
+        intent.putExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), selectedSagyochuSyukoDenpyoIndex);
+
+        startActivityForResult(intent, REQUESTCODE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-//        switch (requestCode) {
-//            case REQUEST_CODE:
-//
-//                for (GoodsIssueSlip ret : (ArrayList<GoodsIssueSlip>) data.getSerializableExtra("DISPLAYDATA")) {
-//                    for (GoodsIssueSlip demo : demoData) {
-//                        if (ret.getSlipNo().equals(demo.getSlipNo())) {
-//                            // 進行状況を更新
-//                            demo.setProgressState(ret.getProgressState());
-//                            break;
-//                        }
-//                    }
-//                }
-//
-//                // 再表示
-//                DisplayGoodsIssueSlipList();
-//
-//                // 詳細クリア
-//                ClearDetail();
-//
-//                break;
-//            default:
-//                break;
-//        }
+        if (requestCode == REQUESTCODE && resultCode == RESULT_OK) {
+            // 作業中データと選択Indexを取得
+            sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) data.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
+            selectedSagyochuSyukoDenpyoIndex = data.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
+
+            if (sagyochuSyukoDenpyos.size() == 0) {
+                return;
+            }
+
+            // 出庫伝票を表示
+            DisplaySyukoDenpyos();
+
+            if (selectedSagyochuSyukoDenpyoIndex == -1) {
+                return;
+            }
+
+            // 荷主・荷渡先・品名を表示
+            DisplayNinuNiwaHin();
+
+            // 数量・重量を表示
+            DisplaySuryoJuryo();
+        }
     }
 
-
-    //endregion
-
-    //region 出庫伝票一覧を表示
-
-    private ArrayList<GoodsIssueSlip> displayData = null;
-
-    private void DisplayGoodsIssueSlipList() {
-//        displayData = new ArrayList<GoodsIssueSlip>();
-//        for (GoodsIssueSlip goodsIssueSlip : demoData) {
-//            if (goodsIssueSlip.getProgressState() != GoodsIssueSlip.ProgressStateEnum.未着手 && goodsIssueSlip.getProgressState() != GoodsIssueSlip.ProgressStateEnum.完了) {
-//                displayData.add(goodsIssueSlip);
-//            }
-//        }
-//
-//        // リスト表示
-//        ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
-//        adapter = new ListAdapter(GoodsIssuePage1Activity.this, displayData);
-//        lvGoodsIssueList.setAdapter(adapter);
-//        lvGoodsIssueList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-//
-//        // 詳細表示
-//        if (displayData.size() > 0) {
-//
-//            // 現在の伝票Index
-//            CurrentSlipIndex = 0;
-//
-//            DisplayDetail(displayData.get(0));
-//        }
-//
-//        // 進行ボタンの有効・無効化
-//        EnabledBtnGoodsIssuePage1Proceed();
-    }
-
-    //endregion
-
-    //region 詳細表示
-
-    private void DisplayDetail(GoodsIssueSlip dispData) {
-        TextView txtGoodsIssueSlipListDetailNinushi = findViewById(R.id.txtGoodsIssuePage1DetailNinushi);
-        TextView txtGoodsIssueSlipListDetailNiwatashi = findViewById(R.id.txtGoodsIssuePage1DetailNiwatashi);
-        TextView txtGoodsIssueSlipListDetailProductName = findViewById(R.id.txtGoodsIssuePage1DetailProductName);
-        TextView txtGoodsIssuePage1Quantity = findViewById(R.id.txtGoodsIssuePage1Quantity);
-        TextView txtGoodsIssuePage1Weight = findViewById(R.id.txtGoodsIssuePage1Weight);
-
-        // 荷主名
-        txtGoodsIssueSlipListDetailNinushi.setText(dispData.getNinushiName());
-        // 荷渡名
-        txtGoodsIssueSlipListDetailNiwatashi.setText(dispData.getNiwatashiName());
-        // 商品名
-        txtGoodsIssueSlipListDetailProductName.setText(dispData.getProductName());
-        // 出庫個数
-        txtGoodsIssuePage1Quantity.setText(toFullWidth(String.format("%,d", dispData.getQuantity().intValue())));
-        // 出庫重量
-        txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", dispData.getWeight().intValue())));
-    }
-
-    private void ClearDetail() {
-        TextView txtGoodsIssueSlipListDetailNinushi = findViewById(R.id.txtGoodsIssuePage1DetailNinushi);
-        TextView txtGoodsIssueSlipListDetailNiwatashi = findViewById(R.id.txtGoodsIssuePage1DetailNiwatashi);
-        TextView txtGoodsIssueSlipListDetailProductName = findViewById(R.id.txtGoodsIssuePage1DetailProductName);
-        TextView txtGoodsIssuePage1Quantity = findViewById(R.id.txtGoodsIssuePage1Quantity);
-        TextView txtGoodsIssuePage1Weight = findViewById(R.id.txtGoodsIssuePage1Weight);
-
-        // 荷主名
-        txtGoodsIssueSlipListDetailNinushi.setText("");
-        // 荷渡名
-        txtGoodsIssueSlipListDetailNiwatashi.setText("");
-        // 商品名
-        txtGoodsIssueSlipListDetailProductName.setText("");
-        // 出庫個数
-        txtGoodsIssuePage1Quantity.setText("");
-        // 出庫重量
-        txtGoodsIssuePage1Weight.setText("");
-    }
 
     //endregion
 
@@ -327,123 +255,82 @@ public class GoodsIssuePage1Activity extends CommonActivity {
 
     //endregion
 
-    //region 独自のAdapter
-
-    private ListAdapter adapter = null;
-
-    private class ListAdapter extends BaseAdapter {
-
-        private final ArrayList<GoodsIssueSlip> list;
-        private final LayoutInflater inflater;
-        private final Resources r;
-
-        public ListAdapter(Context context, ArrayList<GoodsIssueSlip> list) {
-            super();
-            this.list = list;
-            inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            r = context.getResources();
-        }
-
-        @Override
-        public int getCount() {
-            return list.size();
-        }
-
-        @Override
-        public GoodsIssueSlip getItem(int position) {
-            return list.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(final int position, View view, ViewGroup parent) {
-
-            if (view == null) view = inflater.inflate(R.layout.goods_issue_page1_raw, null);
-
-            final GoodsIssueSlip slipData = getItem(position);
-            TextView txtGoodsIssueNo = view.findViewById(R.id.txtGoodsIssueNo);
-            TextView txtGoodsIssueSlipNo = view.findViewById(R.id.txtGoodsIssueSlipNo);
-            TextView txtGoodsIssueStatus = view.findViewById(R.id.txtGoodsIssueStatus);
-
-            if (slipData != null) {
-                txtGoodsIssueNo.setText(String.valueOf(position + 1));
-                txtGoodsIssueSlipNo.setText(slipData.getSlipNo());
-
-                if (slipData.getProgressState() == GoodsIssueSlip.ProgressStateEnum.受付) {
-                    txtGoodsIssueStatus.setText("受付");
-                } else if (slipData.getProgressState() == GoodsIssueSlip.ProgressStateEnum.在庫確認) {
-                    txtGoodsIssueStatus.setText("在庫確認");
-                } else if (slipData.getProgressState() == GoodsIssueSlip.ProgressStateEnum.作業中) {
-                    txtGoodsIssueStatus.setText("作業中");
-                } else if (slipData.getProgressState() == GoodsIssueSlip.ProgressStateEnum.受領確認) {
-                    txtGoodsIssueStatus.setText("受領確認");
-                }
-            } else {
-                txtGoodsIssueNo.setText("");
-                txtGoodsIssueSlipNo.setText("");
-                txtGoodsIssueStatus.setText("");
-            }
-
-            if(position == 0)
-            {
-                view.setSelected(true);
-            }
-            return view;
-        }
-    }
-
-    //endregion
-
     //region 出庫伝票の取得
 
     @SuppressLint("StaticFieldLeak")
     public class GetSyukoDenpyoTask extends SyukoDenpyoController.GetSyukoDenpyoTask {
 
-        /**
-         * バックグランド処理が完了し、UIスレッドに反映する
-         */
+        // 取得前処理
         @Override
-        protected void onPostExecute(SyukoDenpyoModel syukoDenpyoModel) {
+        protected void onPreExecute() {
+            super.onPreExecute();
 
-            // エラー発生
-            if (syukoDenpyoModel.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                builder.setTitle("エラー");
-                builder.setMessage(syukoDenpyoModel.Message);
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                builder.show();
-                return;
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        // 取得後処理
+        @Override
+        protected void onPostExecute(SyukoDenpyoModel _syukoDenpyoModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyoModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    String template = "作業中の出庫伝票の削除に失敗しました。\r\n{0}";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+                // 該当データなし
+                if (_syukoDenpyoModel.Syukono == 0L) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    builder.setTitle("エラー");
+                    builder.setMessage("該当する出庫伝票がありません");
+
+                    builder.show();
+                    return;
+                }
+
+                // 別のユーザーが作業中
+                if (_syukoDenpyoModel.Syukosgyjokyo != null && _syukoDenpyoModel.Syukosgyjokyo.Sgytantocd != loginInfo.Sgytantocd) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    builder.setTitle("エラー");
+                    String template = "{0}が作業中のため、追加できません";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Syukosgyjokyo.Sgytantonm)));
+
+                    builder.show();
+                    return;
+                }
+
+                // 出庫作業登録用のデータを作成
+                SyukoDenpyosModel postData = new SyukoDenpyosModel();
+                postData.SyukoDenpyos = new SyukoDenpyoModel[0];
+                postData.SyukoDenpyos[0] = _syukoDenpyoModel;
+
+                // 出庫作業登録
+                new PostSyukoSagyosTask().execute(postData);
+
+            } finally {
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
             }
-
-            // 該当データなし
-            if (syukoDenpyoModel.Syukono == 0L) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                builder.setTitle("エラー");
-                builder.setMessage("該当するデータがありません");
-
-                builder.show();
-                return;
-            }
-
-            // 別のユーザーが、作業中
-            if(syukoDenpyoModel.Syukosgyjokyo != null && syukoDenpyoModel.Syukosgyjokyo.Sgytantocd != loginInfo.Sgytantocd)
-            {
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                builder.setTitle("エラー");
-                builder.setMessage(syukoDenpyoModel.Syukosgyjokyo.Sgytantonm + "が作業中のため、追加できません");
-
-                builder.show();
-                return;
-            }
-
-            // TODO 出庫作業テーブルに登録する
         }
     }
-
 
     //endregion
 
@@ -452,31 +339,61 @@ public class GoodsIssuePage1Activity extends CommonActivity {
     @SuppressLint("StaticFieldLeak")
     public class GetSyukoDenpyos_SagyochuTask extends SyukoDenpyoController.GetSyukoDenpyos_SagyochuTask {
 
-        /**
-         * バックグランド処理が完了し、UIスレッドに反映する
-         */
+        // 取得前処理
         @Override
-        protected void onPostExecute(SyukoDenpyosModel syukoDenpyosModel) {
+        protected void onPreExecute() {
+            super.onPreExecute();
 
-            // エラー発生
-            if (syukoDenpyos.Is_error) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                builder.setTitle("エラー");
-                builder.setMessage(syukoDenpyos.Message);
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                builder.show();
-                return;
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        // 取得後処理
+        @Override
+        protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    String template = "作業中の出庫伝票の削除に失敗しました。\r\n{0}";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+                // 該当データなし
+                if (_syukoDenpyosModel.SyukoDenpyos == null) {
+                    return;
+                }
+
+                if (sagyochuSyukoDenpyos == null) {
+                    sagyochuSyukoDenpyos = new ArrayList<SyukoDenpyoModel>();
+                }
+
+                // 作業中出庫伝票リストに取得した出庫伝票リストを追加
+                sagyochuSyukoDenpyos.addAll(Arrays.asList(_syukoDenpyosModel.SyukoDenpyos));
+
+                // 出庫伝票一覧を表示
+                DisplaySyukoDenpyos();
+
+            } finally {
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
             }
-
-            // 該当データなし
-            if (syukoDenpyos.SyukoDenpyos == null) {
-                return;
-            }
-
-            // 内部で保持している出庫伝票一覧変数に取得をセット
-            syukoDenpyos = syukoDenpyosModel;
-
-            // TODO 出庫伝票一覧を表示
         }
     }
 
@@ -484,105 +401,435 @@ public class GoodsIssuePage1Activity extends CommonActivity {
 
     //region 出庫伝票一覧（未着手）の取得
 
-    // 出庫伝票一覧（未着手）
-    Map<SyukoDenpyoModel,Boolean> SyukoDenpyos_Sagyomichaksyu;
-
     @SuppressLint("StaticFieldLeak")
-//    public class GetSyukoDenpyos_SagyomichakusyuTask extends SyukoDenpyoController.GetSyukoDenpyos_SagyomichakusyuTask {
-//
-//        /**
-//         * バックグランド処理が完了し、UIスレッドに反映する
-//         */
-//        @Override
-//        protected void onPostExecute(SyukoDenpyosModel syukoDenpyosModel) {
-//
-//            // エラー発生
-//            if (syukoDenpyosModel.Is_error) {
-//                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-//                builder.setTitle("エラー");
-//                builder.setMessage(syukoDenpyos.Message);
-//
-//                builder.show();
-//                return;
-//            }
-//
-//            // 該当データなし
-//            if (syukoDenpyosModel.SyukoDenpyos == null) {
-//                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-//                builder.setTitle("お知らせ");
-//                builder.setMessage("追加できる出庫伝票がありません");
-//
-//                builder.show();
-//                return;
-//            }
-//
-//            // ダイアログで表示する項目の中身を設定
-//            SyukoDenpyos_Sagyomichaksyu = new HashMap<>();
-//            for(SyukoDenpyoModel syukoDenpyoModel:syukoDenpyosModel.SyukoDenpyos)
-//            {
-//                SyukoDenpyos_Sagyomichaksyu.put(syukoDenpyoModel,false);
-//            }
-//
-//            // ダイアログ作成
-//            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-//
-//            // タイトル
-//            builder.setTitle("出庫伝票を選択して下さい");
-//            // キャンセルボタン
-//            builder.setNegativeButton("キャンセル", null);
-//            // OKボタン
-//            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//
-//                    // TODO 作業中テーブルに登録する
-//
-//                    // TODO 出庫伝票一覧に追加で表示する
-//
-//                }
-//            });
-//            // 項目を選択
-//            builder.setMultiChoiceItems(null, null, new OnMultiChoiceClickListener() {
-//
-//                @Override
-//                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-//
-////                    // ✔状態を反転
-////                    SyukoDenpyos_Sagyomichaksyu.put(SyukoDenpyos_Sagyomichaksyu[which], isChecked);
-//
-////                    itemsChecked[which] = isChecked;
-////
-////                    // 1件でも✔されているか
-////                    boolean existsChecked = false;
-////                    for (boolean b : itemsChecked) {
-////                        if (b == true) {
-////                            existsChecked = true;
-////                            break;
-////                        }
-////                    }
-//
-////                    // 1件でも✔されていれば、OKボタンを有効化
-////                    AlertDialog alertDialog = (AlertDialog) dialog;
-////                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(existsChecked);
-//                }
-//            });
-//
-//            // ダイアログ表示
-//            AlertDialog alertDialog = builder.create();
-//            alertDialog.show();
-//
-//            // OKボタンを無効化
-//            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-//        }
-//    }
+    public class GetSyukoDenpyos_SagyomichakusyuTask extends SyukoDenpyoController.GetSyukoDenpyos_SagyomichakusyuTask {
+
+        // 取得前処理
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        // 取得後処理
+        @Override
+        protected void onPostExecute(final SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    builder.setTitle("エラー");
+                    String template = "未着手の出庫伝票の取得に失敗しました。\r\n{0}";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+                // 該当データなし
+                if (_syukoDenpyosModel.SyukoDenpyos == null) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    builder.setMessage("追加できる出庫伝票がありません");
+
+                    builder.show();
+                    return;
+                }
+
+                // 表示する「アイテムリスト」と「そのアイテムのチェック状態リスト」を作成
+                final String[] items = new String[_syukoDenpyosModel.SyukoDenpyos.length];
+                final boolean[] checkedItems = new boolean[_syukoDenpyosModel.SyukoDenpyos.length];
+
+                for (int i = 0; i < _syukoDenpyosModel.SyukoDenpyos.length; i++) {
+                    items[i] = (String.valueOf(_syukoDenpyosModel.SyukoDenpyos[i].Syukono));
+                    checkedItems[i] = false;
+                }
+
+                // 出庫伝票を複数選択できるダイアログを作成
+                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                // タイトル
+                builder.setTitle("出庫伝票を選択して下さい");
+                // キャンセルボタン
+                builder.setNegativeButton("キャンセル", null);
+                // OKボタン
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        // ✓がついている出庫伝票を取得
+                        ArrayList<SyukoDenpyoModel> postSyukoDenpyoModelArrayList = new ArrayList<SyukoDenpyoModel>();
+                        for (int i = 0; i < _syukoDenpyosModel.SyukoDenpyos.length; i++) {
+
+                            if (checkedItems[i]) {
+                                postSyukoDenpyoModelArrayList.add(_syukoDenpyosModel.SyukoDenpyos[i]);
+                            }
+                        }
+
+                        // 出庫作業登録用データを作成
+                        SyukoDenpyosModel postSyukoDenpyosModel = new SyukoDenpyosModel();
+                        postSyukoDenpyosModel.SyukoDenpyos = (SyukoDenpyoModel[]) postSyukoDenpyoModelArrayList.toArray();
+
+                        // 出庫作業を登録する
+                        new PostSyukoSagyosTask().execute(postSyukoDenpyosModel);
+                    }
+                });
+                // 出庫伝票を選択
+                builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+
+                        // ✔状態を反転
+                        checkedItems[which] = isChecked;
+
+                        // 1件でも✔されているか
+                        boolean existsChecked = false;
+                        for (boolean checkedItem : checkedItems) {
+                            if (checkedItem) {
+                                existsChecked = true;
+                                break;
+                            }
+                        }
+
+                        // 1件でも✔されていれば、OKボタンを有効化
+                        AlertDialog alertDialog = (AlertDialog) dialog;
+                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(existsChecked);
+                    }
+                });
+
+                // ダイアログ表示
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
+                // OKボタンを無効化
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+
+            } finally {
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            }
+        }
+    }
 
     //endregion
 
     //region 出庫作業の登録
 
+    @SuppressLint("StaticFieldLeak")
+    public class PostSyukoSagyosTask extends SyukoSagyoController.PostSyukoSagyosTask {
+
+        // 登録前処理
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        // 登録後処理
+        @Override
+        protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    builder.setTitle("エラー");
+                    String template = "出庫作業の登録に失敗しました。\r\n{0}";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+                if (sagyochuSyukoDenpyos == null) {
+                    sagyochuSyukoDenpyos = new ArrayList<SyukoDenpyoModel>();
+                }
+
+                // 出庫伝票追加前に、作業中出庫伝票リストから最後のIndexを取得
+                int addBeforeLastIndex = sagyochuSyukoDenpyos.size() - 1;
+
+                // 作業中出庫伝票リストに、登録した出庫伝票リストを追加する
+                sagyochuSyukoDenpyos.addAll(Arrays.asList(_syukoDenpyosModel.SyukoDenpyos));
+
+                // 現在作業中伝票Indexを今回追加した伝票リストの一番最初に設定する
+                selectedSagyochuSyukoDenpyoIndex = (addBeforeLastIndex + 1);
+
+                // 出庫伝票を表示する
+                DisplaySyukoDenpyos();
+
+            } finally {
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            }
+        }
+
+    }
+
     //endregion
 
     //region 出庫作業の削除
+
+    @SuppressLint("StaticFieldLeak")
+    public class DeleteSyukoSagyosTask extends SyukoSagyoController.DeleteSyukoSagyosTask {
+
+        // 削除前処理
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        // 削除後処理
+        @Override
+        protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                    builder.setTitle("エラー");
+                    String template = "出庫作業の削除に失敗しました。\r\n{0}";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+                // 作業中出庫伝票リストから削除した伝票を削除する
+                for (SyukoDenpyoModel _syukoDenpyoModel : _syukoDenpyosModel.SyukoDenpyos) {
+
+                    sagyochuSyukoDenpyos.remove(_syukoDenpyoModel);
+
+                }
+
+                // 現在作業中伝票Indexをクリアする
+                selectedSagyochuSyukoDenpyoIndex = -1;
+
+                // 出庫伝票を表示する
+                DisplaySyukoDenpyos();
+
+            } finally {
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            }
+        }
+
+    }
+
+    //endregion
+
+    //region 出庫伝票一覧を表示
+
+    private void DisplaySyukoDenpyos() {
+
+        // ListView取得
+        ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
+
+        // アダプターを作成
+        UniqueAdapter uniqueAdapter = new UniqueAdapter(this, sagyochuSyukoDenpyos);
+
+        // アダプターをセット
+        lvGoodsIssueList.setAdapter(uniqueAdapter);
+
+        if (selectedSagyochuSyukoDenpyoIndex > -1) {
+            // 行選択
+            lvGoodsIssueList.setSelection(selectedSagyochuSyukoDenpyoIndex);
+        }
+    }
+
+    //endregion
+
+    //region 荷主・荷渡先・品名を表示
+
+    private void DisplayNinuNiwaHin() {
+        DisplayNinuNiwaHin(selectedSagyochuSyukoDenpyoIndex);
+    }
+
+    private void DisplayNinuNiwaHin(int index) {
+        TextView txtGoodsIssueSlipListDetailNinushi = findViewById(R.id.txtGoodsIssuePage1DetailNinushi);
+        TextView txtGoodsIssueSlipListDetailNiwatashi = findViewById(R.id.txtGoodsIssuePage1DetailNiwatashi);
+        TextView txtGoodsIssueSlipListDetailProductName = findViewById(R.id.txtGoodsIssuePage1DetailProductName);
+
+        SyukoDenpyoModel currentSagyochuSyukoDenpyo = sagyochuSyukoDenpyos.get(index);
+
+        // 荷主名
+        txtGoodsIssueSlipListDetailNinushi.setText(currentSagyochuSyukoDenpyo.Ninusinm);
+        // 荷渡名
+        txtGoodsIssueSlipListDetailNiwatashi.setText(currentSagyochuSyukoDenpyo.Niwatanm);
+        // 商品名
+        StringBuilder hinmeinm = new StringBuilder(currentSagyochuSyukoDenpyo.Hinmeinm);
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo1.isEmpty()) {
+            // 規格内容1
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo1);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo2.isEmpty()) {
+            // 規格内容2
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo2);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo3.isEmpty()) {
+            // 規格内容3
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo3);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo4.isEmpty()) {
+            // 規格内容4
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo4);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo5.isEmpty()) {
+            // 規格内容5
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo5);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo6.isEmpty()) {
+            // 規格内容6
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo6);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo7.isEmpty()) {
+            // 規格内容7
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo7);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo8.isEmpty()) {
+            // 規格内容8
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo8);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo9.isEmpty()) {
+            // 規格内容9
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo9);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo10.isEmpty()) {
+            // 規格内容10
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo10);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo11.isEmpty()) {
+            // 規格内容11
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo11);
+        }
+        if (!currentSagyochuSyukoDenpyo.Kikakunaiyo12.isEmpty()) {
+            // 規格内容12
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Kikakunaiyo12);
+        }
+        if (!currentSagyochuSyukoDenpyo.Tanjuryo.equals(BigDecimal.ZERO)) {
+            // 単重量
+            hinmeinm.append(" ").append(currentSagyochuSyukoDenpyo.Tanjuryo);
+        }
+
+        txtGoodsIssueSlipListDetailProductName.setText(hinmeinm);
+    }
+
+    //endregion
+
+    //region 数量・重量を表示
+
+    private void DisplaySuryoJuryo() {
+        DisplaySuryoJuryo(selectedSagyochuSyukoDenpyoIndex);
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void DisplaySuryoJuryo(int index) {
+        TextView txtGoodsIssuePage1Quantity = findViewById(R.id.txtGoodsIssuePage1Quantity);
+        TextView txtGoodsIssuePage1Weight = findViewById(R.id.txtGoodsIssuePage1Weight);
+
+        SyukoDenpyoModel currentSagyochuSyukoDenpyo = sagyochuSyukoDenpyos.get(index);
+
+        // 出庫個数
+        txtGoodsIssuePage1Quantity.setText(toFullWidth(String.format("%,d", currentSagyochuSyukoDenpyo.Kosuu.intValue())));
+        // 出庫重量
+        txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", currentSagyochuSyukoDenpyo.Juryo.intValue())));
+    }
+
+
+    //endregion
+
+    //region 独自のAdapter
+
+    private static class UniqueAdapter extends BaseAdapter {
+
+        private final ArrayList<SyukoDenpyoModel> list;
+        private final LayoutInflater inflater;
+
+        public UniqueAdapter(Context context, ArrayList<SyukoDenpyoModel> list) {
+            super();
+            this.list = list;
+            inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public int getCount() {
+            return list.size();
+        }
+
+        @Override
+        public SyukoDenpyoModel getItem(int position) {
+            return list.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(final int position, View view, ViewGroup parent) {
+
+            if (view == null) view = inflater.inflate(R.layout.goods_issue_page1_raw, null);
+
+            // 表示するデータを取得
+            final SyukoDenpyoModel syukoDenpyoModel = getItem(position);
+
+            // 値をセットするテキストを取得
+            final TextView txtGoodsIssueNo = view.findViewById(R.id.txtGoodsIssueNo);
+            final TextView txtGoodsIssueSlipNo = view.findViewById(R.id.txtGoodsIssueSlipNo);
+            final TextView txtGoodsIssueStatus = view.findViewById(R.id.txtGoodsIssueStatus);
+
+            // 行番号
+            txtGoodsIssueNo.setText(String.valueOf(position + 1));
+            // 伝票番号
+            txtGoodsIssueSlipNo.setText(String.valueOf(syukoDenpyoModel.Syukono));
+            // 作業状況
+            txtGoodsIssueStatus.setText(EnumClass.SgyjokyoEnum.SgyjokyoName.get(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn));
+
+            return view;
+        }
+    }
 
     //endregion
 
@@ -590,6 +837,15 @@ public class GoodsIssuePage1Activity extends CommonActivity {
 
     @Override
     public void onKeyRemapCreated() {
+
+        // 左トリガーにバーコードスキャンを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
+
+        // 右トリガーにバーコードスキャンを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
+
     }
 
     //endregion
