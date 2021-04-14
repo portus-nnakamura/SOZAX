@@ -69,4 +69,11 @@
     <!-- 画面遷移で使用するキー -->
     <string name="intent_key_login_info">LoginInfo</string>
     <string name="intent_key_previous_activity_name">PreviousActivityName</string>
+    <string name="intent_key_zaiko_syokai">ZaikoSyokai</string>
+
+    <!-- InventoryInquiryPage1Activityで使用するメッセージ-->
+    <string name="inventory_inquiry_page1_activity_failed_getdata_message">在庫照会データの取得に失敗しました。\n{0}</string>
+    <string name="inventory_inquiry_page1_activity_nodata_message">該当する在庫照会データがありません。</string>
+    <string name="inventory_inquiry_page1_activity_not_hyojihyosqr">表示表のQRではありません。</string>>
+
 </resources>

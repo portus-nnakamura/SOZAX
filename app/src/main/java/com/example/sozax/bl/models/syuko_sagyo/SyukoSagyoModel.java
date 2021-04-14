@@ -11,13 +11,13 @@ public class SyukoSagyoModel  {
 
     public int Kaicd = 0;
 
-    public int Tencd = 0;
+    public int Sgytencd = 0;
 
     public int Sgytantocd = 0;
 
     public String Sgytantonm = "";
 
-    public int Soukocd = 0;
+    public int Sgysoukocd = 0;
 
     public Date Sgydate = new Date(Long.MIN_VALUE);
 

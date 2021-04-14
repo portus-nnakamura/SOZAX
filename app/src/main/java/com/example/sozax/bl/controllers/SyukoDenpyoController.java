@@ -9,6 +9,9 @@ import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 
 import okhttp3.Headers;
@@ -28,10 +31,12 @@ public class SyukoDenpyoController {
 
             SyukoDenpyoModel ret = null;
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Syukono + "/"
+                    .url("http://192.168.10.214/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Syukono + "/"
                             + syukoDenpyoConditionModel[0].Kaicd + "/" + syukoDenpyoConditionModel[0].Soukocd + "/"
-                            + syukoDenpyoConditionModel[0].Sagyodate)
+                            + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -86,9 +91,11 @@ public class SyukoDenpyoController {
 
             SyukoDenpyosModel ret = null;
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Kaicd + "/"
-                            + syukoDenpyoConditionModel[0].Soukocd + "/" + syukoDenpyoConditionModel[0].Sagyodate)
+                    .url("http://192.168.10.214/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                            + syukoDenpyoConditionModel[0].Soukocd + "/" + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -143,10 +150,12 @@ public class SyukoDenpyoController {
 
             SyukoDenpyosModel ret = null;
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/sagyochu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url("http://192.168.10.214/api/syukodenpyo/get/sagyochu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/" + syukoDenpyoConditionModel[0].Sgytantocd + "/"
-                            + syukoDenpyoConditionModel[0].Sagyodate)
+                            + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -192,7 +201,7 @@ public class SyukoDenpyoController {
     //endregion
 
     //region
-    public static class GetSyukos_SagyomichakusyuTask extends AsyncTask<SyukoDenpyoConditionModel, Void, SyukoDenpyosModel> {
+    public static class GetSyukoDenpyos_SagyomichakusyuTask extends AsyncTask<SyukoDenpyoConditionModel, Void, SyukoDenpyosModel> {
 
         // 非同期処理
         @Override
@@ -200,9 +209,11 @@ public class SyukoDenpyoController {
 
             SyukoDenpyosModel ret = null;
 
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/sagyomichakusyu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
-                            + syukoDenpyoConditionModel[0].Soukocd + "/" + syukoDenpyoConditionModel[0].Sagyodate)
+                    .url("http://192.168.10.214/api/syukodenpyo/get/sagyomichakusyu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                            + syukoDenpyoConditionModel[0].Soukocd + "/" + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 

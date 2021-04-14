@@ -2,10 +2,11 @@ package com.example.sozax.bl.models.zaiko_syokai;
 
 import com.example.sozax.common.ResultClass;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class ZaikoSyokaiModel extends ResultClass {
+public class ZaikoSyokaiModel extends ResultClass implements Serializable {
 
     public long Syukeicd = 0L;
 
@@ -24,6 +25,8 @@ public class ZaikoSyokaiModel extends ResultClass {
     public int Sdosecd = 0;
 
     public Date Sdosenyuymd = null;
+
+    public int Funecd = 0;
 
     public String Funenm = "";
 

@@ -41,6 +41,8 @@ public class HyojihyoModel extends ResultClass {
 
     public String Erianm = "";
 
+    public int Sdosecd = 0;
+
     public int Funecd = 0;
 
     public String Funenm = "";

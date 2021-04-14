@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.Headers;
@@ -45,8 +46,7 @@ public class SyukoSagyoController {
 
             // リクエストを作成
             final Request request = new Request.Builder()
-                    //.url("http://192.168.10.214:55500/api/syukosagyo/post/")
-                    .url("http://192.168.244.156:55500/api/syukosagyo/post/")
+                    .url("http://192.168.10.214:55500/api/syukosagyo/post/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .post(requestBody)
                     .build();
@@ -74,8 +74,7 @@ public class SyukoSagyoController {
 
             // リクエストを作成
             final Request request = new Request.Builder()
-                    //.url("http://192.168.10.214:55500/api/syukosagyo/post/")
-                    .url("http://192.168.244.156:55500/api/syukosagyo/put/")
+                    .url("http://192.168.10.214:55500/api/syukosagyo/put/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .put(requestBody)
                     .build();
@@ -105,8 +104,7 @@ public class SyukoSagyoController {
 
             // リクエストを作成
             final Request request = new Request.Builder()
-                    //.url("http://192.168.10.214:55500/api/syukosagyo/post/")
-                    .url("http://192.168.244.156:55500/api/syukosagyo/delete/")
+                    .url("http://192.168.10.214:55500/api/syukosagyo/delete/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .delete(requestBody)
                     .build();

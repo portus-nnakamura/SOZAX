@@ -17,16 +17,16 @@ import okhttp3.Response;
 
 public class ZaikoSyokaiController {
 
-    public static class GetZaikoSyokaiTask extends AsyncTask<ZaikoSyokaiConditionModel, Void, ZaikoSyokaiModel> {
+    public static class GetZaikoSyokaiTask extends AsyncTask<Long, Void, ZaikoSyokaiModel> {
 
         // 非同期処理
         @Override
-        protected ZaikoSyokaiModel doInBackground(ZaikoSyokaiConditionModel... zaikoSyokaiConditionModel) {
+        protected ZaikoSyokaiModel doInBackground(Long... syukeicd) {
 
             ZaikoSyokaiModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/zaikosyokai/get/" + zaikoSyokaiConditionModel[0].Syukeicd)
+                    .url("http://192.168.244.156:55500/api/zaikosyokai/get/" + String.valueOf(syukeicd[0]))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -63,7 +63,15 @@ public class ZaikoSyokaiController {
 
             // JSONファイルからModelデータに変換
             Gson gson = new Gson();
-            ret = gson.fromJson(s, ZaikoSyokaiModel.class);
+
+            try {
+                ret = gson.fromJson(s, ZaikoSyokaiModel.class);
+            }catch (Exception e) {
+                ret = new ZaikoSyokaiModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
 
             return ret;
         }
