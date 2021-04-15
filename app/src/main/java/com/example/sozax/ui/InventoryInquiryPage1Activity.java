@@ -32,11 +32,14 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class InventoryInquiryPage1Activity extends CommonActivity {
+public class InventoryInquiryPage1Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
 
     // region インスタンス変数
     // 在庫照会データ
     private ZaikoSyokaiModel dispData;
+
+    // キー割り当てライブラリ(DENSO製)
+    public KeyRemapLibrary mKeyRemapLibrary;
 
     // endregion
 
@@ -53,71 +56,17 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
 //        txtLoginInfo.setText(logininfo.getOfficeInfo().getName() + "　" + logininfo.getRepresentativeInfo().getName() + "\n" + sdf.format(logininfo.getWorkingday()) +"　"+ logininfo.getWarehouseInfo().getName());
 
         // ボタンの有効・無効化
-
+        EnabledBtnInventoryInquiryPage1Proceed();
 
         // アプリ終了
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
 
-//        mKeyRemapLibrary = new KeyRemapLibrary();
-//        mKeyRemapLibrary.createKeyRemap(this, this); // create
+        mKeyRemapLibrary = new KeyRemapLibrary();
+        mKeyRemapLibrary.createKeyRemap(this, this); // create
 
     }
 
-    //region サンプル
 
-    // LIST表示制御用クラス
-    //Ver1からの変更点：extends ArrayAdapter<Data> を extends BaseAdapterに変更
-//    private class ListAdapter extends BaseAdapter {
-//
-//        private final ArrayList<String> list;
-//        private final LayoutInflater inflater;
-//        private final Resources r;
-//
-//        public ListAdapter(Context context, ArrayList<String> list) {
-//            super();
-//            this.list = list;
-//            inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            r = context.getResources();
-//        }
-//
-//        @Override
-//        public int getCount() {
-//            return list.size();
-//        }
-//
-//        @Override
-//        public String getItem(int position) {
-//            return list.get(position);
-//        }
-//
-//        @Override
-//        public long getItemId(int position) {
-//            return position;
-//        }
-//
-//        @Override
-//        public View getView(final int position, View view, ViewGroup parent) {
-//
-//            if (view == null) view = inflater.inflate(R.layout.inventory_inquiry_page1_raw, null);
-//
-//            // position行目のデータを取得
-//            final String s = getItem(position);
-//
-//            // テキストボックスを取得
-//            TextView txtInventoryInquiryPage1Info = (TextView) view.findViewById(R.id.txtInventoryInquiryPage1Info);
-//
-//            // 値がある場合
-//            if (s != null && s.isEmpty() == false) {
-//                // 値をセット
-//                txtInventoryInquiryPage1Info.setText(s);
-//            } else {
-//                // 空文字セット
-//                txtInventoryInquiryPage1Info.setText("");
-//            }
-//
-//            return view;
-//        }
-//    }
 
     private class ListAdapter extends BaseAdapter {
 
@@ -166,24 +115,20 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
                 txtInventoryInquiryPage1Info.setText("");
             }
 
-            return null;
+            return convertView;
         }
     }
-    //endregion
+
 
     //region 在庫照会ボタンをクリックで、在庫履歴に遷移
 
     public void btnInventoryInquiryPage1Proceed_Click(View view) {
 
-        if (adapter == null) {
-
-        } else {
-            // 在庫履歴に遷移
-            Intent intent = new Intent(this, InventoryInquiryPage2Activity.class);
-            intent.putExtra("intent_key_login_info", loginInfo);
-            //intent.putExtra("intent_key_zaiko_syokai", dispData);
-            startActivity(intent);
-        }
+        // 在庫履歴に遷移
+        Intent intent = new Intent(this, InventoryInquiryPage2Activity.class);
+        intent.putExtra("intent_key_login_info", loginInfo);
+        intent.putExtra("intent_key_zaiko_syokai", dispData);
+        startActivity(intent);
     }
 
     //endregion
@@ -294,17 +239,18 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
                 for (ZaikoSyokai_NyusyukkoRirekiModel rireki : dispData.Nyusyukkorireki) {
                     // 個数計算
                     BigDecimal kosucalc = rireki.Nyuko_kosuu.subtract(rireki.Syukko_kosuu);
-                    kosu.add(kosucalc);
+                    kosu = kosu.add(kosucalc);
+
                     // 重量計算
                     BigDecimal juryocalc = rireki.Nyuko_Juryo.subtract(rireki.Syukko_Juryo);
-                    juryo.add(juryocalc);
+                    juryo = juryo.add(juryocalc);
                 }
 
-                // 在庫個数
+                // 在庫個数表示
                 TextView txtInventoryInquiryPage1Quantity = findViewById(R.id.txtInventoryInquiryPage1Quantity);
                 txtInventoryInquiryPage1Quantity.setText(kosu.toString());
 
-                // 在庫重量
+                // 在庫重量表示
                 TextView txtInventoryInquiryPage1Weight = findViewById(R.id.txtInventoryInquiryPage1Weight);
                 txtInventoryInquiryPage1Weight.setText(juryo.toString());
 
@@ -336,8 +282,10 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
             // QRデータ作成
             String qrData = "2:012016011802411";
 
+            int len = qrData.length();
+
             // 正規表現パターン
-            Pattern pattern = Pattern.compile("2:[0-9]+${17}");        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
+            Pattern pattern = Pattern.compile("2:[0-9]{15}$");        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
             Matcher matcher = pattern.matcher(qrData);
 
             // 正規表現でチェック
@@ -363,30 +311,30 @@ public class InventoryInquiryPage1Activity extends CommonActivity {
 
     //region DENSO固有ボタンの設定
 
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//
-//        // KeyRemapLibrary クラスのインスタンスを解放
-//        mKeyRemapLibrary.disposeKeyRemap();
-//    }
-//
-//    @Override
-//    public void onKeyRemapCreated() {
-//        // onCreate処理内のcreateKeyRemap完了時の処理
-//
-//        // 左トリガーにバーコードスキャンを割り当て
-////        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-////                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-//        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-//                KeyRemapLibrary.ScanCode.SCAN_CODE_F5.getString());
-//
-//        // 右トリガーにバーコードスキャンを割り当て
-////        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-////                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-//        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-//                KeyRemapLibrary.ScanCode.SCAN_CODE_F6.getString());
-//    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // KeyRemapLibrary クラスのインスタンスを解放
+        mKeyRemapLibrary.disposeKeyRemap();
+    }
+
+    @Override
+    public void onKeyRemapCreated() {
+        // onCreate処理内のcreateKeyRemap完了時の処理
+
+        // 左トリガーにバーコードスキャンを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_F5.getString());
+
+        // 右トリガーにバーコードスキャンを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_F6.getString());
+    }
 
     //endregion
 }
