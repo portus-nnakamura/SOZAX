@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.ZaikoSyokaiController;
@@ -27,8 +28,10 @@ import com.example.sozax.common.CommonActivity;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
+import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,17 +46,14 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     // endregion
 
-    private ListAdapter adapter = null;
-
+    // region 初回起動
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inventory_inquiry_page1);
 
         // ログイン情報を表示
-//        TextView txtLoginInfo = findViewById(R.id.txtLoginInfo);
-//        SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-//        txtLoginInfo.setText(logininfo.getOfficeInfo().getName() + "　" + logininfo.getRepresentativeInfo().getName() + "\n" + sdf.format(logininfo.getWorkingday()) +"　"+ logininfo.getWarehouseInfo().getName());
+        DisplayLoginInfo();
 
         // ボタンの有効・無効化
         EnabledBtnInventoryInquiryPage1Proceed();
@@ -65,9 +65,29 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         mKeyRemapLibrary.createKeyRemap(this, this); // create
 
     }
+    // endregion
 
+    // region ログイン情報表示
 
+    public void DisplayLoginInfo()
+    {
+        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);;
+        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm,10));
 
+        TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
+        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm,10));
+
+        TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm,10));
+
+        SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
+        TextView txtLoginSgydate = findViewById(R.id.txtLoginSgydate);
+        txtLoginSgydate.setText(sdf.format(loginInfo.Sgydate));
+    }
+
+    // endregion
+
+    // region アダプター作成
     private class ListAdapter extends BaseAdapter {
 
         private final ArrayList<String> list;
@@ -118,7 +138,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
             return convertView;
         }
     }
-
+    // endregion
 
     //region 在庫照会ボタンをクリックで、在庫履歴に遷移
 
@@ -161,6 +181,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
     //endregion
 
     //region 在庫照会データ取得
+
     @SuppressLint("StaticFieldLeak")
     private class GetZaikoSyokaiTask extends ZaikoSyokaiController.GetZaikoSyokaiTask {
 
@@ -212,7 +233,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
                 // 取得結果をセット
                 dispData = zaikosyokai;
 
-                // サンプル用のデータを準備
+                // データを準備
                 ArrayList<String> zaikoData = new ArrayList<String>();
                 zaikoData.add(dispData.Ninusinm);
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd");
@@ -220,39 +241,47 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
                 zaikoData.add(dispData.Funenm);
                 zaikoData.add(dispData.Hinmeinm);
                 zaikoData.add(dispData.Kikaku);
-                zaikoData.add(dispData.Tanjuryo + "Kg" + dispData.Nisunm);
+                zaikoData.add(dispData.Tanjuryo + "Kg " + dispData.Nisunm);
                 zaikoData.add(dispData.Sykdomenm);
 
                 // レイアウトで定義している在庫品情報のリストビューを取得
                 ListView lvInventoryInquiryProductInformation = (ListView) findViewById(R.id.lvInventoryInquiryProductInformation);
 
                 // アダプタ－を作成
-                adapter = new ListAdapter(InventoryInquiryPage1Activity.this, zaikoData);
+                ListAdapter adapter = new ListAdapter(InventoryInquiryPage1Activity.this, zaikoData);
 
                 // 在庫品情報にアダプターをセット
                 lvInventoryInquiryProductInformation.setAdapter(adapter);
 
-                // 在庫個数、重量計算
                 BigDecimal kosu = BigDecimal.ZERO;
                 BigDecimal juryo = BigDecimal.ZERO;
 
+                // 在庫個数、重量計算
                 for (ZaikoSyokai_NyusyukkoRirekiModel rireki : dispData.Nyusyukkorireki) {
                     // 個数計算
                     BigDecimal kosucalc = rireki.Nyuko_kosuu.subtract(rireki.Syukko_kosuu);
-                    kosu = kosu.add(kosucalc);
+                    // 入出庫履歴　残表示用に保存
+                    rireki.Zan_kosu = kosu.add(kosucalc);
+                    kosu = rireki.Zan_kosu;
 
                     // 重量計算
                     BigDecimal juryocalc = rireki.Nyuko_Juryo.subtract(rireki.Syukko_Juryo);
-                    juryo = juryo.add(juryocalc);
+                    // 入出庫履歴　残表示用に保存
+                    rireki.Zan_juryo = juryo.add(juryocalc);
+                    juryo = rireki.Zan_juryo;
                 }
+
+                // 数量、重量合計保持
+                dispData.Total_kosu = kosu;
+                dispData.Total_juryo = juryo;
 
                 // 在庫個数表示
                 TextView txtInventoryInquiryPage1Quantity = findViewById(R.id.txtInventoryInquiryPage1Quantity);
-                txtInventoryInquiryPage1Quantity.setText(kosu.toString());
+                txtInventoryInquiryPage1Quantity.setText(toFullWidth(String.format("%,d", kosu.intValue())));
 
                 // 在庫重量表示
                 TextView txtInventoryInquiryPage1Weight = findViewById(R.id.txtInventoryInquiryPage1Weight);
-                txtInventoryInquiryPage1Weight.setText(juryo.toString());
+                txtInventoryInquiryPage1Weight.setText(toFullWidth(String.format("%,d", juryo.multiply(BigDecimal.valueOf(1000)).intValue())));
 
                 // ボタンの有効・無効化
                 EnabledBtnInventoryInquiryPage1Proceed();
@@ -280,7 +309,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         if (e.getKeyCode() == KeyEvent.KEYCODE_1 && e.getAction() == KeyEvent.ACTION_DOWN) {
 
             // QRデータ作成
-            String qrData = "2:012016011802411";
+            String qrData = "2:012016011802410";
 
             int len = qrData.length();
 
@@ -312,14 +341,6 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
     //region DENSO固有ボタンの設定
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // KeyRemapLibrary クラスのインスタンスを解放
-        mKeyRemapLibrary.disposeKeyRemap();
-    }
-
-    @Override
     public void onKeyRemapCreated() {
         // onCreate処理内のcreateKeyRemap完了時の処理
 
@@ -337,4 +358,16 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
     }
 
     //endregion
+
+    // region 画面破棄
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // KeyRemapLibrary クラスのインスタンスを解放
+        mKeyRemapLibrary.disposeKeyRemap();
+    }
+
+    // endregion
 }

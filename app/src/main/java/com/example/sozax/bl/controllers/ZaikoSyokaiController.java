@@ -63,7 +63,7 @@ public class ZaikoSyokaiController {
             }
 
             // JSONファイルからModelデータに変換
-            Gson gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
 
             try {
                 ret = gson.fromJson(s, ZaikoSyokaiModel.class);

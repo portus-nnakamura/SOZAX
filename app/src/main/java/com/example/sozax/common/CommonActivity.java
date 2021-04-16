@@ -124,4 +124,22 @@ public abstract class CommonActivity extends AppCompatActivity {
         }
         return ret;
     }
+
+    /**
+     * 「半角数字」を「全角数字」へ変換処理を実施する。
+     *
+     * @param s 対象文字列
+     * @return 変換結果
+     */
+    public static String toFullWidth(String s) {
+        StringBuilder sb = new StringBuilder(s);
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (0x30 <= c && c <= 0x39) {
+                sb.setCharAt(i, (char) (c + 0xFEE0));
+            }
+        }
+        return sb.toString();
+    }
+
 }
