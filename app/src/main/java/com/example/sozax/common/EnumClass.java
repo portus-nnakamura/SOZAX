@@ -1,31 +1,212 @@
 package com.example.sozax.common;
 
 import java.util.Dictionary;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
 public class EnumClass {
 
-    public static class SgyjokyoEnum {
+    //region 作業状況区分
 
-        // 受付
-        public static final int Uketuke = 1;
-        // 在庫確認
-        public static final int Zaikokakunin = 2;
-        // 出庫作業
-        public static final int Syukosagyo = 3;
-        // 受領確認
-        public static final int Juryokakunin = 4;
+    public enum SgyjokyoKubun {
 
-        public static Map<Integer,String> SgyjokyoName;
+        Uketuke("受付",1),
+        Zaikokakunin("在庫確認",2),
+        Syukosagyo("出庫作業",3),
+        Juryokakunin("受領確認",4);
+
+        private final String s;
+        private final Integer i;
+
+
+        private SgyjokyoKubun(final String name,final int code) {
+            this.s = name;
+            this.i = code;
+        }
+
+        public String getString()
         {
-            SgyjokyoName = new HashMap<Integer, String>() {{
-                put(Uketuke, "受付");
-                put(Zaikokakunin, "在庫確認");
-                put(Syukosagyo, "出庫作業");
-                put(Juryokakunin, "受領確認");
-            }};
+            return  this.s;
+        }
+
+        public int getInteger()
+        {
+            return  this.i;
         }
     }
+
+    public  static SgyjokyoKubun getSgyjokyoKubun(final int code) {
+        SgyjokyoKubun[] sgyjokyoKubuns = SgyjokyoKubun.values();
+        for(SgyjokyoKubun sgyjokyoKubun : sgyjokyoKubuns){
+            if(sgyjokyoKubun.getInteger() == code){
+                return sgyjokyoKubun;
+            }
+        }
+
+        return  null;
+    }
+
+    //endregion
+
+    //region チェック区分
+
+    public enum CheckKubun {
+
+        OK("OK",1),
+        NG("NG",2);
+
+        private final String s;
+        private final Integer i;
+
+        private CheckKubun(final String name,final int code) {
+            this.s = name;
+            this.i = code;
+        }
+
+        public String getString()
+        {
+            return  this.s;
+        }
+
+        public int getInteger()
+        {
+            return  this.i;
+        }
+    }
+
+    public  static CheckKubun getCheckKubun(final int code) {
+        CheckKubun[] checkKubuns = CheckKubun.values();
+        for(CheckKubun checkKubun : checkKubuns){
+            if(checkKubun.getInteger() == code){
+                return checkKubun;
+            }
+        }
+
+        return  null;
+    }
+
+    //endregion
+
+    //region 貨物区分
+
+    public enum KamotuKubun {
+
+        Naika("内貨",1),
+        Gaika("外貨",2);
+
+        private final String s;
+        private final Integer i;
+
+        private KamotuKubun(final String name,final int code) {
+            this.s = name;
+            this.i = code;
+        }
+
+        public String getString()
+        {
+            return  this.s;
+        }
+
+        public int getInteger()
+        {
+            return  this.i;
+        }
+    }
+
+    public  static KamotuKubun getKamotuKubun(final int code) {
+        KamotuKubun[] kamotuKubuns = KamotuKubun.values();
+        for(KamotuKubun kamotuKubun : kamotuKubuns){
+            if(kamotuKubun.getInteger() == code){
+                return kamotuKubun;
+            }
+        }
+
+        return  null;
+    }
+
+    //endregion
+
+    //region 荷造作業区分
+
+    public enum NidukurisagyoKubun {
+
+        Misettei("",0),
+        Nidukuri("荷造",1),
+        Tukurioki("作り置き",2),
+        Ninusinidukuri("荷主荷造",5);
+
+        private final String s;
+        private final Integer i;
+
+        private NidukurisagyoKubun(final String name,final int code) {
+            this.s = name;
+            this.i = code;
+        }
+
+        public String getString()
+        {
+            return  this.s;
+        }
+
+        public int getInteger()
+        {
+            return  this.i;
+        }
+    }
+
+    public  static NidukurisagyoKubun getNidukuriKubun(final int code) {
+        NidukurisagyoKubun[] nidukuriKubuns = NidukurisagyoKubun.values();
+        for(NidukurisagyoKubun nidukuriKubun : nidukuriKubuns){
+            if(nidukuriKubun.getInteger() == code){
+                return nidukuriKubun;
+            }
+        }
+
+        return  null;
+    }
+
+    //endregion
+
+    //region 入庫手段区分
+
+    public enum NyukosyudanKubun {
+
+        Funenyuko("船入庫",1),
+        Truck("トラック",2),
+        Container("コンテナ",3);
+
+        private final String s;
+        private final Integer i;
+
+        private NyukosyudanKubun(final String name,final int code) {
+            this.s = name;
+            this.i = code;
+        }
+
+        public String getString()
+        {
+            return  this.s;
+        }
+
+        public int getInteger()
+        {
+            return  this.i;
+        }
+    }
+
+    public  static NyukosyudanKubun getNyukosyudanKubun(final int code) {
+        NyukosyudanKubun[] nyukosyudanKubuns = NyukosyudanKubun.values();
+        for(NyukosyudanKubun nyukosyudanKubun : nyukosyudanKubuns){
+            if(nyukosyudanKubun.getInteger() == code){
+                return nyukosyudanKubun;
+            }
+        }
+
+        return  null;
+    }
+
+    //endregion
+
 }

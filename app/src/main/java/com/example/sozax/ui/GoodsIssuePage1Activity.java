@@ -26,8 +26,10 @@ import com.example.sozax.bl.controllers.SyukoSagyoController;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.common.CommonActivity;
 import com.example.sozax.common.EnumClass;
+import com.example.sozax.common.EnumClass.SgyjokyoKubun;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
@@ -128,16 +130,20 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            view.setSelected(true);
+            if(selectedSagyochuSyukoDenpyoIndex != position)
+            {
+                view.setSelected(true);
 
-            // 選択伝票Indexを更新
-            selectedSagyochuSyukoDenpyoIndex = position;
+                // 選択伝票Indexを更新
+                selectedSagyochuSyukoDenpyoIndex = position;
 
-            // 荷主・荷渡先・品名を表示
-            DisplayNinuNiwaHin();
+                // 荷主・荷渡先・品名を表示
+                DisplayNinuNiwaHin();
 
-            // 数量・重量を表示
-            DisplaySuryoJuryo();
+                // 数量・重量を表示
+                DisplaySuryoJuryo();
+            }
+
         }
     }
 
@@ -150,6 +156,20 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         @Override
         public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
 
+            if(selectedSagyochuSyukoDenpyoIndex != position)
+            {
+                view.setSelected(true);
+
+                // 選択伝票Indexを更新
+                selectedSagyochuSyukoDenpyoIndex = position;
+
+                // 荷主・荷渡先・品名を表示
+                DisplayNinuNiwaHin();
+
+                // 数量・重量を表示
+                DisplaySuryoJuryo();
+            }
+
             AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
             builder.setMessage("選択行をクリアしても\nよろしいですか？")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -159,7 +179,7 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
                             // 出庫作業削除用のデータを作成
                             SyukoDenpyosModel deleteData = new SyukoDenpyosModel();
-                            deleteData.SyukoDenpyos = new SyukoDenpyoModel[0];
+                            deleteData.SyukoDenpyos = new SyukoDenpyoModel[1];
                             deleteData.SyukoDenpyos[0] = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
 
                             // 出庫作業削除
@@ -381,6 +401,9 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
                 // 作業中出庫伝票リストに取得した出庫伝票リストを追加
                 sagyochuSyukoDenpyos.addAll(Arrays.asList(_syukoDenpyosModel.SyukoDenpyos));
 
+                // 先頭行を選択
+                selectedSagyochuSyukoDenpyoIndex = 0;
+
                 // 出庫伝票一覧を表示
                 DisplaySyukoDenpyos();
 
@@ -465,24 +488,34 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
                     public void onClick(DialogInterface dialog, int which) {
 
                         // ✓がついている出庫伝票を取得
-                        ArrayList<SyukoDenpyoModel> postSyukoDenpyoModelArrayList = new ArrayList<SyukoDenpyoModel>();
+                        ArrayList<SyukoDenpyoModel> selectedData = new ArrayList<SyukoDenpyoModel>();
                         for (int i = 0; i < _syukoDenpyosModel.SyukoDenpyos.length; i++) {
 
                             if (checkedItems[i]) {
-                                postSyukoDenpyoModelArrayList.add(_syukoDenpyosModel.SyukoDenpyos[i]);
+
+                                SyukoSagyoModel syukoSagyoModel = new SyukoSagyoModel();
+                                syukoSagyoModel.Syukono = _syukoDenpyosModel.SyukoDenpyos[i].Syukono;
+                                syukoSagyoModel.Kaicd = loginInfo.Kaicd;
+                                syukoSagyoModel.Sgytencd = loginInfo.Tensyocd;
+                                syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
+                                syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
+                                syukoSagyoModel.Sgydate = loginInfo.Sgydate;
+                                syukoSagyoModel.Sgyjokyokbn = SgyjokyoKubun.Uketuke.hashCode();
+
+                                _syukoDenpyosModel.SyukoDenpyos[i].Syukosgyjokyo = syukoSagyoModel;
+                                selectedData.add(_syukoDenpyosModel.SyukoDenpyos[i]);
                             }
                         }
 
                         // 出庫作業登録用データを作成
-                        SyukoDenpyosModel postSyukoDenpyosModel = new SyukoDenpyosModel();
-                        postSyukoDenpyosModel.SyukoDenpyos = (SyukoDenpyoModel[]) postSyukoDenpyoModelArrayList.toArray();
+                        SyukoDenpyosModel postData = new SyukoDenpyosModel();
+                        postData.SyukoDenpyos = new SyukoDenpyoModel[selectedData.size()];
+                        selectedData.toArray(postData.SyukoDenpyos);
 
                         // 出庫作業を登録する
-                        new PostSyukoSagyosTask().execute(postSyukoDenpyosModel);
+                        new PostSyukoSagyosTask().execute(postData);
                     }
-                });
-                // 出庫伝票を選択
-                builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                }).setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
 
@@ -503,6 +536,7 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
                         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(existsChecked);
                     }
                 });
+                // 出庫伝票を選択
 
                 // ダイアログ表示
                 AlertDialog alertDialog = builder.create();
@@ -664,17 +698,25 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
     private void DisplaySyukoDenpyos() {
 
         // ListView取得
-        ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
+        final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
 
         // アダプターを作成
-        UniqueAdapter uniqueAdapter = new UniqueAdapter(this, sagyochuSyukoDenpyos);
+        final UniqueAdapter uniqueAdapter = new UniqueAdapter(this, sagyochuSyukoDenpyos);
 
         // アダプターをセット
         lvGoodsIssueList.setAdapter(uniqueAdapter);
 
         if (selectedSagyochuSyukoDenpyoIndex > -1) {
             // 行選択
+            lvGoodsIssueList.deferNotifyDataSetChanged();
+            lvGoodsIssueList.requestFocusFromTouch();
             lvGoodsIssueList.setSelection(selectedSagyochuSyukoDenpyoIndex);
+
+            // 荷主・荷渡先・品名を表示
+            DisplayNinuNiwaHin();
+
+            // 数量・重量を表示
+            DisplaySuryoJuryo();
         }
     }
 
@@ -825,7 +867,7 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
             // 伝票番号
             txtGoodsIssueSlipNo.setText(String.valueOf(syukoDenpyoModel.Syukono));
             // 作業状況
-            txtGoodsIssueStatus.setText(EnumClass.SgyjokyoEnum.SgyjokyoName.get(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn));
+            txtGoodsIssueStatus.setText(EnumClass.getSgyjokyoKubun(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn).getString());
 
             return view;
         }

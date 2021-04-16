@@ -20,6 +20,8 @@ public class BarChkKomkModel extends ResultClass {
 
     public int Is_sdosecd = 0;
 
+    public  int Is_hinsyucd = 0;
+
     public int Is_hinmeicd = 0;
 
     public int Is_hinmeinm = 0;
@@ -41,6 +43,8 @@ public class BarChkKomkModel extends ResultClass {
     public int Is_zaikojotaikbn = 0;
 
     public int Is_sykdomecd = 0;
+
+    public  int Is_ninusicd = 0;
 
     public int Is_soukocd = 0;
 
