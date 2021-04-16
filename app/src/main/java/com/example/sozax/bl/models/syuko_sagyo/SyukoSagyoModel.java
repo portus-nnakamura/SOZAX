@@ -3,9 +3,10 @@ package com.example.sozax.bl.models.syuko_sagyo;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
 import com.example.sozax.common.ResultClass;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class SyukoSagyoModel  {
+public class SyukoSagyoModel implements Serializable {
 
     public long Syukono = 0L;
 

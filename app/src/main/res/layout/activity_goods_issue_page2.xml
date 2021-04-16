@@ -6,6 +6,20 @@
     android:layout_height="match_parent"
     tools:context=".ui.GoodsIssuePage2Activity">
 
+    <!-- プログレスバー -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="invisible"
+        android:elevation="1dp"
+        />
+
     <!-- アイコンバー -->
     <LinearLayout
         android:id="@+id/llGoodsIssuePage2Header"
@@ -17,10 +31,10 @@
 
         <!-- 前伝票 -->
         <ImageButton
+            android:id="@+id/btnPrevSlip"
             style="@style/image_button_style"
             android:layout_weight="0.25"
             android:background="@color/transparent"
-            android:onClick="btnPreviousSlip_Click"
             android:src="@drawable/icon_left_48"
             tools:ignore="ContentDescription" />
 
@@ -33,10 +47,10 @@
 
         <!-- 次伝票 -->
         <ImageButton
+            android:id="@+id/btnNextSlip"
             style="@style/image_button_style"
             android:layout_weight="0.25"
             android:background="@color/transparent"
-            android:onClick="btnNextSlip_Click"
             android:src="@drawable/icon_right_48"
             tools:ignore="ContentDescription" />
 

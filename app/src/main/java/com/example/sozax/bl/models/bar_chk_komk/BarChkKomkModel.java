@@ -1,8 +1,11 @@
 package com.example.sozax.bl.models.bar_chk_komk;
 
 import com.example.sozax.common.ResultClass;
+import com.google.gson.annotations.SerializedName;
 
-public class BarChkKomkModel extends ResultClass {
+import java.io.Serializable;
+
+public class BarChkKomkModel extends ResultClass implements Serializable {
 
     public int Hinbuncd = 0;
 
