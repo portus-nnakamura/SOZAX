@@ -56,5 +56,8 @@ public class ZaikoSyokaiModel extends ResultClass implements Serializable {
 
     public ZaikoSyokai_NyusyukkoRirekiModel[] Nyusyukkorireki = null;
 
+    // 数量、重量合計保持用
+    public BigDecimal Total_kosu = BigDecimal.ZERO;
 
+    public BigDecimal Total_juryo = BigDecimal.ZERO;
 }
