@@ -20,7 +20,6 @@
         android:elevation="1dp"
         />
 
-
     <!-- アイコンバー -->
     <LinearLayout
         android:id="@+id/llGoodsIssuePage1Header"

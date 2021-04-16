@@ -4,10 +4,11 @@ import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.common.ResultClass;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-public class SyukoDenpyoModel extends ResultClass {
+public class SyukoDenpyoModel extends ResultClass implements Serializable {
 
     public long Syukono = 0L;
 

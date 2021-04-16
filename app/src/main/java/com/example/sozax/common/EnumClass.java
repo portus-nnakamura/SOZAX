@@ -54,6 +54,7 @@ public class EnumClass {
 
     public enum CheckKubun {
 
+        UNCHECK("",0),
         OK("OK",1),
         NG("NG",2);
 

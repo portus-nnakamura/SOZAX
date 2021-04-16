@@ -18,6 +18,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
@@ -207,12 +208,19 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
     public void btnGoodsIssuePage1Proceed_Click(View view) {
 
-        Intent intent = new Intent(getApplication(), GoodsIssuePage2Activity.class);
+        Intent intent = new Intent(getApplicationContext(), GoodsIssuePage2Activity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         intent.putExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos), sagyochuSyukoDenpyos);
         intent.putExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), selectedSagyochuSyukoDenpyoIndex);
 
-        startActivityForResult(intent, REQUESTCODE);
+        try {
+            startActivityForResult(intent, REQUESTCODE);
+        }catch (Exception exception)
+        {
+            Toast.makeText(getApplicationContext(),exception.getMessage(),Toast.LENGTH_LONG).show();;
+        }
+
+
     }
 
     @Override

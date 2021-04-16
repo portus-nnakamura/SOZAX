@@ -4,7 +4,11 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -12,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -19,13 +25,14 @@ import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.BarChkKomkController;
 import com.example.sozax.bl.controllers.HyojihyoController;
-import com.example.sozax.bl.controllers.SyukoDenpyoController;
+import com.example.sozax.bl.controllers.SyukoSagyoController;
 import com.example.sozax.bl.goods_issue.GoodsIssueSlip;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkConditionModel;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkModel;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomk_KikakuModel;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoConditionModel;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.common.CommonActivity;
@@ -33,16 +40,17 @@ import com.example.sozax.common.EnumClass;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
 
     //region インスタンス変数
 
     // 作業中の伝票リスト
-    private final ArrayList<SyukoDenpyoModel> sagyochuSyukoDenpyos = null;
+    private ArrayList<SyukoDenpyoModel> sagyochuSyukoDenpyos = null;
 
     // 現在作業中の出庫伝票のインデックス
-    private final int selectedSagyochuSyukoDenpyoIndex = -1;
+    private int selectedSagyochuSyukoDenpyoIndex = -1;
 
     // キー割り当てライブラリ(DENSO製)
     public KeyRemapLibrary mKeyRemapLibrary;
@@ -56,9 +64,20 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_goods_issue_page2);
 
+        // イベントを追加
+        // 前伝票を表示ボタン
+        findViewById(R.id.btnPrevSlip).setOnClickListener(new btnPrevSlip_Click());
+        // 次伝票を表示ボタン
+        findViewById(R.id.btnNextSlip).setOnClickListener(new btnNextSlip_Click());
+
         // ハードウェアキーのマッピングクラスのインスタンスを生成
         mKeyRemapLibrary = new KeyRemapLibrary();
         mKeyRemapLibrary.createKeyRemap(this, this);
+
+        // 出庫伝票情報を取得
+        Intent intent = getIntent();
+        sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) intent.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
+        selectedSagyochuSyukoDenpyoIndex = intent.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
 
         // 画面全体の表示を更新
         RefreshScreenAll();
@@ -66,11 +85,47 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
     //endregion
 
-    //region TODO 前伝票を表示する
+    //region 前伝票を表示する
+
+    private class btnPrevSlip_Click implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+
+            if(selectedSagyochuSyukoDenpyoIndex == 0)
+            {
+                return;
+            }
+
+            // デクリメント
+            selectedSagyochuSyukoDenpyoIndex--;
+
+            // 画面全体を更新する
+            RefreshScreenAll();
+        }
+    }
 
     //endregion
 
-    //region TODO 次伝票を表示する
+    //region 次伝票を表示する
+
+    private class btnNextSlip_Click implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+
+            if(selectedSagyochuSyukoDenpyoIndex == (sagyochuSyukoDenpyos.size() -1))
+            {
+                return;
+            }
+
+            // インクリメント
+            selectedSagyochuSyukoDenpyoIndex--;
+
+            // 画面全体を更新する
+            RefreshScreenAll();
+        }
+    }
 
     //endregion
 
@@ -214,13 +269,77 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
     //endregion
 
-    //region TODO 出庫作業の更新
+    //region 出庫作業の更新
+
+    @SuppressLint("StaticFieldLeak")
+    public class PutSyukoSagyosTask extends SyukoSagyoController.PutSyukoSagyosTask {
+
+        // 登録前処理
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        }
+
+        // 登録後処理
+        @Override
+        protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
+                    builder.setTitle("エラー");
+                    String template = "出庫作業の更新に失敗しました。\r\n{0}";
+                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+                // 更新したデータに上書き
+                for (SyukoDenpyoModel _syukoDenpyoModel: _syukoDenpyosModel.SyukoDenpyos) {
+
+                    for (SyukoDenpyoModel sagyochuSyukoDenpyo : sagyochuSyukoDenpyos) {
+
+                        if(sagyochuSyukoDenpyo.Syukono == _syukoDenpyoModel.Syukono)
+                        {
+                            sagyochuSyukoDenpyo = _syukoDenpyoModel;
+                            break;
+                        }
+                    }
+                }
+
+                // 画面全体を更新する
+                RefreshScreenAll();
+
+            } finally {
+
+                // プログレスバーを非表示
+                ProgressBar progressBar = findViewById(R.id.progressBar);
+                progressBar.setVisibility(View.INVISIBLE);
+
+                // タッチ操作を有効化
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            }
+        }
+
+    }
 
     //endregion
 
     //region 画面全体の表示を更新
 
-    ListData currentDispListData = null;
+    ListData currentListData = null;
 
     private void RefreshScreenAll() {
 
@@ -251,450 +370,158 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
             return;
         }
 
+        // 表示する出庫伝票が変わった時のみ、リストビューの中身を更新する
+        if (currentListData == null || currentListData.Syukono != syukoDenpyo.Syukono) {
+
+            // リストビューのデータを作成
+            currentListData = new ListData();
+            currentListData.Syukono = syukoDenpyo.Syukono;
+            currentListData.ListRowDatas = CreateListRowDatas(syukoDenpyo);
+
+            // リストビューのアダプターを作成
+            UniqueAdapter uniqueAdapter = new UniqueAdapter(this, currentListData);
+
+            // アダプターをセット
+            ListView lvGoodsIssueProductInformation = findViewById(R.id.lvGoodsIssueProductInformation);
+            lvGoodsIssueProductInformation.setAdapter(uniqueAdapter);
+
+        }
+
         // 出庫番号とページ数
-        TextView a = findViewById(R.id.txtSlipInfo);
+        TextView txtSlipInfo = findViewById(R.id.txtSlipInfo);
+        String templateSlipInfo = "({0}/{1})\r\nNo.{2}";
+        txtSlipInfo.setText(java.text.MessageFormat.format(templateSlipInfo,(selectedSagyochuSyukoDenpyoIndex + 1),sagyochuSyukoDenpyos.size(),String.format("00000000000",syukoDenpyo.Syukono)));
 
-        if (currentDispListData != null && currentDispListData.Syukono == syukoDenpyo.Syukono) {
-            return;
-        }
+        // 進行状況
+        TextView  txtProgressPhase2 = findViewById(R.id.txtProgressPhase2);
+        TextView  txtProgressPhase3 = findViewById(R.id.txtProgressPhase3);
+        TextView  txtProgressPhase4 = findViewById(R.id.txtProgressPhase4);
+        // ガイダンス
+        TextView  txtGoodsIssuePage2Guidance = findViewById(R.id.txtGoodsIssuePage2Guidance);
+        // 進行ボタン
+        Button btnGoodsIssuePage2Proceed = findViewById(R.id.btnGoodsIssuePage2Proceed);
 
-        currentDispListData = new ListData();
-        currentDispListData.Syukono = syukoDenpyo.Syukono;
+        switch (EnumClass.getSgyjokyoKubun(syukoDenpyo.Syukosgyjokyo.Sgyjokyokbn))
+        {
+            case Uketuke:
 
-        // バーコードチェック項目
-        BarChkKomkModel barChkKomk = syukoDenpyo.BarChkKomk;
-        // 表示票データ
-        HyojihyoModel hyojihyo = syukoDenpyo.Syukosgyjokyo.HyojiHyo;
+                txtProgressPhase2.setBackgroundColor(getColor(R.color.signalred));
+                txtProgressPhase3.setBackgroundColor(getColor(R.color.white));
+                txtProgressPhase4.setBackgroundColor(getColor(R.color.white));
 
-        int trueIntValue = Boolean.TRUE.hashCode();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
+                txtProgressPhase2.setTextColor(getColor(R.color.white));
+                txtProgressPhase3.setTextColor(getColor(R.color.black));
+                txtProgressPhase4.setTextColor(getColor(R.color.black));
 
-        // 品種
-        if (barChkKomk.Is_hinsyucd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "品種";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Hinsyunm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Hinsyunm;
-            listRowData.Checkresult = syukoDenpyo.Hinsyucd == hyojihyo.Hinsyucd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtGoodsIssuePage2Guidance.setText(getString(R.string.text_goods_issue_guidance_phase2));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 品名
-        if (barChkKomk.Is_hinmeicd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "品名";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Hinmeinm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Hinmeinm;
-            listRowData.Checkresult = syukoDenpyo.Hinmeicd == hyojihyo.Hinmeicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                boolean existsNG = false;
+                boolean existsUNCHECK = false;
+                for (ListRowData listRowData:currentListData.ListRowDatas)
+                {
+                    if(listRowData.Checkresult == EnumClass.CheckKubun.NG)
+                    {
+                        existsNG = true;
+                        break;
+                    }else if(listRowData.Checkresult == EnumClass.CheckKubun.UNCHECK)
+                    {
+                        existsUNCHECK = true;
+                        break;
+                    }
+                }
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 荷姿
-        if (barChkKomk.Is_nisucd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "荷姿";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Nisunm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Nisunm;
-            listRowData.Checkresult = syukoDenpyo.Nisucd == hyojihyo.Nisucd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                if(existsNG)
+                {
+                    SpannableStringBuilder sb = new SpannableStringBuilder("出庫指示");
+                    int start = sb.length();
+                    int color;
+                    boolean enabled;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 荷印
-        if (barChkKomk.Is_nijicd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "荷印";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Nijinm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Nijinm;
-            listRowData.Checkresult = syukoDenpyo.Nijicd == hyojihyo.Nijicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                    sb.append("\n(NGが含まれているため、押せません)");
+                    sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    color = getColor(R.color.darkgray);
+                    enabled = false;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 単位
-        if (barChkKomk.Is_tanicd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "単位";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Taninm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Taninm;
-            listRowData.Checkresult = syukoDenpyo.Tanicd == hyojihyo.Tanicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                    btnGoodsIssuePage2Proceed.setText(sb);
+                    btnGoodsIssuePage2Proceed.setBackgroundColor(color);
+                    btnGoodsIssuePage2Proceed.setEnabled(enabled);
+                }else if(existsUNCHECK)
+                {
+                    SpannableStringBuilder sb = new SpannableStringBuilder("出庫指示");
+                    int start = sb.length();
+                    int color;
+                    boolean enabled;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 倉庫
-        if (barChkKomk.Is_soukocd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "倉庫";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Soukonm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Soukonm;
-            listRowData.Checkresult = syukoDenpyo.Soukocd == hyojihyo.Soukocd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                    sb.append("\n(在庫確認が未了のため、押せません)");
+                    sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    color = getColor(R.color.darkgray);
+                    enabled = false;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // エリア名
-        if (barChkKomk.Is_eriacd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "エリア";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Erianm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Erianm;
-            listRowData.Checkresult = syukoDenpyo.Eriacd == hyojihyo.Eriacd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                    btnGoodsIssuePage2Proceed.setText(sb);
+                    btnGoodsIssuePage2Proceed.setBackgroundColor(color);
+                    btnGoodsIssuePage2Proceed.setEnabled(enabled);
+                }
+                else
+                {
+                    SpannableStringBuilder sb = new SpannableStringBuilder();
+                    sb.append("出庫指示");
+                    int start = sb.length();
+                    sb.append("\n(出庫指示後に押して下さい)");
+                    sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    btnGoodsIssuePage2Proceed.setText(sb);
+                    btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.coral));
+                    btnGoodsIssuePage2Proceed.setEnabled(true);
+                }
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 船舶動静No
-        if (barChkKomk.Is_sdosecd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "船舶動静No";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Funenm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Funenm;
-            listRowData.Checkresult = syukoDenpyo.Sdosecd == hyojihyo.Sdosecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // TODO 荷主
-        if (barChkKomk.Is_ninusicd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "荷主";
-            listRowData.Syukodenpyo_dispvalue = "TODO";
-            listRowData.Hyojihyo_dispvalue = "TODO";
-            listRowData.Checkresult = syukoDenpyo.Ninusicd == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 貨物区分
-        if (barChkKomk.Is_kamkbn == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "貨物区分";
-            listRowData.Syukodenpyo_dispvalue = EnumClass.getKamotuKubun(syukoDenpyo.Kamokbn).getString();
-            listRowData.Hyojihyo_dispvalue = EnumClass.getKamotuKubun(hyojihyo.Kamokbn).getString();
-            listRowData.Checkresult = syukoDenpyo.Sdosecd == hyojihyo.Sdosecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                break;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 輸入年月
-        if (barChkKomk.Is_yunyudate == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "輸入年月";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Yunyudate);
-            listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Yunyudate);
-            listRowData.Checkresult = syukoDenpyo.Yunyudate == hyojihyo.Yunyudate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            case Zaikokakunin:
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 荷造作業区分
-        if (barChkKomk.Is_niduksgyokbn == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "荷造作業区分";
-            listRowData.Syukodenpyo_dispvalue = EnumClass.getKamotuKubun(syukoDenpyo.Niduksgyokbn).getString();
-            listRowData.Hyojihyo_dispvalue = EnumClass.getKamotuKubun(hyojihyo.Niduksgyokbn).getString();
-            listRowData.Checkresult = syukoDenpyo.Niduksgyokbn == hyojihyo.Niduksgyokbn ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtProgressPhase2.setBackgroundColor(getColor(R.color.signalred));
+                txtProgressPhase3.setBackgroundColor(getColor(R.color.signalred));
+                txtProgressPhase4.setBackgroundColor(getColor(R.color.white));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 入庫手段区分
-        if (barChkKomk.Is_nyukosyudankbn == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "入庫手段区分";
-            listRowData.Syukodenpyo_dispvalue = EnumClass.getNidukuriKubun(syukoDenpyo.Nyukosyudankbn).getString();
-            listRowData.Hyojihyo_dispvalue = EnumClass.getNidukuriKubun(hyojihyo.Nyukosyudankbn).getString();
-            listRowData.Checkresult = syukoDenpyo.Nyukosyudankbn == hyojihyo.Nyukosyudankbn ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtProgressPhase2.setTextColor(getColor(R.color.white));
+                txtProgressPhase3.setTextColor(getColor(R.color.white));
+                txtProgressPhase4.setTextColor(getColor(R.color.black));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 初期入庫日
-        if (barChkKomk.Is_nyukodate == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "初期入庫日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Nyukodate);
-            listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Nyukodate);
-            listRowData.Checkresult = syukoDenpyo.Nyukodate == hyojihyo.Nyukodate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtGoodsIssuePage2Guidance.setText(getString(R.string.text_goods_issue_guidance_phase3));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 単重量
-        if (barChkKomk.Is_tanjuryo == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "単重量";
-            listRowData.Syukodenpyo_dispvalue = String.format("#,##0.0000", syukoDenpyo.Tanjuryo);
-            listRowData.Hyojihyo_dispvalue = String.format("#,##0.0000", hyojihyo.Tanjuryo);
-            listRowData.Checkresult = syukoDenpyo.Tanjuryo.equals(hyojihyo.Tanjuryo) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                SpannableStringBuilder sb = new SpannableStringBuilder();
+                sb.append("出庫完了");
+                int start = sb.length();
+                sb.append("\n(出庫作業完了後に押して下さい)");
+                sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                btnGoodsIssuePage2Proceed.setText(sb);
+                btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.coral));
+                btnGoodsIssuePage2Proceed.setEnabled(true);
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 承認日
-        if (barChkKomk.Is_syonindate == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "承認日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Syonindate);
-            listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Syonindate);
-            listRowData.Checkresult = syukoDenpyo.Syonindate == hyojihyo.Syonindate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                break;
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 承認番号
-        if (barChkKomk.Is_syoninno == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "承認番号";
-            listRowData.Syukodenpyo_dispvalue = String.format("00000000000", syukoDenpyo.Syoninno);
-            listRowData.Hyojihyo_dispvalue = String.format("00000000000", hyojihyo.Syoninno);
-            listRowData.Checkresult = syukoDenpyo.Syoninno == hyojihyo.Syoninno ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            case Syukosagyo:
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 通関申告日
-        if (barChkKomk.Is_tukandate == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "通関申告日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Tukandate);
-            listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Tukandate);
-            listRowData.Checkresult = syukoDenpyo.Tukandate == hyojihyo.Tukandate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtProgressPhase2.setBackgroundColor(getColor(R.color.signalred));
+                txtProgressPhase3.setBackgroundColor(getColor(R.color.signalred));
+                txtProgressPhase4.setBackgroundColor(getColor(R.color.signalred));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 通関番号
-        if (barChkKomk.Is_tukanno == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "通関番号";
-            listRowData.Syukodenpyo_dispvalue = String.format("00000000000", syukoDenpyo.Tukanno);
-            listRowData.Hyojihyo_dispvalue = String.format("00000000000", hyojihyo.Tukanno);
-            listRowData.Checkresult = syukoDenpyo.Tukanno == hyojihyo.Tukanno ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtProgressPhase2.setTextColor(getColor(R.color.white));
+                txtProgressPhase3.setTextColor(getColor(R.color.white));
+                txtProgressPhase4.setTextColor(getColor(R.color.white));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 出荷止め
-        if (barChkKomk.Is_sykdomecd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "出荷止め";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Sykdomenm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Sykdomenm;
-            listRowData.Checkresult = syukoDenpyo.Sykdomecd == hyojihyo.Sykdomecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                txtGoodsIssuePage2Guidance.setText(getString(R.string.text_goods_issue_guidance_phase4));
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 商社名
-        if (barChkKomk.Is_syosyacd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "商社";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Syosyanm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Syosyanm;
-            listRowData.Checkresult = syukoDenpyo.Syosyacd == hyojihyo.Syosyacd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                sb = new SpannableStringBuilder();
+                sb.append("受領確認");
+                start = sb.length();
+                sb.append("\n(上記出庫品を正に受領いたしました)");
+                sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                btnGoodsIssuePage2Proceed.setText(sb);
+                btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.signalred));
+                btnGoodsIssuePage2Proceed.setEnabled(true);
 
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 寄託者名
-        if (barChkKomk.Is_kitakucd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "寄託者";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kitakunm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Kitakunm;
-            listRowData.Checkresult = syukoDenpyo.Kitakucd == hyojihyo.Kitakucd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // BLNo
-        if (barChkKomk.Is_blno == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "BLNo";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Blno;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Blno;
-            listRowData.Checkresult = syukoDenpyo.Blno.equals(hyojihyo.Blno) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // ID
-        if (barChkKomk.Is_id == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "ID";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Id;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Id;
-            listRowData.Checkresult = syukoDenpyo.Id.equals(hyojihyo.Id) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 保税輸送申告日
-        if (barChkKomk.Is_oltdate == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "保税輸送申告日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Oltdate);
-            listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Oltdate);
-            listRowData.Checkresult = syukoDenpyo.Oltdate.equals(hyojihyo.Oltdate)  ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 申告価格
-        if (barChkKomk.Is_sinkokukkk == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "申告価格";
-            listRowData.Syukodenpyo_dispvalue = String.format("#,###",syukoDenpyo.Sinkokukkk);
-            listRowData.Hyojihyo_dispvalue = String.format("#,###",hyojihyo.Sinkokukkk);
-            listRowData.Checkresult = syukoDenpyo.Sinkokukkk == hyojihyo.Sinkokukkk ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 通貨単位
-        if (barChkKomk.Is_tukatanicd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "通貨単位";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Tukataninm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Tukataninm;
-            listRowData.Checkresult = syukoDenpyo.Tukatanicd == hyojihyo.Tukatanicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 在庫項目
-        if (barChkKomk.Is_zaikokomkcd == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "在庫項目";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Zaikokomknm;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Zaikokomknm;
-            listRowData.Checkresult = syukoDenpyo.Zaikokomkcd == hyojihyo.Zaikokomkcd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // DONO
-        if (barChkKomk.Is_dono == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "DONO";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Dono;
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Dono;
-            listRowData.Checkresult = syukoDenpyo.Dono == hyojihyo.Dono ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        // 勝手取り
-        if (barChkKomk.Is_katteflg == trueIntValue) {
-            ListRowData listRowData = new ListRowData();
-            listRowData.Komokname = "勝手取り";
-            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Katteflg == trueIntValue ? "勝手取り" : "";
-            listRowData.Hyojihyo_dispvalue = hyojihyo.Katteflg == trueIntValue ? "勝手取り" : "";
-            listRowData.Checkresult = syukoDenpyo.Katteflg == hyojihyo.Katteflg ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-            currentDispListData.ListRowDatas.add(listRowData);
-        }
-        for (BarChkKomk_KikakuModel kikaku : barChkKomk.Kikakus) {
-
-            if (kikaku.Kkkkkmchkkbn == trueIntValue) {
-                continue;
-            }
-
-            // 規格１
-            if (kikaku.Kkkkmkcd == 1) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格１";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo1;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo1;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd1 == hyojihyo.Kikakucd1 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格２
-            else if (kikaku.Kkkkmkcd == 2) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格２";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo2;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo2;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd2 == hyojihyo.Kikakucd2 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格３
-            else if (kikaku.Kkkkmkcd == 3) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格３";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo3;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo3;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd3 == hyojihyo.Kikakucd3 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格４
-            else if (kikaku.Kkkkmkcd == 4) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格４";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo4;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo4;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd4 == hyojihyo.Kikakucd4 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格５
-            else if (kikaku.Kkkkmkcd == 5) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格５";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo5;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo5;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd5 == hyojihyo.Kikakucd5 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格６
-            else if (kikaku.Kkkkmkcd == 6) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格６";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo6;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo6;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd6 == hyojihyo.Kikakucd6 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格７
-            else if (kikaku.Kkkkmkcd == 7) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格７";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo7;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo7;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd7 == hyojihyo.Kikakucd7 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格８
-            else if (kikaku.Kkkkmkcd == 8) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格８";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo8;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo8;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd8 == hyojihyo.Kikakucd8 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格９
-            else if (kikaku.Kkkkmkcd == 9) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格９";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo9;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo9;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd9 == hyojihyo.Kikakucd9 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格１０
-            else if (kikaku.Kkkkmkcd == 10) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格１０";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo10;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo10;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd10 == hyojihyo.Kikakucd10 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格１１
-            else if (kikaku.Kkkkmkcd == 11) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格１１";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo11;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo11;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd11 == hyojihyo.Kikakucd11 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
-            // 規格１２
-            else if (kikaku.Kkkkmkcd == 12) {
-                ListRowData listRowData = new ListRowData();
-                listRowData.Komokname = "規格１２";
-                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo12;
-                listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo12;
-                listRowData.Checkresult = syukoDenpyo.Kikakucd12 == hyojihyo.Kikakucd12 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
-
-                currentDispListData.ListRowDatas.add(listRowData);
-            }
+                break;
         }
     }
 
@@ -926,7 +753,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         public View getView(final int position, View view, ViewGroup parent) {
 
             if (view == null) {
-                layoutInflater.inflate(R.layout.goods_issue_page2_raw, null);
+                view = layoutInflater.inflate(R.layout.goods_issue_page2_raw, null);
             }
 
             // 表示する行データを取得
@@ -960,15 +787,15 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         }
     }
 
-    // リストビューのデータ
+    // リストビューのデータクラス
     private class ListData {
 
         public long Syukono = 0L;
-        public ArrayList<ListRowData> ListRowDatas = null;
+        public ArrayList<ListRowData> ListRowDatas = new ArrayList<ListRowData>();
 
     }
 
-    //　リストビューの行データ
+    //　リストビューの行データクラス
     private class ListRowData {
         // 項目名
         public String Komokname = "";
@@ -977,7 +804,549 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         // 表示票の表示値
         public String Hyojihyo_dispvalue = "";
         // チェック結果
-        public EnumClass.CheckKubun Checkresult = null;
+        public EnumClass.CheckKubun Checkresult = EnumClass.CheckKubun.UNCHECK;
+    }
+
+    // リストビューの行データを作成
+    private ArrayList<ListRowData> CreateListRowDatas(SyukoDenpyoModel syukoDenpyo) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
+
+        // バーコードチェック項目
+        BarChkKomkModel barChkKomk = syukoDenpyo.BarChkKomk;
+        // 表示票データ
+        HyojihyoModel hyojihyo = syukoDenpyo.Syukosgyjokyo.HyojiHyo;
+
+        ArrayList<ListRowData> ret = new ArrayList<ListRowData>();
+
+        // 品種
+        if (barChkKomk.Is_hinsyucd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "品種";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Hinsyunm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Hinsyunm;
+                listRowData.Checkresult = syukoDenpyo.Hinsyucd == hyojihyo.Hinsyucd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 品名
+        if (barChkKomk.Is_hinmeicd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "品名";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Hinmeinm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Hinmeinm;
+                listRowData.Checkresult = syukoDenpyo.Hinmeicd == hyojihyo.Hinmeicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 荷姿
+        if (barChkKomk.Is_nisucd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "荷姿";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Nisunm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Nisunm;
+                listRowData.Checkresult = syukoDenpyo.Nisucd == hyojihyo.Nisucd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 荷印
+        if (barChkKomk.Is_nijicd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "荷印";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Nijinm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Nijinm;
+                listRowData.Checkresult = syukoDenpyo.Nijicd == hyojihyo.Nijicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            } else
+
+                ret.add(listRowData);
+        }
+        // 単位
+        if (barChkKomk.Is_tanicd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "単位";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Taninm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Taninm;
+                listRowData.Checkresult = syukoDenpyo.Tanicd == hyojihyo.Tanicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 倉庫
+        if (barChkKomk.Is_soukocd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "倉庫";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Soukonm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Soukonm;
+                listRowData.Checkresult = syukoDenpyo.Soukocd == hyojihyo.Soukocd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // エリア名
+        if (barChkKomk.Is_eriacd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "エリア";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Erianm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Erianm;
+                listRowData.Checkresult = syukoDenpyo.Eriacd == hyojihyo.Eriacd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 船舶動静No
+        if (barChkKomk.Is_sdosecd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "船舶動静No";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Funenm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Funenm;
+                listRowData.Checkresult = syukoDenpyo.Sdosecd == hyojihyo.Sdosecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // TODO 荷主
+        if (barChkKomk.Is_ninusicd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "荷主";
+            listRowData.Syukodenpyo_dispvalue = "TODO";
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = "TODO";
+                listRowData.Checkresult = syukoDenpyo.Ninusicd == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 貨物区分
+        if (barChkKomk.Is_kamkbn == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "貨物区分";
+            if (syukoDenpyo.Kamokbn > 0) {
+                listRowData.Syukodenpyo_dispvalue = EnumClass.getKamotuKubun(syukoDenpyo.Kamokbn).getString();
+            }
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                if (hyojihyo.Kamokbn > 0) {
+                    listRowData.Hyojihyo_dispvalue = EnumClass.getKamotuKubun(hyojihyo.Kamokbn).getString();
+                }
+
+                listRowData.Checkresult = syukoDenpyo.Sdosecd == hyojihyo.Sdosecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 輸入年月
+        if (barChkKomk.Is_yunyudate == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "輸入年月";
+            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Yunyudate);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Yunyudate);
+                listRowData.Checkresult = syukoDenpyo.Yunyudate == hyojihyo.Yunyudate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 荷造作業区分
+        if (barChkKomk.Is_niduksgyokbn == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "荷造作業区分";
+            if (syukoDenpyo.Niduksgyokbn > 0) {
+                listRowData.Syukodenpyo_dispvalue = EnumClass.getNidukuriKubun(syukoDenpyo.Niduksgyokbn).getString();
+            }
+
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                if (hyojihyo.Niduksgyokbn > 0) {
+                    listRowData.Hyojihyo_dispvalue = EnumClass.getNidukuriKubun(hyojihyo.Niduksgyokbn).getString();
+                }
+
+                listRowData.Checkresult = syukoDenpyo.Niduksgyokbn == hyojihyo.Niduksgyokbn ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 入庫手段区分
+        if (barChkKomk.Is_nyukosyudankbn == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "入庫手段区分";
+            if (syukoDenpyo.Nyukosyudankbn > 0) {
+                listRowData.Syukodenpyo_dispvalue = EnumClass.getNyukosyudanKubun(syukoDenpyo.Nyukosyudankbn).getString();
+            }
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                if (hyojihyo.Nyukosyudankbn > 0) {
+                    listRowData.Hyojihyo_dispvalue = EnumClass.getNyukosyudanKubun(hyojihyo.Nyukosyudankbn).getString();
+                }
+
+                listRowData.Checkresult = syukoDenpyo.Nyukosyudankbn == hyojihyo.Nyukosyudankbn ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 初期入庫日
+        if (barChkKomk.Is_nyukodate == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "初期入庫日";
+            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Nyukodate);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Nyukodate);
+                listRowData.Checkresult = syukoDenpyo.Nyukodate == hyojihyo.Nyukodate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 単重量
+        if (barChkKomk.Is_tanjuryo == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "単重量";
+            listRowData.Syukodenpyo_dispvalue = String.format("#,##0.0000", syukoDenpyo.Tanjuryo);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = String.format("#,##0.0000", hyojihyo.Tanjuryo);
+                listRowData.Checkresult = syukoDenpyo.Tanjuryo.equals(hyojihyo.Tanjuryo) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 承認日
+        if (barChkKomk.Is_syonindate == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "承認日";
+            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Syonindate);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Syonindate);
+                listRowData.Checkresult = syukoDenpyo.Syonindate == hyojihyo.Syonindate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 承認番号
+        if (barChkKomk.Is_syoninno == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "承認番号";
+            listRowData.Syukodenpyo_dispvalue = String.format("00000000000", syukoDenpyo.Syoninno);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = String.format("00000000000", hyojihyo.Syoninno);
+                listRowData.Checkresult = syukoDenpyo.Syoninno == hyojihyo.Syoninno ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 通関申告日
+        if (barChkKomk.Is_tukandate == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "通関申告日";
+            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Tukandate);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Tukandate);
+                listRowData.Checkresult = syukoDenpyo.Tukandate == hyojihyo.Tukandate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 通関番号
+        if (barChkKomk.Is_tukanno == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "通関番号";
+            listRowData.Syukodenpyo_dispvalue = String.format("00000000000", syukoDenpyo.Tukanno);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = String.format("00000000000", hyojihyo.Tukanno);
+                listRowData.Checkresult = syukoDenpyo.Tukanno == hyojihyo.Tukanno ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 出荷止め
+        if (barChkKomk.Is_sykdomecd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "出荷止め";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Sykdomenm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Sykdomenm;
+                listRowData.Checkresult = syukoDenpyo.Sykdomecd == hyojihyo.Sykdomecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 商社名
+        if (barChkKomk.Is_syosyacd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "商社";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Syosyanm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Syosyanm;
+                listRowData.Checkresult = syukoDenpyo.Syosyacd == hyojihyo.Syosyacd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 寄託者名
+        if (barChkKomk.Is_kitakucd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "寄託者";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kitakunm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Kitakunm;
+                listRowData.Checkresult = syukoDenpyo.Kitakucd == hyojihyo.Kitakucd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // BLNo
+        if (barChkKomk.Is_blno == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "BLNo";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Blno;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Blno;
+                listRowData.Checkresult = syukoDenpyo.Blno.equals(hyojihyo.Blno) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // ID
+        if (barChkKomk.Is_id == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "ID";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Id;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Id;
+                listRowData.Checkresult = syukoDenpyo.Id.equals(hyojihyo.Id) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 保税輸送申告日
+        if (barChkKomk.Is_oltdate == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "保税輸送申告日";
+            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Oltdate);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Oltdate);
+                listRowData.Checkresult = syukoDenpyo.Oltdate.equals(hyojihyo.Oltdate) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 申告価格
+        if (barChkKomk.Is_sinkokukkk == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "申告価格";
+            listRowData.Syukodenpyo_dispvalue = String.format("#,###", syukoDenpyo.Sinkokukkk);
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = String.format("#,###", hyojihyo.Sinkokukkk);
+                listRowData.Checkresult = syukoDenpyo.Sinkokukkk == hyojihyo.Sinkokukkk ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 通貨単位
+        if (barChkKomk.Is_tukatanicd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "通貨単位";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Tukataninm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Tukataninm;
+                listRowData.Checkresult = syukoDenpyo.Tukatanicd == hyojihyo.Tukatanicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 在庫項目
+        if (barChkKomk.Is_zaikokomkcd == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "在庫項目";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Zaikokomknm;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Zaikokomknm;
+                listRowData.Checkresult = syukoDenpyo.Zaikokomkcd == hyojihyo.Zaikokomkcd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // DONO
+        if (barChkKomk.Is_dono == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "DONO";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Dono;
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Dono;
+                listRowData.Checkresult = syukoDenpyo.Dono == hyojihyo.Dono ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        // 勝手取り
+        if (barChkKomk.Is_katteflg == 1) {
+            ListRowData listRowData = new ListRowData();
+            listRowData.Komokname = "勝手取り";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Katteflg == 1 ? "勝手取り" : "";
+            if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Katteflg == 1 ? "勝手取り" : "";
+                listRowData.Checkresult = syukoDenpyo.Katteflg == hyojihyo.Katteflg ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+            }
+
+            ret.add(listRowData);
+        }
+        for (BarChkKomk_KikakuModel kikaku : barChkKomk.Kikakus) {
+
+            if (kikaku.Kkkkkmchkkbn == 1) {
+                continue;
+            }
+
+            // 規格１
+            if (kikaku.Kkkkmkcd == 1) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格１";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo1;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo1;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd1 == hyojihyo.Kikakucd1 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格２
+            else if (kikaku.Kkkkmkcd == 2) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格２";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo2;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo2;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd2 == hyojihyo.Kikakucd2 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格３
+            else if (kikaku.Kkkkmkcd == 3) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格３";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo3;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo3;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd3 == hyojihyo.Kikakucd3 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格４
+            else if (kikaku.Kkkkmkcd == 4) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格４";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo4;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo4;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd4 == hyojihyo.Kikakucd4 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格５
+            else if (kikaku.Kkkkmkcd == 5) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格５";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo5;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo5;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd5 == hyojihyo.Kikakucd5 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格６
+            else if (kikaku.Kkkkmkcd == 6) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格６";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo6;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo6;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd6 == hyojihyo.Kikakucd6 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格７
+            else if (kikaku.Kkkkmkcd == 7) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格７";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo7;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo7;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd7 == hyojihyo.Kikakucd7 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格８
+            else if (kikaku.Kkkkmkcd == 8) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格８";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo8;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo8;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd8 == hyojihyo.Kikakucd8 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格９
+            else if (kikaku.Kkkkmkcd == 9) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格９";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo9;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo9;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd9 == hyojihyo.Kikakucd9 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格１０
+            else if (kikaku.Kkkkmkcd == 10) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格１０";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo10;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo10;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd10 == hyojihyo.Kikakucd10 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格１１
+            else if (kikaku.Kkkkmkcd == 11) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格１１";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo11;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo11;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd11 == hyojihyo.Kikakucd11 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+            // 規格１２
+            else if (kikaku.Kkkkmkcd == 12) {
+                ListRowData listRowData = new ListRowData();
+                listRowData.Komokname = "規格１２";
+                listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Kikakunaiyo12;
+                if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
+                    listRowData.Hyojihyo_dispvalue = hyojihyo.Kikakunaiyo12;
+                    listRowData.Checkresult = syukoDenpyo.Kikakucd12 == hyojihyo.Kikakucd12 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                }
+
+                ret.add(listRowData);
+            }
+        }
+
+        return ret;
     }
 
     //endregion
