@@ -11,7 +11,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.sozax.R;
-import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokai_NyusyukkoRirekiModel;
 import com.example.sozax.common.CommonActivity;

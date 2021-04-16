@@ -18,7 +18,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.ZaikoSyokaiController;
@@ -69,16 +68,15 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     // region ログイン情報表示
 
-    public void DisplayLoginInfo()
-    {
-        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);;
-        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm,10));
+    public void DisplayLoginInfo() {
+        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
+        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm, 10));
 
         TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
-        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm,10));
+        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm, 10));
 
         TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm,10));
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm, 10));
 
         SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
         TextView txtLoginSgydate = findViewById(R.id.txtLoginSgydate);
@@ -230,7 +228,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
                     return;
                 }
 
-                // 取得結果をセット
+                // 取得結果を格納
                 dispData = zaikosyokai;
 
                 // データを準備
@@ -294,7 +292,6 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
                 // タッチ操作を有効化
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
             }
         }
     }
@@ -316,14 +313,13 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
             Matcher matcher = pattern.matcher(qrData);
 
             // 正規表現でチェック
-            if (!matcher.lookingAt()){
+            if (!matcher.lookingAt()) {
                 // 不正なQRデータの場合メッセージを表示して処理中断
                 AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
                 builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
                 builder.show();
                 return super.dispatchKeyEvent(e);
-            }
-            else{
+            } else {
                 // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
                 // QRデータから集計コードを切り出す
                 long syukeicd = Long.parseLong(qrData.substring(2));
