@@ -146,8 +146,8 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
         // 在庫履歴に遷移
         Intent intent = new Intent(this, InventoryInquiryPage2Activity.class);
-        intent.putExtra("intent_key_login_info", loginInfo);
-        intent.putExtra("intent_key_zaiko_syokai", dispData);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_zaiko_syokai), dispData);
         startActivity(intent);
     }
 
@@ -309,9 +309,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         if (e.getKeyCode() == KeyEvent.KEYCODE_1 && e.getAction() == KeyEvent.ACTION_DOWN) {
 
             // QRデータ作成
-            String qrData = "2:012016011802410";
-
-            int len = qrData.length();
+            String qrData = "2:012016011802411";
 
             // 正規表現パターン
             Pattern pattern = Pattern.compile("2:[0-9]{15}$");        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
@@ -347,14 +345,10 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         // 左トリガーにバーコードスキャンを割り当て
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
                 KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F5.getString());
 
         // 右トリガーにバーコードスキャンを割り当て
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
                 KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F6.getString());
     }
 
     //endregion
