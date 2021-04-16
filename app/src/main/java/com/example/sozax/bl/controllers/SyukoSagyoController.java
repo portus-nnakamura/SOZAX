@@ -12,6 +12,7 @@ import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.bl.models.tensyo.TensyosModel;
 import com.example.sozax.common.ResultClass;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -34,11 +35,17 @@ public class SyukoSagyoController {
         @Override
         protected SyukoDenpyosModel doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
 
-            ResultClass ret = new ResultClass();
-
-            // ModelデータをJSONファイルに変換
-            Gson gson = new Gson();
-            String s = gson.toJson(syukoDenpyosModel[0]);
+            // JSONファイルからModelデータに変換
+            Gson gson;
+            String s;
+            try {
+                gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                s = gson.toJson(syukoDenpyosModel[0]);
+            }catch (Exception e) {
+                syukoDenpyosModel[0].Is_error = true;
+                syukoDenpyosModel[0].Message = e.getMessage();
+                return syukoDenpyosModel[0];
+            }
 
             // リクエストボディを作成
             final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
@@ -66,11 +73,17 @@ public class SyukoSagyoController {
         @Override
         protected SyukoDenpyosModel doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
 
-            ResultClass ret = new ResultClass();
-
-            // ModelデータをJSONファイルに変換
-            Gson gson = new Gson();
-            String s = gson.toJson(syukoDenpyosModel[0]);
+            // JSONファイルからModelデータに変換
+            Gson gson;
+            String s;
+            try {
+                gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                s = gson.toJson(syukoDenpyosModel[0]);
+            }catch (Exception e) {
+                syukoDenpyosModel[0].Is_error = true;
+                syukoDenpyosModel[0].Message = e.getMessage();
+                return syukoDenpyosModel[0];
+            }
 
             // リクエストボディを作成
             final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
@@ -99,11 +112,17 @@ public class SyukoSagyoController {
         @Override
         protected SyukoDenpyosModel doInBackground(SyukoDenpyosModel... syukoDenpyosModel) {
 
-            ResultClass ret = new ResultClass();
-
-            // ModelデータをJSONファイルに変換
-            Gson gson = new Gson();
-            String s = gson.toJson(syukoDenpyosModel[0]);
+            // JSONファイルからModelデータに変換
+            Gson gson;
+            String s;
+            try {
+                gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                s = gson.toJson(syukoDenpyosModel[0]);
+            }catch (Exception e) {
+                syukoDenpyosModel[0].Is_error = true;
+                syukoDenpyosModel[0].Message = e.getMessage();
+                return syukoDenpyosModel[0];
+            }
 
             // リクエストボディを作成
             final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");

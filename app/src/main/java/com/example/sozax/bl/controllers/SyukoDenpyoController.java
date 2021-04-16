@@ -6,7 +6,9 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
+import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -34,7 +36,7 @@ public class SyukoDenpyoController {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Syukono + "/"
+                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Syukono + "/"
                             + syukoDenpyoConditionModel[0].Kaicd + "/" + syukoDenpyoConditionModel[0].Soukocd + "/"
                             + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
@@ -72,8 +74,15 @@ public class SyukoDenpyoController {
             }
 
             // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
-            ret = gson.fromJson(s, SyukoDenpyoModel.class);
+            try {
+                Gson gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                ret = gson.fromJson(s, SyukoDenpyoModel.class);
+            }catch (Exception e) {
+                ret = new SyukoDenpyoModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
 
             return ret;
         }
@@ -94,7 +103,7 @@ public class SyukoDenpyoController {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/" + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
@@ -131,8 +140,15 @@ public class SyukoDenpyoController {
             }
 
             // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
-            ret = gson.fromJson(s, SyukoDenpyosModel.class);
+            try {
+                Gson gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                ret = gson.fromJson(s, SyukoDenpyosModel.class);
+            }catch (Exception e) {
+                ret = new SyukoDenpyosModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
 
             return ret;
         }
@@ -153,7 +169,7 @@ public class SyukoDenpyoController {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214/api/syukodenpyo/get/sagyochu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/sagyochu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/" + syukoDenpyoConditionModel[0].Sgytantocd + "/"
                             + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
@@ -191,8 +207,15 @@ public class SyukoDenpyoController {
             }
 
             // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
-            ret = gson.fromJson(s, SyukoDenpyosModel.class);
+            try {
+                Gson gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                ret = gson.fromJson(s, SyukoDenpyosModel.class);
+            }catch (Exception e) {
+                ret = new SyukoDenpyosModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
 
             return ret;
         }
@@ -212,7 +235,7 @@ public class SyukoDenpyoController {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214/api/syukodenpyo/get/sagyomichakusyu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/sagyomichakusyu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/" + dateFormat.format(syukoDenpyoConditionModel[0].Sagyodate))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
@@ -249,8 +272,15 @@ public class SyukoDenpyoController {
             }
 
             // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
-            ret = gson.fromJson(s, SyukoDenpyosModel.class);
+            try {
+                Gson gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                ret = gson.fromJson(s, SyukoDenpyosModel.class);
+            }catch (Exception e) {
+                ret = new SyukoDenpyosModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
 
             return ret;
         }
