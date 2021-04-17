@@ -11,7 +11,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.sozax.R;
-import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokai_NyusyukkoRirekiModel;
 import com.example.sozax.common.CommonActivity;
@@ -45,14 +44,11 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
         MaterialButton btnInventoryInquiryPage2Quantity = findViewById(R.id.btnInventoryInquiryPage2Quantity);
         btnInventoryInquiryPage2Quantity.setChecked(true);
 
-        // ログイン情報取得
-        LoginInfoModel loginInfo = (LoginInfoModel) getIntent().getSerializableExtra("intent_key_login_info");
-
         // ログイン情報を表示
-        DisplayLoginInfo(loginInfo);
+        DisplayLoginInfo();
 
         // 1頁目から送られてきたデータを取得
-        dispData = (ZaikoSyokaiModel) getIntent().getSerializableExtra("intent_key_zaiko_syokai");
+        dispData = (ZaikoSyokaiModel) getIntent().getSerializableExtra(getResources().getString(R.string.intent_key_zaiko_syokai));
 
         // データ表示
         DisplayData();
@@ -65,7 +61,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
     // region ログイン情報表示
 
-    public void DisplayLoginInfo(LoginInfoModel loginInfo) {
+    public void DisplayLoginInfo() {
 
         TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
         txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm, 10));

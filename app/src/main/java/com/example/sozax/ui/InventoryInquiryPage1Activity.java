@@ -18,7 +18,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.ZaikoSyokaiController;
@@ -69,16 +68,15 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     // region ログイン情報表示
 
-    public void DisplayLoginInfo()
-    {
-        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);;
-        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm,10));
+    public void DisplayLoginInfo() {
+        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
+        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm, 10));
 
         TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
-        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm,10));
+        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm, 10));
 
         TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm,10));
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm, 10));
 
         SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
         TextView txtLoginSgydate = findViewById(R.id.txtLoginSgydate);
@@ -146,8 +144,8 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
         // 在庫履歴に遷移
         Intent intent = new Intent(this, InventoryInquiryPage2Activity.class);
-        intent.putExtra("intent_key_login_info", loginInfo);
-        intent.putExtra("intent_key_zaiko_syokai", dispData);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_zaiko_syokai), dispData);
         startActivity(intent);
     }
 
@@ -230,7 +228,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
                     return;
                 }
 
-                // 取得結果をセット
+                // 取得結果を格納
                 dispData = zaikosyokai;
 
                 // データを準備
@@ -294,7 +292,6 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
                 // タッチ操作を有効化
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
             }
         }
     }
@@ -309,23 +306,20 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         if (e.getKeyCode() == KeyEvent.KEYCODE_1 && e.getAction() == KeyEvent.ACTION_DOWN) {
 
             // QRデータ作成
-            String qrData = "2:012016011802410";
-
-            int len = qrData.length();
+            String qrData = "2:012016011802411";
 
             // 正規表現パターン
             Pattern pattern = Pattern.compile("2:[0-9]{15}$");        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
             Matcher matcher = pattern.matcher(qrData);
 
             // 正規表現でチェック
-            if (!matcher.lookingAt()){
+            if (!matcher.lookingAt()) {
                 // 不正なQRデータの場合メッセージを表示して処理中断
                 AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
                 builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
                 builder.show();
                 return super.dispatchKeyEvent(e);
-            }
-            else{
+            } else {
                 // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
                 // QRデータから集計コードを切り出す
                 long syukeicd = Long.parseLong(qrData.substring(2));
@@ -347,14 +341,10 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         // 左トリガーにバーコードスキャンを割り当て
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
                 KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F5.getString());
 
         // 右トリガーにバーコードスキャンを割り当て
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
                 KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
-        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
-                KeyRemapLibrary.ScanCode.SCAN_CODE_F6.getString());
     }
 
     //endregion
