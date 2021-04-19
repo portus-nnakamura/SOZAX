@@ -81,7 +81,7 @@
 
     <!-- InventoryInquiryPage1Activityで使用するボタンtext -->
     <string name="inventory_inquiry_page1_activity_zaikosyokaibtn">在庫照会</string>
-    <string name="inventory_inquiry_page1_activity_cannot_press">(スキャンした伝票が無いので押せません)\n{0}</string>
+    <string name="inventory_inquiry_page1_activity_cannot_press">(スキャンした伝票が無いので押せません)</string>
 
 
 </resources>

@@ -7,6 +7,7 @@
     <TextView
         android:id="@+id/txtInventoryInquiryPage2Date"
         style="@style/raw_text_style"
+        android:textSize="@dimen/font_size_14"
         android:background="@drawable/text_border_dimgray"
         android:layout_weight="0.25"
         android:gravity="center" />
@@ -15,6 +16,7 @@
     <TextView
         android:id="@+id/txtInventoryInquiryPage2GoodsReceipt"
         style="@style/raw_text_style"
+        android:textSize="@dimen/font_size_14"
         android:layout_weight="0.25"
         android:background="@drawable/text_border_dimgray"
         android:gravity="right|center_vertical"
@@ -25,6 +27,7 @@
     <TextView
         android:id="@+id/txtInventoryInquiryPage2GoodsIssue"
         style="@style/raw_text_style"
+        android:textSize="@dimen/font_size_14"
         android:layout_weight="0.25"
         android:background="@drawable/text_border_dimgray"
         android:gravity="right|center_vertical"
@@ -35,6 +38,7 @@
     <TextView
         android:id="@+id/txtInventoryInquiryPage2GoodsResidue"
         style="@style/raw_text_style"
+        android:textSize="@dimen/font_size_14"
         android:layout_weight="0.25"
         android:background="@drawable/text_border_dimgray"
         android:gravity="right|center_vertical"

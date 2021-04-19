@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.example.sozax.common.CommonFunction.toFullWidth;
+
 public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemapLibrary.KeyRemapListener {
 
     //region インスタンス変数

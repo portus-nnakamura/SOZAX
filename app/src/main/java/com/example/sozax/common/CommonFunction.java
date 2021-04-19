@@ -15,49 +15,12 @@ import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 
-public class CommonFunction extends AppCompatActivity {
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.function.BiFunction;
 
-    //region アプリ終了ボタンの処理
-
-    public class btnExit_Click implements View.OnClickListener {
-
-        private final Activity activity;
-
-        public btnExit_Click(Activity _activity) {
-            activity = _activity;
-        }
-
-        @Override
-        public void onClick(View v) {
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setMessage("アプリを終了してもよろしいですか？")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finishAndRemoveTask();
-                        }
-                    })
-                    .setNegativeButton("キャンセル", null)
-                    .setCancelable(true);
-
-            builder.show();
-        }
-    }
-
-    //endregion
-
-    //region 振動する
-
-    public void Vibrate() {
-        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        long[] vibratePattern = {0, 500, 100, 500};
-        vibrator.vibrate(vibratePattern, -1); // ここの-1を1にするとリピートします。
-        return;
-    }
-
-    //endregion
-
+public abstract class CommonFunction {
     /**
      * @param text    対象となる文字列
      * @param index   切り出すバイト数
@@ -106,5 +69,43 @@ public class CommonFunction extends AppCompatActivity {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     *  重量をトン単位からキロ単位に変換する。(1000掛ける)
+     *
+     * @param j 重量
+     * @return r 計算結果
+     */
+    public static BigDecimal multiplyThousand (BigDecimal j)
+    {
+        // 戻り値
+        BigDecimal r;
+
+        BigDecimal thousand = BigDecimal.valueOf(1000);
+
+        // 計算
+        r = j.multiply(thousand);
+
+        return r;
+    }
+
+    /**
+     *  日付のフォーマットを設定する。
+     *
+     * @param d 日付
+     * @param f フォーマット
+     * @return r フォーマット設定した日付
+     */
+    public static String settingDateFormat(Date d, String f)
+    {
+        // 戻り値
+        String r;
+        // フォーマット
+        SimpleDateFormat dateFormat = new SimpleDateFormat(f);
+
+        r = dateFormat.format(d);
+
+        return r;
     }
 }

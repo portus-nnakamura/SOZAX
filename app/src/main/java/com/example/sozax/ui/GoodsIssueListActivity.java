@@ -22,7 +22,7 @@ import com.example.sozax.common.CommonActivity;
 
 import java.util.ArrayList;
 
-import static com.example.sozax.ui.InventoryInquiryPage2Activity.toFullWidth;
+import static com.example.sozax.common.CommonFunction.toFullWidth;
 
 public class GoodsIssueListActivity extends CommonActivity {
 

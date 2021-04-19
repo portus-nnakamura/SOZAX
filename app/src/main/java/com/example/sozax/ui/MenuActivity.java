@@ -19,6 +19,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.example.sozax.common.CommonFunction.substringByBytes;
+
 public class MenuActivity extends CommonActivity {
 
     //region インスタンス変数

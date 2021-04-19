@@ -14,6 +14,7 @@ import com.example.sozax.R;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokai_NyusyukkoRirekiModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.CommonFunction;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
@@ -23,6 +24,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
+
+import static com.example.sozax.common.CommonFunction.multiplyThousand;
+import static com.example.sozax.common.CommonFunction.settingDateFormat;
+import static com.example.sozax.common.CommonFunction.substringByBytes;
+import static com.example.sozax.common.CommonFunction.toFullWidth;
 
 public class InventoryInquiryPage2Activity extends CommonActivity {
 
@@ -59,26 +65,6 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
     // endregion
 
-    // region ログイン情報表示
-
-    public void DisplayLoginInfo() {
-
-        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
-        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm, 10));
-
-        TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
-        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm, 10));
-
-        TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm, 10));
-
-        SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-        TextView txtLoginSgydate = findViewById(R.id.txtLoginSgydate);
-        txtLoginSgydate.setText(sdf.format(loginInfo.Sgydate));
-    }
-
-    // endregion
-
     // region データ表示
     private void DisplayData() {
 
@@ -94,7 +80,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
         txtInventoryInquiryPage2Quantity.setText(toFullWidth(String.format("%,d", dispData.Total_kosu.intValue())));
         TextView txtInventoryInquiryPage2Weight = findViewById(R.id.txtInventoryInquiryPage2Weight);
         // 重量表示(t→kg)
-        txtInventoryInquiryPage2Weight.setText(toFullWidth(String.format("%,d", dispData.Total_juryo.multiply(BigDecimal.valueOf(1000)).intValue())));
+        txtInventoryInquiryPage2Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(dispData.Total_juryo).intValue())));
     }
 
     // endregion
@@ -134,6 +120,9 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
             if (view == null) view = inflater.inflate(R.layout.inventory_inquiry_page2_raw, null);
 
+            final ZaikoSyokai_NyusyukkoRirekiModel datas = getItem(position);
+
+
             // TextView取得
             TextView txtInventoryInquiryPage2Date = (TextView) view.findViewById(R.id.txtInventoryInquiryPage2Date);
             TextView txtInventoryInquiryPage2GoodsReceipt = (TextView) view.findViewById(R.id.txtInventoryInquiryPage2GoodsReceipt);
@@ -142,7 +131,6 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
             MaterialButton btnInventoryInquiryPage2Quantity = findViewById(R.id.btnInventoryInquiryPage2Quantity);
             MaterialButton btnInventoryInquiryPage2Weight = findViewById(R.id.btnInventoryInquiryPage2Weight);
 
-            final ZaikoSyokai_NyusyukkoRirekiModel datas = getItem(position);
 
             if (datas != null) {
 
@@ -152,12 +140,15 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
                 txtInventoryInquiryPage2GoodsIssue.setText("");
                 txtInventoryInquiryPage2GoodsResidue.setText("");
 
-                SimpleDateFormat sdf = new SimpleDateFormat("yy/MM/dd");
-                txtInventoryInquiryPage2Date.setText(sdf.format(datas.Ukehridate));
+                txtInventoryInquiryPage2Date.setText(settingDateFormat(datas.Ukehridate, "yy/MM/dd"));
 
                 // 個数表示
                 if (btnInventoryInquiryPage2Quantity.isChecked() == true) {
                     if (datas.Nyuko_kosuu.compareTo(BigDecimal.ZERO) == 1) {
+                        // 文字数
+                        //if ()
+
+                        //txtInventoryInquiryPage2GoodsReceipt.setTextSize(1f);
                         txtInventoryInquiryPage2GoodsReceipt.setText(String.format("%,d", datas.Nyuko_kosuu.intValue()));
                     }
                     if (datas.Syukko_kosuu.compareTo(BigDecimal.ZERO) == 1) {
@@ -170,13 +161,13 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
                 } else if (btnInventoryInquiryPage2Weight.isChecked() == true) {
 
                     if (datas.Nyuko_Juryo.compareTo(BigDecimal.ZERO) == 1) {
-                        txtInventoryInquiryPage2GoodsReceipt.setText(String.format("%,d", datas.Nyuko_Juryo.multiply(BigDecimal.valueOf(1000)).intValue()));
+                        txtInventoryInquiryPage2GoodsReceipt.setText(String.format("%,d", multiplyThousand(datas.Nyuko_Juryo).intValue()));
                     }
                     if (datas.Syukko_Juryo.compareTo(BigDecimal.ZERO) == 1) {
-                        txtInventoryInquiryPage2GoodsIssue.setText(String.format("%,d", datas.Syukko_Juryo.multiply(BigDecimal.valueOf(1000)).intValue()));
+                        txtInventoryInquiryPage2GoodsIssue.setText(String.format("%,d", multiplyThousand(datas.Syukko_Juryo).intValue()));
                     }
 
-                    txtInventoryInquiryPage2GoodsResidue.setText(String.format("%,d", datas.Zan_juryo.multiply(BigDecimal.valueOf(1000)).intValue()));
+                    txtInventoryInquiryPage2GoodsResidue.setText(String.format("%,d", multiplyThousand(datas.Zan_juryo).intValue()));
                 }
             }
             return view;

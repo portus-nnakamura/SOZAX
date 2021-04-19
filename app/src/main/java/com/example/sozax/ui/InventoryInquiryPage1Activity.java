@@ -18,27 +18,26 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.ZaikoSyokaiController;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokai_NyusyukkoRirekiModel;
-import com.example.sozax.common.CommonActivity;
-import com.example.sozax.common.CommonFunction;
+import com.example.sozax.common.ScannerActivity;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.example.sozax.common.CommonFunction.substringByBytes;
+import static com.example.sozax.common.CommonFunction.multiplyThousand;
+import static com.example.sozax.common.CommonFunction.settingDateFormat;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
 
-public class InventoryInquiryPage1Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
+public class InventoryInquiryPage1Activity extends ScannerActivity implements KeyRemapLibrary.KeyRemapListener {
 
     // region インスタンス変数
     // 在庫照会データ
@@ -46,6 +45,12 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     // キー割り当てライブラリ(DENSO製)
     private KeyRemapLibrary mKeyRemapLibrary;
+
+    // 集計コードチェックパターン
+    final private String chkPattern = "2:[0-9]{15}$";
+
+    // ハードウェアキー無効化フラグ
+    private boolean isHardwareKeyDisabled = false;
 
     // endregion
 
@@ -58,11 +63,11 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         // ログイン情報を表示
         DisplayLoginInfo();
 
-        // ボタンの有効・無効化
-        EnabledBtnInventoryInquiryPage1Proceed();
+        // ボタンの無効化
+        InvalidBtnInventoryInquiry();
 
         // アプリ終了
-        //findViewById(R.id.btnExit).setOnClickListener(new CommonFunction.btnExit_Click(InventoryInquiryPage1Activity.this));
+        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
 
         mKeyRemapLibrary = new KeyRemapLibrary();
         mKeyRemapLibrary.createKeyRemap(this, this); // create
@@ -70,24 +75,56 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
     }
     // endregion
 
-    // region ログイン情報表示
+    //region 出庫作業のQRをスキャン
 
-    public void DisplayLoginInfo() {
-        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
-        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm, 10));
+    @Override
+    public void onBarcodeDataReceived(BarcodeDataReceivedEvent event) {
 
-        TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
-        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm, 10));
+        List<BarcodeDataReceivedEvent.BarcodeData> listBarcodeData = event.getBarcodeData();
 
-        TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm, 10));
+        for (BarcodeDataReceivedEvent.BarcodeData data : listBarcodeData) {
 
-        SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
-        TextView txtLoginSgydate = findViewById(R.id.txtLoginSgydate);
-        txtLoginSgydate.setText(sdf.format(loginInfo.Sgydate));
+            runOnUiThread(new Runnable() {
+
+                        BarcodeDataReceivedEvent.BarcodeData readData = null;
+
+                        Runnable setData(BarcodeDataReceivedEvent.BarcodeData _readData) {
+                            readData = _readData;
+                            return this;
+                        }
+
+                        @Override
+                        public void run() {
+
+                            // QRデータ取得
+                            String qrData = readData.getData();
+
+                            // 正規表現パターン
+                            Pattern ptn = Pattern.compile(chkPattern);        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
+                            Matcher matcher = ptn.matcher(qrData);
+
+                            // 正規表現でチェック
+                            if (!matcher.lookingAt()) {
+                                // 不正なQRデータの場合メッセージを表示して処理中断
+                                AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
+                                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
+                                builder.show();
+                                return;
+                            } else {
+                                // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
+                                // QRデータから集計コードを切り出す
+                                long syukeicd = Long.parseLong(qrData.substring(2));
+
+                                // 取得
+                                new GetZaikoSyokaiTask().execute(syukeicd);
+                            }
+                        }
+                    }.setData(data)
+            );
+        }
     }
 
-    // endregion
+    //endregion
 
     // region アダプター作成
     private class ListAdapter extends BaseAdapter {
@@ -151,28 +188,32 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     //region 進行ボタンの有効・無効化
 
-    private void EnabledBtnInventoryInquiryPage1Proceed() {
-
-        ListView lvInventoryInquiryProductInformation = findViewById(R.id.lvInventoryInquiryProductInformation);
-        SpannableStringBuilder sb = new SpannableStringBuilder(getResources().getString(R.string.inventory_inquiry_page1_activity_zaikosyokaibtn));
-        int start = sb.length();
-        int color;
-        boolean enabled;
-
-        if (lvInventoryInquiryProductInformation.getCount() == 0) {
-            sb.append("\n" + getResources().getString(R.string.inventory_inquiry_page1_activity_cannot_press));
-            sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            color = getColor(R.color.darkgray);
-            enabled = false;
-        } else {
-            color = getColor(R.color.orientalblue);
-            enabled = true;
-        }
-
+    // 共通
+    private void CommonEnabledBtnInventoryInquiry(SpannableStringBuilder sb, int color,  boolean enabled ) {
         MaterialButton btnInventoryInquiryPage1Proceed = findViewById(R.id.btnInventoryInquiryPage1Proceed);
         btnInventoryInquiryPage1Proceed.setText(sb);
         btnInventoryInquiryPage1Proceed.setBackgroundColor(color);
         btnInventoryInquiryPage1Proceed.setEnabled(enabled);
+    }
+
+    // 無効化
+    private void InvalidBtnInventoryInquiry() {
+        SpannableStringBuilder sb = new SpannableStringBuilder(getResources().getString(R.string.inventory_inquiry_page1_activity_zaikosyokaibtn));
+        int start = sb.length();
+
+        sb.append("\n" + getResources().getString(R.string.inventory_inquiry_page1_activity_cannot_press));
+        sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        int color = getColor(R.color.darkgray);
+
+        CommonEnabledBtnInventoryInquiry(sb,color,false);
+    }
+
+    // 有効化
+    private void ActiveBtnInventoryInquiry(){
+        SpannableStringBuilder sb = new SpannableStringBuilder(getResources().getString(R.string.inventory_inquiry_page1_activity_zaikosyokaibtn));
+        int color = getColor(R.color.orientalblue);
+
+        CommonEnabledBtnInventoryInquiry(sb,color,true );
     }
 
     //endregion
@@ -233,8 +274,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
                 // データを準備
                 ArrayList<String> zaikoData = new ArrayList<String>();
                 zaikoData.add(dispData.Ninusinm);
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd");
-                zaikoData.add(dateFormat.format(dispData.Nyukodate));
+                zaikoData.add(settingDateFormat(dispData.Nyukodate, "yyyy年MM月dd"));
                 zaikoData.add(dispData.Funenm);
                 zaikoData.add(dispData.Hinmeinm);
                 zaikoData.add(dispData.Kikaku);
@@ -278,10 +318,10 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
                 // 在庫重量表示
                 TextView txtInventoryInquiryPage1Weight = findViewById(R.id.txtInventoryInquiryPage1Weight);
-                txtInventoryInquiryPage1Weight.setText(toFullWidth(String.format("%,d", juryo.multiply(BigDecimal.valueOf(1000)).intValue())));
+                txtInventoryInquiryPage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(juryo).intValue())));
 
-                // ボタンの有効・無効化
-                EnabledBtnInventoryInquiryPage1Proceed();
+                // ボタンの有効
+                ActiveBtnInventoryInquiry();
 
             } finally {
 
@@ -301,33 +341,11 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
-
-        if (e.getKeyCode() == KeyEvent.KEYCODE_1 && e.getAction() == KeyEvent.ACTION_DOWN) {
-
-            // QRデータ作成
-            String qrData = "2:012016011802411";
-
-            //
-
-            // 正規表現パターン
-            Pattern pattern = Pattern.compile("2:[0-9]{15}$");        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
-            Matcher matcher = pattern.matcher(qrData);
-
-            // 正規表現でチェック
-            if (!matcher.lookingAt()) {
-                // 不正なQRデータの場合メッセージを表示して処理中断
-                AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
-                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
-                builder.show();
-                return super.dispatchKeyEvent(e);
-            } else {
-                // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
-                // QRデータから集計コードを切り出す
-                long syukeicd = Long.parseLong(qrData.substring(2));
-
-                new GetZaikoSyokaiTask().execute(syukeicd);
-            }
+        if(isHardwareKeyDisabled)
+        {
+            return  true;
         }
+
         return super.dispatchKeyEvent(e);
     }
 

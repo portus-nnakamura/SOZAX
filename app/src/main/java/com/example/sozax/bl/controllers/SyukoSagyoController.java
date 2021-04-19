@@ -39,7 +39,7 @@ public class SyukoSagyoController {
             Gson gson;
             String s;
             try {
-                gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                gson =  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
                 s = gson.toJson(syukoDenpyosModel[0]);
             }catch (Exception e) {
                 syukoDenpyosModel[0].Is_error = true;
@@ -77,7 +77,7 @@ public class SyukoSagyoController {
             Gson gson;
             String s;
             try {
-                gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                gson =  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
                 s = gson.toJson(syukoDenpyosModel[0]);
             }catch (Exception e) {
                 syukoDenpyosModel[0].Is_error = true;
@@ -116,7 +116,7 @@ public class SyukoSagyoController {
             Gson gson;
             String s;
             try {
-                gson =  new GsonBuilder(). setDateFormat("yyyy-mm-dd").create();
+                gson =  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
                 s = gson.toJson(syukoDenpyosModel[0]);
             }catch (Exception e) {
                 syukoDenpyosModel[0].Is_error = true;

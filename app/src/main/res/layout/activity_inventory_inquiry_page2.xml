@@ -221,7 +221,11 @@
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_24" />
+                android:textSize="@dimen/font_size_20"
+                app:autoSizeMaxTextSize="32sp"
+
+                />
+
 
             <!-- 在庫重量 -->
             <TextView
@@ -235,7 +239,7 @@
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_24" />
+                android:textSize="@dimen/font_size_20" />
 
         </TableRow>
 

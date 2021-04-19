@@ -7,6 +7,7 @@
     <dimen name="font_size_14">14sp</dimen>
     <dimen name="font_size_16">16sp</dimen>
     <dimen name="font_size_20">20sp</dimen>
+    <dimen name="font_size_22">22sp</dimen>
     <dimen name="font_size_24">24sp</dimen>
     <dimen name="font_size_28">28sp</dimen>
     <dimen name="font_size_32">32sp</dimen>
