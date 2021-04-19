@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +22,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
+import com.densowave.bhtsdk.barcode.BarcodeException;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.SyukoDenpyoController;
@@ -28,18 +32,19 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
-import com.example.sozax.common.CommonActivity;
 import com.example.sozax.common.EnumClass;
 import com.example.sozax.common.EnumClass.SgyjokyoKubun;
+import com.example.sozax.common.ScannerActivity;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.example.sozax.ui.InventoryInquiryPage2Activity.toFullWidth;
-
-public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
+public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemapLibrary.KeyRemapListener {
 
     //region インスタンス変数
 
@@ -49,8 +54,11 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
     // 現在作業中の出庫伝票のインデックス
     private int selectedSagyochuSyukoDenpyoIndex = -1;
 
+    // ハードウェアキー無効化フラグ
+    private boolean isHardwareKeyDisabled = false;
+
     // キー割り当てライブラリ(DENSO製)
-    public KeyRemapLibrary mKeyRemapLibrary;
+    private KeyRemapLibrary mKeyRemapLibrary;
 
     //endregion
 
@@ -118,11 +126,38 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
     //endregion
 
+    //region 出庫作業のQRをスキャン
 
-    //region TODO 出庫作業のQRをスキャン
+    @Override
+    public void onBarcodeDataReceived(BarcodeDataReceivedEvent event) {
+
+        List<BarcodeDataReceivedEvent.BarcodeData> listBarcodeData = event.getBarcodeData();
+
+        for (BarcodeDataReceivedEvent.BarcodeData data : listBarcodeData) {
+
+            runOnUiThread(new Runnable() {
+
+                        BarcodeDataReceivedEvent.BarcodeData readData = null;
+
+                        Runnable setData(BarcodeDataReceivedEvent.BarcodeData _readData) {
+                            readData = _readData;
+                            return this;
+                        }
+
+                        @Override
+                        public void run() {
+
+                            // チェック
+
+                            // 取得
+                            //new GetSyukoDenpyoTask().execute();
+                        }
+                    }.setData(data)
+            );
+        }
+    }
 
     //endregion
-
 
     //region 出庫伝票をクリック
 
@@ -131,8 +166,7 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            if(selectedSagyochuSyukoDenpyoIndex != position)
-            {
+            if (selectedSagyochuSyukoDenpyoIndex != position) {
                 view.setSelected(true);
 
                 // 選択伝票Indexを更新
@@ -157,8 +191,7 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         @Override
         public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
 
-            if(selectedSagyochuSyukoDenpyoIndex != position)
-            {
+            if (selectedSagyochuSyukoDenpyoIndex != position) {
                 view.setSelected(true);
 
                 // 選択伝票Indexを更新
@@ -215,9 +248,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
         try {
             startActivityForResult(intent, REQUESTCODE);
-        }catch (Exception exception)
-        {
-            Toast.makeText(getApplicationContext(),exception.getMessage(),Toast.LENGTH_LONG).show();;
+        } catch (Exception exception) {
+            Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
         }
 
 
@@ -293,13 +325,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
-
+            // 共通の取得前処理
+            CommonPreExecute();
         }
 
         // 取得後処理
@@ -349,12 +376,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 共通の取得後処理
+                CommonPostExecute();
 
             }
         }
@@ -372,12 +395,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
+            // 共通の取得前処理
+            CommonPreExecute();
 
         }
 
@@ -417,12 +436,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 共通の取得後処理
+                CommonPostExecute();
 
             }
         }
@@ -440,12 +455,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
+            // 共通の取得前処理
+            CommonPreExecute();
 
         }
 
@@ -555,12 +566,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 共通の取得後処理
+                CommonPostExecute();
 
             }
         }
@@ -578,12 +585,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
+            // 共通の取得前処理
+            CommonPreExecute();
 
         }
 
@@ -622,12 +625,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 共通の取得後処理
+                CommonPostExecute();
 
             }
         }
@@ -646,12 +645,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
+            // 共通の取得前処理
+            CommonPreExecute();
 
         }
 
@@ -687,12 +682,8 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 共通の取得後処理
+                CommonPostExecute();
 
             }
         }
@@ -883,7 +874,7 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
 
     //endregion
 
-    //region DENSO固有ボタンの設定
+    //region ボタンの割り当て
 
     @Override
     public void onKeyRemapCreated() {
@@ -899,4 +890,67 @@ public class GoodsIssuePage1Activity extends CommonActivity implements KeyRemapL
     }
 
     //endregion
+
+    //region ハードウェアキー押下
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+
+        if(isHardwareKeyDisabled)
+        {
+            return  true;
+        }
+
+        return super.dispatchKeyEvent(e);
+    }
+
+    //endregion
+
+    private void CommonPreExecute()
+    {
+        // タッチ操作を無効化
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+        // ハードウェアキーを無効化
+        isHardwareKeyDisabled = true;
+
+        if (mBarcodeScanner != null) {
+            try {
+                // バーコードスキャナの読取を禁止
+                mBarcodeScanner.close();
+            } catch (BarcodeException e) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                builder.setTitle("エラー");
+                builder.setMessage(e.getMessage());
+
+                builder.show();
+                return;
+            }
+        }
+
+        // プログレスバーを表示
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void CommonPostExecute()
+    {
+        // プログレスバーを非表示
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.INVISIBLE);
+
+        // ハードウェアキーを有効化
+        isHardwareKeyDisabled = false;
+
+        //                // バーコードスキャナの読取を許可
+//                try {
+//                    mBarcodeScanner.claim();
+//                } catch (BarcodeException e) {
+//                    e.printStackTrace();
+//                }
+
+        // タッチ操作を有効化
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    }
+
 }
