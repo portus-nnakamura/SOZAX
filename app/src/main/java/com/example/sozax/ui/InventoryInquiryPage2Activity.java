@@ -88,7 +88,6 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
         // アダプター作成
         ListAdapter adapter = new ListAdapter(this, dispData.Nyusyukkorireki);
         lvInventoryInquiryPage2Detail.setAdapter(adapter);
-        lvInventoryInquiryPage2Detail.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         // 合計表示
         TextView txtInventoryInquiryPage2Quantity = findViewById(R.id.txtInventoryInquiryPage2Quantity);
@@ -101,8 +100,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
     // endregion
 
     // region アダプター作成
-    // LIST表示制御用クラス
-    // Ver1からの変更点：extends ArrayAdapter<Data> を extends BaseAdapterに変更
+
     private class ListAdapter extends BaseAdapter {
 
         private final ZaikoSyokai_NyusyukkoRirekiModel[] rirekis;
@@ -222,7 +220,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
             else if (!isAsc && date1.before(date2)) {
                 return 1;
 
-            } else if (date1 == date2) {
+            } else if (date1.equals(date2)) {
                 return 0;
 
             } else {

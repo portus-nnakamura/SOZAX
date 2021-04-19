@@ -24,7 +24,7 @@ public class ZaikoSyokaiController {
         @Override
         protected ZaikoSyokaiModel doInBackground(Long... syukeicd) {
 
-            ZaikoSyokaiModel ret = null;
+            ZaikoSyokaiModel ret;
 
             final Request request = new Request.Builder()
                     .url("http://192.168.10.214:55500/api/zaikosyokai/get/" + String.valueOf(syukeicd[0]))
@@ -34,40 +34,31 @@ public class ZaikoSyokaiController {
             final OkHttpClient client = new OkHttpClient.Builder()
                     .build();
 
-            Response response = null;
             try {
-                response = client.newCall(request).execute();
-            } catch (IOException e) {
-                ret = new ZaikoSyokaiModel();
-                ret.Is_error = true;
-                ret.Message = e.getMessage();
-                return ret;
-            }
 
-            if (response.isSuccessful() == false)
-            {
-                ret = new ZaikoSyokaiModel();
-                ret.Is_error = true;
-                ret.Message = response.message();
-                return  ret;
-            }
+                Response response = client.newCall(request).execute();
 
-            String s = "";
-            try {
-                s = response.body().string();
-            } catch (IOException e) {
-                ret = new ZaikoSyokaiModel();
-                ret.Is_error = true;
-                ret.Message = e.getMessage();
-                return ret;
-            }
+                if (response.isSuccessful() == false)
+                {
+                    ret = new ZaikoSyokaiModel();
+                    ret.Is_error = true;
+                    ret.Message = response.message();
+                    return  ret;
+                }
 
-            // JSONファイルからModelデータに変換
-            Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+                String s = response.body().string();
 
-            try {
+                // JSONファイルからModelデータに変換
+                Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
                 ret = gson.fromJson(s, ZaikoSyokaiModel.class);
-            }catch (Exception e) {
+
+            } catch (IOException e) {
+                ret = new ZaikoSyokaiModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
+            catch (Exception e) {
                 ret = new ZaikoSyokaiModel();
                 ret.Is_error = true;
                 ret.Message = e.getMessage();

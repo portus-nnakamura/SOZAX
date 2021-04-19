@@ -24,6 +24,7 @@ import com.example.sozax.bl.controllers.ZaikoSyokaiController;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokai_NyusyukkoRirekiModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.CommonFunction;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
@@ -34,6 +35,9 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.example.sozax.common.CommonFunction.substringByBytes;
+import static com.example.sozax.common.CommonFunction.toFullWidth;
+
 public class InventoryInquiryPage1Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
 
     // region インスタンス変数
@@ -41,7 +45,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
     private ZaikoSyokaiModel dispData;
 
     // キー割り当てライブラリ(DENSO製)
-    public KeyRemapLibrary mKeyRemapLibrary;
+    private KeyRemapLibrary mKeyRemapLibrary;
 
     // endregion
 
@@ -58,7 +62,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
         EnabledBtnInventoryInquiryPage1Proceed();
 
         // アプリ終了
-        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
+        //findViewById(R.id.btnExit).setOnClickListener(new CommonFunction.btnExit_Click(InventoryInquiryPage1Activity.this));
 
         mKeyRemapLibrary = new KeyRemapLibrary();
         mKeyRemapLibrary.createKeyRemap(this, this); // create
@@ -124,14 +128,8 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
             // テキストボックスを取得
             TextView txtInventoryInquiryPage1Info = (TextView) convertView.findViewById(R.id.txtInventoryInquiryPage1Info);
 
-            // 値がある場合
-            if (s != null && s.isEmpty() == false) {
-                // 値をセット
-                txtInventoryInquiryPage1Info.setText(s);
-            } else {
-                // 空文字セット
-                txtInventoryInquiryPage1Info.setText("");
-            }
+            // 値をセット
+            txtInventoryInquiryPage1Info.setText(s);
 
             return convertView;
         }
@@ -154,14 +152,15 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
     //region 進行ボタンの有効・無効化
 
     private void EnabledBtnInventoryInquiryPage1Proceed() {
+
         ListView lvInventoryInquiryProductInformation = findViewById(R.id.lvInventoryInquiryProductInformation);
-        SpannableStringBuilder sb = new SpannableStringBuilder("在庫照会");
+        SpannableStringBuilder sb = new SpannableStringBuilder(getResources().getString(R.string.inventory_inquiry_page1_activity_zaikosyokaibtn));
         int start = sb.length();
         int color;
         boolean enabled;
 
         if (lvInventoryInquiryProductInformation.getCount() == 0) {
-            sb.append("\n(スキャンした伝票が無いので押せません)");
+            sb.append("\n" + getResources().getString(R.string.inventory_inquiry_page1_activity_cannot_press));
             sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             color = getColor(R.color.darkgray);
             enabled = false;
@@ -308,6 +307,8 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
             // QRデータ作成
             String qrData = "2:012016011802411";
 
+            //
+
             // 正規表現パターン
             Pattern pattern = Pattern.compile("2:[0-9]{15}$");        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
             Matcher matcher = pattern.matcher(qrData);
@@ -349,7 +350,7 @@ public class InventoryInquiryPage1Activity extends CommonActivity implements Key
 
     //endregion
 
-    // region 画面破棄
+    // region 画面終了時
 
     @Override
     protected void onDestroy() {
