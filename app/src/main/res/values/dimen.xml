@@ -6,6 +6,7 @@
     <dimen name="font_size_12">12sp</dimen>
     <dimen name="font_size_14">14sp</dimen>
     <dimen name="font_size_16">16sp</dimen>
+    <dimen name="font_size_18">18sp</dimen>
     <dimen name="font_size_20">20sp</dimen>
     <dimen name="font_size_22">22sp</dimen>
     <dimen name="font_size_24">24sp</dimen>
@@ -15,6 +16,7 @@
     <!-- 余白のサイズ -->
     <dimen name="space_size_minus_2">-2dp</dimen>
     <dimen name="space_size_0">0dp</dimen>
+    <dimen name="space_size_2">2dp</dimen>
     <dimen name="space_size_4">4dp</dimen>
     <dimen name="space_size_8">8dp</dimen>
     <dimen name="space_size_12">12dp</dimen>

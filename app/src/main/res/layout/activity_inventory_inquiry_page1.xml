@@ -161,7 +161,7 @@
                 android:layout_marginLeft="-0.5dp"
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.4"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="center"
                 android:textColor="@color/black"
@@ -175,7 +175,7 @@
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginRight="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="center"
                 android:textColor="@color/black"
@@ -194,11 +194,12 @@
                 android:layout_marginLeft="-0.5dp"
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.4"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
+                android:paddingRight="@dimen/space_size_2"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_20" />
+                android:textSize="@dimen/font_size_18" />
 
             <!-- 在庫重量 -->
             <TextView
@@ -208,11 +209,12 @@
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginRight="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:textColor="@color/black"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
-                android:textSize="@dimen/font_size_20" />
+                android:paddingRight="@dimen/space_size_2"
+                android:textSize="@dimen/font_size_18" />
 
         </TableRow>
 

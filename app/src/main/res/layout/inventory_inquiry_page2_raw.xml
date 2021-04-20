@@ -20,7 +20,7 @@
         android:layout_weight="0.25"
         android:background="@drawable/text_border_dimgray"
         android:gravity="right|center_vertical"
-        android:paddingRight="@dimen/space_size_8"
+        android:paddingRight="@dimen/space_size_4"
         tools:ignore="RtlHardcoded,RtlSymmetry" />
 
     <!-- 出庫 -->
@@ -31,7 +31,7 @@
         android:layout_weight="0.25"
         android:background="@drawable/text_border_dimgray"
         android:gravity="right|center_vertical"
-        android:paddingRight="@dimen/space_size_8"
+        android:paddingRight="@dimen/space_size_4"
         tools:ignore="RtlHardcoded,RtlSymmetry" />
 
     <!-- 残 -->
@@ -42,7 +42,7 @@
         android:layout_weight="0.25"
         android:background="@drawable/text_border_dimgray"
         android:gravity="right|center_vertical"
-        android:paddingRight="8dp"
+        android:paddingRight="@dimen/space_size_4"
         tools:ignore="RtlHardcoded,RtlSymmetry" />
 
 </LinearLayout>
