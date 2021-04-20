@@ -131,6 +131,8 @@ public class MenuActivity extends CommonActivity {
         Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
+
+        finish();
     }
 
     //endregion
@@ -141,6 +143,8 @@ public class MenuActivity extends CommonActivity {
         Intent intent = new Intent(getApplication(), GoodsIssueListActivity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
+
+        finish();
     }
 
     //endregion
@@ -151,6 +155,8 @@ public class MenuActivity extends CommonActivity {
         Intent intent = new Intent(getApplication(), InventoryInquiryPage1Activity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
+
+        finish();
     }
 
     //endregion

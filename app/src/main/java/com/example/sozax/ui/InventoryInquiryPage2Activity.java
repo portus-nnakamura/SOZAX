@@ -1,6 +1,7 @@
 package com.example.sozax.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,20 +15,15 @@ import com.example.sozax.R;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokai_NyusyukkoRirekiModel;
 import com.example.sozax.common.CommonActivity;
-import com.example.sozax.common.CommonFunction;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Locale;
 
 import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.settingDateFormat;
-import static com.example.sozax.common.CommonFunction.substringByBytes;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
 
 public class InventoryInquiryPage2Activity extends CommonActivity {
@@ -36,9 +32,25 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
     private ZaikoSyokaiModel dispData;
 
-    boolean isAsc = true;
+    // ソート判別用
+    private SortMode sortMode = SortMode.Asc;
+
+    // 表示判別用
+    private DispMode dispMode = DispMode.Kosu;
 
     //endregion
+
+    // region enum
+
+    private enum SortMode{
+        Asc,Desc;
+    }
+
+    private enum DispMode{
+        Kosu,Juryo;
+    }
+
+    // endregion
 
     //region 初回起動
     @Override
@@ -145,10 +157,6 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
                 // 個数表示
                 if (btnInventoryInquiryPage2Quantity.isChecked() == true) {
                     if (datas.Nyuko_kosuu.compareTo(BigDecimal.ZERO) == 1) {
-                        // 文字数
-                        //if ()
-
-                        //txtInventoryInquiryPage2GoodsReceipt.setTextSize(1f);
                         txtInventoryInquiryPage2GoodsReceipt.setText(String.format("%,d", datas.Nyuko_kosuu.intValue()));
                     }
                     if (datas.Syukko_kosuu.compareTo(BigDecimal.ZERO) == 1) {
@@ -177,19 +185,35 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
     //region 重量切替
     public void btnInventoryInquiryPage2Weight_Click(View view) {
-        DisplayData();
+
+        if(dispMode == DispMode.Kosu) {
+            dispMode = DispMode.Juryo;
+            DisplayData();
+        }
     }
     //endregion
 
     //region 個数切替
     public void btnInventoryInquiryPage2Quantity_Click(View view) {
-        DisplayData();
+
+        if (dispMode == DispMode.Juryo){
+            dispMode = DispMode.Kosu;
+            DisplayData();
+        }
     }
     //endregion
 
     // region ソート切替
     public void btnSort_Click(View view) {
-        isAsc = !isAsc;
+
+        // ソート順反転
+        if (sortMode == SortMode.Asc) {
+            sortMode = SortMode.Desc;
+        }
+        else {
+            sortMode = SortMode.Asc;
+        }
+
         Arrays.sort(dispData.Nyusyukkorireki, new dateComparator());
         DisplayData();
     }
@@ -204,11 +228,11 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
             // ソート判定
             // 昇順
-            if (isAsc && date1.after(date2)) {
+            if (sortMode == SortMode.Asc && date1.after(date2)) {
                 return 1;
             }
             // 降順
-            else if (!isAsc && date1.before(date2)) {
+            else if (sortMode == SortMode.Desc && date1.before(date2)) {
                 return 1;
 
             } else if (date1.equals(date2)) {
@@ -221,4 +245,19 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
     }
     // endregion
 
+    // region 戻るボタン
+    @Override
+    public void onBackPressed(){
+
+        // メニューに遷移
+        Intent intent = new Intent(this, InventoryInquiryPage1Activity.class);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        intent.putExtra(getResources().getString(R.string.intent_key_zaiko_syokai), dispData);
+        startActivity(intent);
+
+        InventoryInquiryPage1Activity.isRerase = true;
+
+        finish();
+    }
+    // endregion
 }

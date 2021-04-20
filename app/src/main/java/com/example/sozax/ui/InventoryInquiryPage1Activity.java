@@ -52,6 +52,9 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
     // ハードウェアキー無効化フラグ
     private boolean isHardwareKeyDisabled = false;
 
+    // 再立ち上げフラグ
+    public static boolean isRerase = false;
+
     // endregion
 
     // region 初回起動
@@ -63,8 +66,19 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         // ログイン情報を表示
         DisplayLoginInfo();
 
-        // ボタンの無効化
-        InvalidBtnInventoryInquiry();
+        // 履歴画面で戻るボタンが押された場合
+        if (isRerase){
+            dispData = (ZaikoSyokaiModel) getIntent().getSerializableExtra(getResources().getString(R.string.intent_key_zaiko_syokai));
+            DisplayData();
+            // 終わったら元に戻す
+            isRerase = false;
+        }
+        else{
+            // ボタンの無効化
+            InvalidBtnInventoryInquiry();
+        }
+
+
 
         // アプリ終了
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
@@ -182,6 +196,8 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         intent.putExtra(getResources().getString(R.string.intent_key_zaiko_syokai), dispData);
         startActivity(intent);
+
+        finish();
     }
 
     //endregion
@@ -258,7 +274,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
                 }
 
                 // 該当データなし
-                if (zaikosyokai == null) {
+                if (zaikosyokai.Syukeicd == 0) {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
                     builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_nodata_message));
@@ -271,57 +287,8 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
                 // 取得結果を格納
                 dispData = zaikosyokai;
 
-                // データを準備
-                ArrayList<String> zaikoData = new ArrayList<String>();
-                zaikoData.add(dispData.Ninusinm);
-                zaikoData.add(settingDateFormat(dispData.Nyukodate, "yyyy年MM月dd"));
-                zaikoData.add(dispData.Funenm);
-                zaikoData.add(dispData.Hinmeinm);
-                zaikoData.add(dispData.Kikaku);
-                zaikoData.add(dispData.Tanjuryo + "Kg " + dispData.Nisunm);
-                zaikoData.add(dispData.Sykdomenm);
-
-                // レイアウトで定義している在庫品情報のリストビューを取得
-                ListView lvInventoryInquiryProductInformation = (ListView) findViewById(R.id.lvInventoryInquiryProductInformation);
-
-                // アダプタ－を作成
-                ListAdapter adapter = new ListAdapter(InventoryInquiryPage1Activity.this, zaikoData);
-
-                // 在庫品情報にアダプターをセット
-                lvInventoryInquiryProductInformation.setAdapter(adapter);
-
-                BigDecimal kosu = BigDecimal.ZERO;
-                BigDecimal juryo = BigDecimal.ZERO;
-
-                // 在庫個数、重量計算
-                for (ZaikoSyokai_NyusyukkoRirekiModel rireki : dispData.Nyusyukkorireki) {
-                    // 個数計算
-                    BigDecimal kosucalc = rireki.Nyuko_kosuu.subtract(rireki.Syukko_kosuu);
-                    // 入出庫履歴　残表示用に保存
-                    rireki.Zan_kosu = kosu.add(kosucalc);
-                    kosu = rireki.Zan_kosu;
-
-                    // 重量計算
-                    BigDecimal juryocalc = rireki.Nyuko_Juryo.subtract(rireki.Syukko_Juryo);
-                    // 入出庫履歴　残表示用に保存
-                    rireki.Zan_juryo = juryo.add(juryocalc);
-                    juryo = rireki.Zan_juryo;
-                }
-
-                // 数量、重量合計保持
-                dispData.Total_kosu = kosu;
-                dispData.Total_juryo = juryo;
-
-                // 在庫個数表示
-                TextView txtInventoryInquiryPage1Quantity = findViewById(R.id.txtInventoryInquiryPage1Quantity);
-                txtInventoryInquiryPage1Quantity.setText(toFullWidth(String.format("%,d", kosu.intValue())));
-
-                // 在庫重量表示
-                TextView txtInventoryInquiryPage1Weight = findViewById(R.id.txtInventoryInquiryPage1Weight);
-                txtInventoryInquiryPage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(juryo).intValue())));
-
-                // ボタンの有効
-                ActiveBtnInventoryInquiry();
+                // データ表示
+                DisplayData();
 
             } finally {
 
@@ -336,6 +303,61 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
     }
 
     //endregion
+
+    // データ表示処理
+    private void DisplayData() {
+        // データを準備
+        ArrayList<String> zaikoData = new ArrayList<String>();
+        zaikoData.add(dispData.Ninusinm);
+        zaikoData.add(settingDateFormat(dispData.Nyukodate, "yyyy年MM月dd"));
+        zaikoData.add(dispData.Funenm);
+        zaikoData.add(dispData.Hinmeinm);
+        zaikoData.add(dispData.Kikaku);
+        zaikoData.add(dispData.Tanjuryo + "Kg " + dispData.Nisunm);
+        zaikoData.add(dispData.Sykdomenm);
+
+        // レイアウトで定義している在庫品情報のリストビューを取得
+        ListView lvInventoryInquiryProductInformation = (ListView) findViewById(R.id.lvInventoryInquiryProductInformation);
+
+        // アダプタ－を作成
+        ListAdapter adapter = new ListAdapter(InventoryInquiryPage1Activity.this, zaikoData);
+
+        // 在庫品情報にアダプターをセット
+        lvInventoryInquiryProductInformation.setAdapter(adapter);
+
+        BigDecimal kosu = BigDecimal.ZERO;
+        BigDecimal juryo = BigDecimal.ZERO;
+
+        // 在庫個数、重量計算
+        for (ZaikoSyokai_NyusyukkoRirekiModel rireki : dispData.Nyusyukkorireki) {
+            // 個数計算
+            BigDecimal kosucalc = rireki.Nyuko_kosuu.subtract(rireki.Syukko_kosuu);
+            // 入出庫履歴　残表示用に保存
+            rireki.Zan_kosu = kosu.add(kosucalc);
+            kosu = rireki.Zan_kosu;
+
+            // 重量計算
+            BigDecimal juryocalc = rireki.Nyuko_Juryo.subtract(rireki.Syukko_Juryo);
+            // 入出庫履歴　残表示用に保存
+            rireki.Zan_juryo = juryo.add(juryocalc);
+            juryo = rireki.Zan_juryo;
+        }
+
+        // 数量、重量合計保持
+        dispData.Total_kosu = kosu;
+        dispData.Total_juryo = juryo;
+
+        // 在庫個数表示
+        TextView txtInventoryInquiryPage1Quantity = findViewById(R.id.txtInventoryInquiryPage1Quantity);
+        txtInventoryInquiryPage1Quantity.setText(toFullWidth(String.format("%,d", kosu.intValue())));
+
+        // 在庫重量表示
+        TextView txtInventoryInquiryPage1Weight = findViewById(R.id.txtInventoryInquiryPage1Weight);
+        txtInventoryInquiryPage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(juryo).intValue())));
+
+        // ボタンの有効
+        ActiveBtnInventoryInquiry();
+    }
 
     //region ハードキークリック
 
@@ -378,5 +400,19 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         mKeyRemapLibrary.disposeKeyRemap();
     }
 
+    // endregion
+
+    // region 戻るボタン押下時
+    @Override
+    public void onBackPressed(){
+
+        // 本画面に遷移時メニュー画面は終了されている為、新たにメニュー画面を立ち上げる
+        // メニューに遷移
+        Intent intent = new Intent(this, MenuActivity.class);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        startActivity(intent);
+
+        finish();
+    }
     // endregion
 }
