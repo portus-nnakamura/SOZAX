@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,9 +40,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
 
 public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemapLibrary.KeyRemapListener {
@@ -515,7 +513,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                             if (checkedItems[i]) {
 
                                 SyukoSagyoModel syukoSagyoModel = new SyukoSagyoModel();
-                                syukoSagyoModel.Syukono = _syukoDenpyosModel.SyukoDenpyos[i].Syukono;
+                                syukoSagyoModel.Sgysyukono = _syukoDenpyosModel.SyukoDenpyos[i].Syukono;
                                 syukoSagyoModel.Kaicd = loginInfo.Kaicd;
                                 syukoSagyoModel.Sgytencd = loginInfo.Tensyocd;
                                 syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
@@ -816,7 +814,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         // 出庫個数
         txtGoodsIssuePage1Quantity.setText(toFullWidth(String.format("%,d", currentSagyochuSyukoDenpyo.Kosuu.intValue())));
         // 出庫重量
-        txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", currentSagyochuSyukoDenpyo.Juryo.intValue())));
+        txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(currentSagyochuSyukoDenpyo.Juryo).intValue())));
     }
 
 

@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class SyukoSagyoModel implements Serializable {
 
-    public long Syukono = 0L;
+    public long Sgysyukono = 0L;
 
     public int Kaicd = 0;
 

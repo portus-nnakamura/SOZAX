@@ -1,46 +1,69 @@
 package com.example.sozax.ui;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.sozax.R;
-import com.example.sozax.bl.goods_issue.GoodsIssueSlip;
+import com.example.sozax.bl.controllers.SyukoDenpyoController;
+import com.example.sozax.bl.controllers.SyukoSagyoController;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.EnumClass;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
 
 public class GoodsIssueListActivity extends CommonActivity {
 
-    //region Create
+    // region インスタンス変数
+
+    private ArrayList<SyukoDenpyoModel> dispDatas = null;
+
+    // ハードウェアキー無効化フラグ
+    private boolean isHardwareKeyDisabled = false;
+
+    // endregion
+
+    //region 初回起動
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_goods_issue_list);
 
-        // デモデータセット
-        SetDemoData();
-
         // ログイン情報を表示
         DisplayLoginInfo();
 
-        // 出庫伝票一覧を表示
-        DisplayGoodsIssueSlipList();
+        // 作業中の出庫伝票リストの取得条件を作成
+        SyukoDenpyoConditionModel syukoDenpyoConditionModel = new SyukoDenpyoConditionModel();
+        syukoDenpyoConditionModel.Kaicd = loginInfo.Kaicd;
+        syukoDenpyoConditionModel.Soukocd = loginInfo.Soukocd;
+        syukoDenpyoConditionModel.Sagyodate = loginInfo.Sgydate;
+
+        // 取得処理
+        new GetSyukoDenpyosTask().execute(syukoDenpyoConditionModel);
 
         // アプリ終了
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(GoodsIssueListActivity.this));
@@ -52,99 +75,211 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     //endregion
 
-    //region デモデータ
-
-    private ArrayList<GoodsIssueSlip> demoData = null;
-
-    private void SetDemoData() {
-        Intent intent = getIntent();
-        demoData = (ArrayList<GoodsIssueSlip>) intent.getSerializableExtra("DEMODATA");
-    }
-
-    //endregion
-
-
-
-    //region 出庫する
-
-    private static final int REQUEST_CODE = 1;
+    //region 出庫ボタン押下時
 
     class btnGoodsIssue_Click implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {
 
-            ListView lvGoodsIssueSlipList =  ((ListView) findViewById(R.id.lvGoodsIssueSlipList));
+            ListView lvGoodsIssueSlipList = findViewById(R.id.lvGoodsIssueSlipList);
 
+            // チェックがついている伝票を取得し、出庫作業データ作成
+            ArrayList<SyukoDenpyoModel> selectDatas = new ArrayList<SyukoDenpyoModel>();
+            // ListViewの行数
             int count = lvGoodsIssueSlipList.getCount();
-            boolean chkflg = false;
+            int j = 0;
             for (int i = 0; i < count; i++) {
                 CheckBox checkBox = lvGoodsIssueSlipList.getChildAt(i).findViewById(R.id.chkGoodsIssueListSelect);
                 if (checkBox.isChecked()) {
-                    demoData.get(i).setProgressState(GoodsIssueSlip.ProgressStateEnum.受付);
+
+                    SyukoSagyoModel syukoSagyoModel = new SyukoSagyoModel();
+                    TextView txtSyukono = lvGoodsIssueSlipList.getChildAt(i).findViewById(R.id.txtGoodsIssueListSlipNo);
+                    syukoSagyoModel.Sgysyukono = Long.parseLong(txtSyukono.getText().toString());
+                    syukoSagyoModel.Kaicd = loginInfo.Kaicd;
+                    syukoSagyoModel.Sgytencd = loginInfo.Tensyocd;
+                    syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
+                    syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
+                    syukoSagyoModel.Sgydate = loginInfo.Sgydate;
+
+                    selectDatas.add(new SyukoDenpyoModel());
+                    selectDatas.get(j).Syukosgyjokyo = syukoSagyoModel;
+                    j++;
                 }
             }
 
+            // チェックされた明細がある場合
+            if (j > 0) {
+                SyukoDenpyosModel postData = new SyukoDenpyosModel();
+                postData.SyukoDenpyos = new SyukoDenpyoModel[selectDatas.size()];
+
+                selectDatas.toArray(postData.SyukoDenpyos);
+
+                // 出庫作業に登録
+                new PostSyukoSagyosTask().execute(postData);
+            }
+
+            // 出庫画面に遷移
             Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-            intent.putExtra("LOGININFO", loginInfo);
-            intent.putExtra("DEMODATA",demoData);
-            startActivityForResult(intent, REQUEST_CODE);
-        }
-    }
+            intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+            startActivity(intent);
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQUEST_CODE:
-
-                demoData = (ArrayList<GoodsIssueSlip>) data.getSerializableExtra("DEMODATA");
-
-                DisplayGoodsIssueSlipList();
-
-                break;
-            default:
-                break;
+            finish();
         }
     }
 
     //endregion
 
+    // region 出庫一覧取得
+    @SuppressLint("StaticFieldLeak")
+    private class GetSyukoDenpyosTask extends SyukoDenpyoController.GetSyukoDenpyosTask {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // 共通処理
+            CommonPreExecute();
+        }
+
+        /**
+         * バックグランド処理が完了し、UIスレッドに反映する
+         */
+        @Override
+        protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssueListActivity.this);
+                    builder.setTitle("エラー");
+                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.goods_issue_list_activity_failed_get_syukosdata_message), _syukoDenpyosModel.Message));
+
+                    builder.show();
+
+                    return;
+                }
+
+                // 該当データなし
+                if (_syukoDenpyosModel.SyukoDenpyos == null) {
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssueListActivity.this);
+                    builder.setMessage(getResources().getString(R.string.goods_issue_list_activity_nosyukosdata_message));
+
+                    builder.show();
+
+                    return;
+                }
+
+                if (dispDatas == null) {
+                    dispDatas = new ArrayList<SyukoDenpyoModel>();
+                }
+
+                // 作業中出庫伝票リストに取得した出庫伝票リストを追加
+                dispDatas.addAll(Arrays.asList(_syukoDenpyosModel.SyukoDenpyos));
+
+                // データ表示
+                DisplayDatas();
+
+            } finally {
+
+                // 共通の取得後処理
+                CommonPostExecute();
+            }
+        }
+    }
+
+    // endregion
+
+    // region 出庫作業登録
+
+    @SuppressLint("StaticFieldLeak")
+    public class PostSyukoSagyosTask extends SyukoSagyoController.PostSyukoSagyosTask {
+
+        // 登録前処理
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // 共通処理
+            CommonPreExecute();
+        }
+
+        // 登録後処理
+        @Override
+        protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
+
+            try {
+
+                // エラー発生
+                if (_syukoDenpyosModel.Is_error) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssueListActivity.this);
+                    builder.setTitle("エラー");
+                    builder.setMessage((java.text.MessageFormat.format(getResources().getString(R.string.goods_issue_list_activity_failed_get_syukosdata_message), _syukoDenpyosModel.Message)));
+
+                    builder.show();
+                    return;
+                }
+
+            } finally {
+
+                // 共通の取得後処理
+                CommonPostExecute();
+            }
+        }
+    }
+
+    // endregion
+
+    // region 取得・登録共通処理
+
+    private void CommonPreExecute() {
+        // タッチ操作を無効化
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+        // ハードウェアキーを無効化
+        isHardwareKeyDisabled = true;
+
+        // プログレスバーを表示
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void CommonPostExecute() {
+        // プログレスバーを非表示
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.INVISIBLE);
+
+        // ハードウェアキーを有効化
+        isHardwareKeyDisabled = false;
+
+        // タッチ操作を有効化
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    }
+
+    // endregion
+
     //region 出庫伝票一覧を表示
 
-    private void DisplayGoodsIssueSlipList() {
+    private void DisplayDatas() {
 
-        // 並び替え
-        ArrayList<GoodsIssueSlip> tmp = new ArrayList<GoodsIssueSlip>();
-
-        for (GoodsIssueSlip goodsIssueSlip:demoData)
-        {
-            if (goodsIssueSlip.getProgressState() != GoodsIssueSlip.ProgressStateEnum.完了)
-            {
-                tmp.add(goodsIssueSlip);
-            }
-        }
-
-        for (GoodsIssueSlip goodsIssueSlip:demoData)
-        {
-            if (goodsIssueSlip.getProgressState() == GoodsIssueSlip.ProgressStateEnum.完了)
-            {
-                tmp.add(goodsIssueSlip);
-            }
-        }
-
-        demoData = tmp;
-
-        // リスト表示
-        ListView lvGoodsIssueSlipList = (ListView) findViewById(R.id.lvGoodsIssueSlipList);
-        ListAdapter adapter = new ListAdapter(this, demoData);
+        // リスト呼出
+        ListView lvGoodsIssueSlipList = findViewById(R.id.lvGoodsIssueSlipList);
+        // アダプター作成
+        SukoListAdapter adapter = new SukoListAdapter(this, dispDatas);
         lvGoodsIssueSlipList.setAdapter(adapter);
         lvGoodsIssueSlipList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
+        // 一行を目選択
+        lvGoodsIssueSlipList.deferNotifyDataSetChanged();
+        lvGoodsIssueSlipList.requestFocusFromTouch();
+        lvGoodsIssueSlipList.setSelection(0);
+
         // 詳細表示
-        if (demoData.size() > 0) {
-            DisplayDetail(demoData.get(0));
+        if (dispDatas.size() > 0) {
+            DisplayDetail(dispDatas.get(0));
         }
     }
 
@@ -152,7 +287,7 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     //region 詳細表示
 
-    private void DisplayDetail(GoodsIssueSlip dispData) {
+    private void DisplayDetail(SyukoDenpyoModel dispData) {
 
         TextView txtGoodsIssueSlipListDetailNinushi = findViewById(R.id.txtGoodsIssueSlipListDetailNinushi);
         TextView txtGoodsIssueSlipListDetailNiwatashi = findViewById(R.id.txtGoodsIssueSlipListDetailNiwatashi);
@@ -161,15 +296,71 @@ public class GoodsIssueListActivity extends CommonActivity {
         TextView txtGoodsIssueSlipListWeight = findViewById(R.id.txtGoodsIssueSlipListWeight);
 
         // 荷主名
-        txtGoodsIssueSlipListDetailNinushi.setText(dispData.getNinushiName());
+        txtGoodsIssueSlipListDetailNinushi.setText(dispData.Ninusinm);
         // 荷渡名
-        txtGoodsIssueSlipListDetailNiwatashi.setText(dispData.getNiwatashiName());
-        // 商品名
-        txtGoodsIssueSlipListDetailProductName.setText(dispData.getProductName());
+        txtGoodsIssueSlipListDetailNiwatashi.setText(dispData.Niwatanm);
+
+        // 品名
+        StringBuilder hinmeinm = new StringBuilder(dispData.Hinmeinm);
+        if (!dispData.Kikakunaiyo1.isEmpty()) {
+            // 規格内容1
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo1);
+        }
+        if (!dispData.Kikakunaiyo2.isEmpty()) {
+            // 規格内容2
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo2);
+        }
+        if (!dispData.Kikakunaiyo3.isEmpty()) {
+            // 規格内容3
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo3);
+        }
+        if (!dispData.Kikakunaiyo4.isEmpty()) {
+            // 規格内容4
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo4);
+        }
+        if (!dispData.Kikakunaiyo5.isEmpty()) {
+            // 規格内容5
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo5);
+        }
+        if (!dispData.Kikakunaiyo6.isEmpty()) {
+            // 規格内容6
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo6);
+        }
+        if (!dispData.Kikakunaiyo7.isEmpty()) {
+            // 規格内容7
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo7);
+        }
+        if (!dispData.Kikakunaiyo8.isEmpty()) {
+            // 規格内容8
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo8);
+        }
+        if (!dispData.Kikakunaiyo9.isEmpty()) {
+            // 規格内容9
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo9);
+        }
+        if (!dispData.Kikakunaiyo10.isEmpty()) {
+            // 規格内容10
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo10);
+        }
+        if (!dispData.Kikakunaiyo11.isEmpty()) {
+            // 規格内容11
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo11);
+        }
+        if (!dispData.Kikakunaiyo12.isEmpty()) {
+            // 規格内容12
+            hinmeinm.append(" ").append(dispData.Kikakunaiyo12);
+        }
+        if (!dispData.Tanjuryo.equals(BigDecimal.ZERO)) {
+            // 単重量
+            hinmeinm.append(" ").append(dispData.Tanjuryo);
+        }
+
+        // 品名
+        txtGoodsIssueSlipListDetailProductName.setText(hinmeinm);
         // 出庫個数
-        txtGoodsIssueSlipListQuantity.setText(toFullWidth(String.format("%,d", dispData.getQuantity().intValue())));
+        txtGoodsIssueSlipListQuantity.setText(toFullWidth(String.format("%,d", dispData.Kosuu.intValue())));
         // 出庫重量
-        txtGoodsIssueSlipListWeight.setText(toFullWidth(String.format("%,d", dispData.getWeight().intValue())));
+        txtGoodsIssueSlipListWeight.setText(toFullWidth(String.format("%,d", multiplyThousand(dispData.Juryo).intValue())));
     }
 
     //endregion
@@ -183,24 +374,24 @@ public class GoodsIssueListActivity extends CommonActivity {
 
             view.setSelected(true);
 
-            GoodsIssueSlip goodsIssueSlip = demoData.get(position);
+            SyukoDenpyoModel syukodenpyo = dispDatas.get(position);
 
             // 詳細表示
-            DisplayDetail(goodsIssueSlip);
+            DisplayDetail(syukodenpyo);
         }
     }
 
     //endregion
 
-    //region 独自のAdapter
+    //region Adapter作成
 
-    private class ListAdapter extends BaseAdapter {
+    private class SukoListAdapter extends BaseAdapter {
 
-        private final ArrayList<GoodsIssueSlip> list;
+        private final ArrayList<SyukoDenpyoModel> list;
         private final LayoutInflater inflater;
         private final Resources r;
 
-        public ListAdapter(Context context, ArrayList<GoodsIssueSlip> list) {
+        public SukoListAdapter(Context context, ArrayList<SyukoDenpyoModel> list) {
             super();
             this.list = list;
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -213,7 +404,7 @@ public class GoodsIssueListActivity extends CommonActivity {
         }
 
         @Override
-        public GoodsIssueSlip getItem(int position) {
+        public SyukoDenpyoModel getItem(int position) {
             return list.get(position);
         }
 
@@ -227,109 +418,87 @@ public class GoodsIssueListActivity extends CommonActivity {
 
             if (view == null) view = inflater.inflate(R.layout.goods_issue_list_raw, null);
 
-            final GoodsIssueSlip tmp = getItem(position);
+            final SyukoDenpyoModel datas = getItem(position);
 
-            TextView txtGoodsIssueListNo = (TextView) view.findViewById(R.id.txtGoodsIssueListNo);
-            TextView txtGoodsIssueListSlipNo = (TextView) view.findViewById(R.id.txtGoodsIssueListSlipNo);
-            TextView txtGoodsIssueListStatus = (TextView) view.findViewById(R.id.txtGoodsIssueListStatus);
-            CheckBox chkGoodsIssueListSelect =  (CheckBox) view.findViewById(R.id.chkGoodsIssueListSelect);
+            TextView txtGoodsIssueListNo = view.findViewById(R.id.txtGoodsIssueListNo);
+            TextView txtGoodsIssueListSlipNo = view.findViewById(R.id.txtGoodsIssueListSlipNo);
+            TextView txtGoodsIssueListStatus = view.findViewById(R.id.txtGoodsIssueListStatus);
+            CheckBox chkGoodsIssueListSelect = view.findViewById(R.id.chkGoodsIssueListSelect);
 
-            if (tmp != null) {
+            // 背景色を白に設定
+            txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.frostygray));
+            txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.frostygray));
+            txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.frostygray));
+            chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.frostygray));
 
+            // チェックボックス有効
+            chkGoodsIssueListSelect.setEnabled(true);
+
+            // チェックボックスの色リセット
+            chkGoodsIssueListSelect.setButtonTintList(null);
+
+            if (datas != null) {
+
+                // 値を設定
                 txtGoodsIssueListNo.setText(String.valueOf(position + 1));
-                txtGoodsIssueListSlipNo.setText(tmp.getSlipNo());
+                txtGoodsIssueListSlipNo.setText(String.valueOf(datas.Syukono));
 
-                if (tmp.getProgressState() != GoodsIssueSlip.ProgressStateEnum.完了) {
-                    txtGoodsIssueListStatus.setText("未");
+                //　出庫作業が登録されている場合
+                if (datas.Syukosgyjokyo != null) {
 
-                    GradientDrawable borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.frostygray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(txtGoodsIssueListNo.getWidth(),txtGoodsIssueListNo.getHeight());
-                    LayerDrawable layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    txtGoodsIssueListNo.setBackground(borderDrawable);
+                    // 受領確認の場合
+                    if (EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn) == EnumClass.SgyjokyoKubun.Juryokakunin) {
 
-                    borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.frostygray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(txtGoodsIssueListSlipNo.getWidth(),txtGoodsIssueListSlipNo.getHeight());
-                    layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    txtGoodsIssueListSlipNo.setBackground(borderDrawable);
+                        // 背景色をグレーに設定
+                        txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.darkgray));
+                        txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.darkgray));
+                        txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.darkgray));
+                        chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.darkgray));
+                    }
 
-                    borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.frostygray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(txtGoodsIssueListStatus.getWidth(),txtGoodsIssueListStatus.getHeight());
-                    layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    txtGoodsIssueListStatus.setBackground(borderDrawable);
-
-                    borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.frostygray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(chkGoodsIssueListSelect.getWidth(),chkGoodsIssueListSelect.getHeight());
-                    layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    chkGoodsIssueListSelect.setBackground(borderDrawable);
-                    chkGoodsIssueListSelect.setEnabled(true);
-                    chkGoodsIssueListSelect.setButtonTintList(getColorStateList(R.color.dimgray));
-
-                } else  {
-                    txtGoodsIssueListStatus.setText("済");
-
-                    GradientDrawable borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.dimgray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(txtGoodsIssueListNo.getWidth(),txtGoodsIssueListNo.getHeight());
-                    LayerDrawable layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    txtGoodsIssueListNo.setBackground(borderDrawable);
-
-                    borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.dimgray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(txtGoodsIssueListSlipNo.getWidth(),txtGoodsIssueListSlipNo.getHeight());
-                    layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    txtGoodsIssueListSlipNo.setBackground(borderDrawable);
-
-                    borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.dimgray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(txtGoodsIssueListStatus.getWidth(),txtGoodsIssueListStatus.getHeight());
-                    layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    txtGoodsIssueListStatus.setBackground(borderDrawable);
-
-                    borderDrawable = new GradientDrawable();
-                    borderDrawable.setColor(getColor(R.color.dimgray));
-                    //borderDrawable.setStroke(1, getColor(R.color.darkgray));
-                    borderDrawable.setSize(chkGoodsIssueListSelect.getWidth(),chkGoodsIssueListSelect.getHeight());
-                    layerDrawable = new LayerDrawable(new Drawable[]{borderDrawable});
-                    layerDrawable.setLayerInset(0, 0, -2, 0, -2);
-                    chkGoodsIssueListSelect.setBackground(borderDrawable);
+                    // 作業状況区分名表示
+                    txtGoodsIssueListStatus.setText(EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn).getString());
+                    // チェックボックスを無効
                     chkGoodsIssueListSelect.setEnabled(false);
+                    // チェックボックスを透明にする
                     chkGoodsIssueListSelect.setButtonTintList(getColorStateList(R.color.transparent));
+
+                }
+                //　出庫作業が登録されていない場合
+                else {
+                    // 作業状況は未着手固定
+                    txtGoodsIssueListStatus.setText(EnumClass.getSgyjokyoKubun(EnumClass.SgyjokyoKubun.Michakusyu.getInteger()).getString());
                 }
             }
+
             return view;
         }
     }
 
     //endregion
 
-    //region 戻るボタン
+    //region ハードキークリック
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        if (isHardwareKeyDisabled) {
+            return true;
+        }
+
+        return super.dispatchKeyEvent(e);
+    }
+
+    //endregion
+
+    //region 戻るボタン押下時
 
     @Override
     public void onBackPressed() {
 
-        Intent intent = new Intent();
-        intent.putExtra("DEMODATA", demoData);
-        setResult(RESULT_OK, intent);
+        Intent intent = new Intent(this, MenuActivity.class);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        startActivity(intent);
         finish();
-
     }
     //endregion
 }

@@ -6,6 +6,21 @@
     android:layout_height="match_parent"
     tools:context=".ui.GoodsIssueListActivity">
 
+    <!-- プログレスバー -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="invisible"
+        android:elevation="1dp"
+        />
+
+
     <!-- アイコンバー -->
     <LinearLayout
         android:id="@+id/llGoodsIssueSlipListHeader"
@@ -24,13 +39,61 @@
             android:src="@drawable/icon_logout_48"
             tools:ignore="ContentDescription" />
 
-
         <!-- ログイン情報 -->
-        <TextView
-            android:id="@+id/txtLoginInfo"
-            style="@style/login_info_text_style"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            style="@style/login_info_layout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="0.5"
-            android:background="@drawable/text_border_white" />
+            android:background="@drawable/text_border_white">
+
+            <TextView
+                android:id="@+id/txtLoginTensyo"
+                style="@style/login_info_text_style"
+                android:layout_marginRight="1dp"
+                android:layout_marginBottom="1dp"
+                android:gravity="bottom|right"
+                app:layout_constraintBottom_toTopOf="@+id/txtLoginSouko"
+                app:layout_constraintEnd_toStartOf="@+id/txtLoginSgytanto"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/txtLoginSgytanto"
+                style="@style/login_info_text_style"
+                android:layout_marginLeft="1dp"
+                android:layout_marginBottom="1dp"
+                android:gravity="bottom|left"
+                app:layout_constraintBottom_toTopOf="@+id/txtLoginSgydate"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/txtLoginTensyo"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/txtLoginSouko"
+                style="@style/login_info_text_style"
+                android:layout_marginTop="1dp"
+                android:layout_marginRight="1dp"
+                android:gravity="top|right"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/txtLoginSgydate"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txtLoginTensyo" />
+
+            <TextView
+                android:id="@+id/txtLoginSgydate"
+                style="@style/login_info_text_style"
+                android:layout_marginLeft="1dp"
+                android:layout_marginTop="1dp"
+                android:gravity="top|left"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/txtLoginSouko"
+                app:layout_constraintTop_toBottomOf="@+id/txtLoginSgytanto" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- -->
 
         <!-- 出庫 -->
         <ImageButton
@@ -194,7 +257,7 @@
                 android:layout_marginLeft="-0.5dp"
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.4"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="center"
                 android:text="出庫個数"
@@ -208,7 +271,7 @@
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginRight="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="center"
                 android:text="出庫重量"
@@ -227,11 +290,11 @@
                 android:layout_marginLeft="-0.5dp"
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.4"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_24" />
+                android:textSize="@dimen/font_size_18" />
 
             <!-- 出庫重量 -->
             <TextView
@@ -241,11 +304,11 @@
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginRight="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_24" />
+                android:textSize="@dimen/font_size_18" />
 
         </TableRow>
 

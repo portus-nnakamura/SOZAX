@@ -15,7 +15,7 @@
     <TextView
         android:id="@+id/txtGoodsIssueListSlipNo"
         style="@style/raw_text_style"
-        android:layout_weight="0.7"
+        android:layout_weight="0.47"
         android:gravity="left|center_vertical"
         android:paddingLeft="@dimen/space_size_8"
         tools:ignore="RtlHardcoded,RtlSymmetry" />
@@ -24,7 +24,7 @@
     <TextView
         android:id="@+id/txtGoodsIssueListStatus"
         style="@style/raw_text_style"
-        android:layout_weight="0.1"
+        android:layout_weight="0.3"
         android:gravity="center" />
 
     <CheckBox
@@ -33,7 +33,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/space_size_minus_2"
         android:layout_marginBottom="@dimen/space_size_minus_2"
-        android:layout_weight="0.1"
+        android:layout_weight="0.13"
         android:background="@drawable/text_border_dimgray"
         android:focusable="false"
         android:gravity="center" />

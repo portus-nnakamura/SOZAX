@@ -73,7 +73,6 @@
     <string name="intent_key_sagyochu_syuko_denpyos">SagyochuSyukoDenpyos</string>
     <string name="intent_key_selected_sagyochu_syuko_denpyo_index">SelectedSagyochuSyukoDenpyoIndex</string>
 
-
     <!-- InventoryInquiryPage1Activityで使用するメッセージ-->
     <string name="inventory_inquiry_page1_activity_failed_getdata_message">在庫照会データの取得に失敗しました。\n{0}</string>
     <string name="inventory_inquiry_page1_activity_nodata_message">該当する在庫照会データがありません。</string>
@@ -82,6 +81,13 @@
     <!-- InventoryInquiryPage1Activityで使用するボタンtext -->
     <string name="inventory_inquiry_page1_activity_zaikosyokaibtn">在庫照会</string>
     <string name="inventory_inquiry_page1_activity_cannot_press">(スキャンした伝票が無いので押せません)</string>
+
+    <!-- GoodsIssuListActivityで使用するメッセージ -->
+    <string name="goods_issue_list_activity_failed_get_syukosdata_message">出庫一覧データの取得に失敗しました。 \n{0}</string>
+    <string name="goods_issue_list_activity_nosyukosdata_message">該当する出庫一覧データがありません。</string>
+    <string name="goods_issue_list_activity_failed_insert_syukosdata_message">出庫一覧データの登録に失敗しました。\r\n{0}</string>
+
+
 
 
 </resources>

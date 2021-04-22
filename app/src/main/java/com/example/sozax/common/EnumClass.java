@@ -12,6 +12,7 @@ public class EnumClass {
 
     public enum SgyjokyoKubun {
 
+        Michakusyu("未着手",0),
         Uketuke("受付",1),
         Zaikokakunin("在庫確認",2),
         Syukosagyo("出庫作業",3),

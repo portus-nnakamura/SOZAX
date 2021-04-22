@@ -247,6 +247,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
             // デバイスボタン押下時制御実装予定
+            isHardwareKeyDisabled = true;
 
             // プログレスバーを表示
             ProgressBar progressBar = findViewById(R.id.progressBar);
@@ -295,6 +296,9 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
                 // プログレスバーを非表示
                 ProgressBar progressBar = findViewById(R.id.progressBar);
                 progressBar.setVisibility(View.INVISIBLE);
+
+                // ハードウェアキーを有効化
+                isHardwareKeyDisabled = false;
 
                 // タッチ操作を有効化
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
