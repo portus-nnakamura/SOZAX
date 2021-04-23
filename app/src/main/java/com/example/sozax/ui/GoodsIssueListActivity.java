@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -31,6 +30,8 @@ import com.example.sozax.common.EnumClass;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
@@ -43,6 +44,9 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     // ハードウェアキー無効化フラグ
     private boolean isHardwareKeyDisabled = false;
+
+    // チェック制御用
+    private Map<Long, Boolean> syukoChk;
 
     // endregion
 
@@ -69,6 +73,7 @@ public class GoodsIssueListActivity extends CommonActivity {
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(GoodsIssueListActivity.this));
         // 出庫
         findViewById(R.id.btnGoodsIssue).setOnClickListener(new btnGoodsIssue_Click());
+
         // 行選択
         ((ListView) findViewById(R.id.lvGoodsIssueSlipList)).setOnItemClickListener(new lvGoodsIssueSlipList_Click());
     }
@@ -88,7 +93,6 @@ public class GoodsIssueListActivity extends CommonActivity {
             ArrayList<SyukoDenpyoModel> selectDatas = new ArrayList<SyukoDenpyoModel>();
             // ListViewの行数
             int count = lvGoodsIssueSlipList.getCount();
-            int j = 0;
             for (int i = 0; i < count; i++) {
                 CheckBox checkBox = lvGoodsIssueSlipList.getChildAt(i).findViewById(R.id.chkGoodsIssueListSelect);
                 if (checkBox.isChecked()) {
@@ -102,14 +106,14 @@ public class GoodsIssueListActivity extends CommonActivity {
                     syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
                     syukoSagyoModel.Sgydate = loginInfo.Sgydate;
 
-                    selectDatas.add(new SyukoDenpyoModel());
-                    selectDatas.get(j).Syukosgyjokyo = syukoSagyoModel;
-                    j++;
+                    SyukoDenpyoModel tmp = new SyukoDenpyoModel();
+                    tmp.Syukosgyjokyo = syukoSagyoModel;
+                    selectDatas.add(tmp);
                 }
             }
 
             // チェックされた明細がある場合
-            if (j > 0) {
+            if (selectDatas.size() > 0) {
                 SyukoDenpyosModel postData = new SyukoDenpyosModel();
                 postData.SyukoDenpyos = new SyukoDenpyoModel[selectDatas.size()];
 
@@ -117,14 +121,10 @@ public class GoodsIssueListActivity extends CommonActivity {
 
                 // 出庫作業に登録
                 new PostSyukoSagyosTask().execute(postData);
+            } else {
+                // 出庫画面に遷移
+                CreateIntent();
             }
-
-            // 出庫画面に遷移
-            Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-            intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
-            startActivity(intent);
-
-            finish();
         }
     }
 
@@ -217,11 +217,14 @@ public class GoodsIssueListActivity extends CommonActivity {
                 if (_syukoDenpyosModel.Is_error) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssueListActivity.this);
                     builder.setTitle("エラー");
-                    builder.setMessage((java.text.MessageFormat.format(getResources().getString(R.string.goods_issue_list_activity_failed_get_syukosdata_message), _syukoDenpyosModel.Message)));
+                    builder.setMessage((java.text.MessageFormat.format(getResources().getString(R.string.goods_issue_list_activity_failed_insert_syukosgydata_message), _syukoDenpyosModel.Message)));
 
                     builder.show();
                     return;
                 }
+
+                // 出庫画面に遷移
+                CreateIntent();
 
             } finally {
 
@@ -229,6 +232,17 @@ public class GoodsIssueListActivity extends CommonActivity {
                 CommonPostExecute();
             }
         }
+    }
+
+    // endregion
+
+    // region 出庫画面に遷移
+    private void CreateIntent() {
+        Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        startActivity(intent);
+
+        finish();
     }
 
     // endregion
@@ -267,8 +281,9 @@ public class GoodsIssueListActivity extends CommonActivity {
 
         // リスト呼出
         ListView lvGoodsIssueSlipList = findViewById(R.id.lvGoodsIssueSlipList);
+
         // アダプター作成
-        SukoListAdapter adapter = new SukoListAdapter(this, dispDatas);
+        SyukoListAdapter adapter = new SyukoListAdapter(this, dispDatas);
         lvGoodsIssueSlipList.setAdapter(adapter);
         lvGoodsIssueSlipList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
@@ -385,17 +400,20 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     //region Adapter作成
 
-    private class SukoListAdapter extends BaseAdapter {
+    private class SyukoListAdapter extends BaseAdapter {
 
         private final ArrayList<SyukoDenpyoModel> list;
         private final LayoutInflater inflater;
-        private final Resources r;
 
-        public SukoListAdapter(Context context, ArrayList<SyukoDenpyoModel> list) {
+        public SyukoListAdapter(Context context, ArrayList<SyukoDenpyoModel> list) {
             super();
             this.list = list;
+            syukoChk = new HashMap<Long, Boolean>();
+            for (SyukoDenpyoModel syuko : list){
+                syukoChk.put(syuko.Syukono, false);
+            }
+
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            r = context.getResources();
         }
 
         @Override
@@ -416,14 +434,18 @@ public class GoodsIssueListActivity extends CommonActivity {
         @Override
         public View getView(final int position, View view, ViewGroup parent) {
 
-            if (view == null) view = inflater.inflate(R.layout.goods_issue_list_raw, null);
-
             final SyukoDenpyoModel datas = getItem(position);
+
+            if (view == null) {
+                view = inflater.inflate(R.layout.goods_issue_list_raw, null);
+            }
 
             TextView txtGoodsIssueListNo = view.findViewById(R.id.txtGoodsIssueListNo);
             TextView txtGoodsIssueListSlipNo = view.findViewById(R.id.txtGoodsIssueListSlipNo);
             TextView txtGoodsIssueListStatus = view.findViewById(R.id.txtGoodsIssueListStatus);
             CheckBox chkGoodsIssueListSelect = view.findViewById(R.id.chkGoodsIssueListSelect);
+
+            chkGoodsIssueListSelect.setOnClickListener(new chkChkBox_Click(datas.Syukono));
 
             // 背景色を白に設定
             txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.frostygray));
@@ -433,6 +455,9 @@ public class GoodsIssueListActivity extends CommonActivity {
 
             // チェックボックス有効
             chkGoodsIssueListSelect.setEnabled(true);
+
+            // 出庫番号と紐づく場合チェックつける
+            chkGoodsIssueListSelect.setChecked(syukoChk.get(datas.Syukono));
 
             // チェックボックスの色リセット
             chkGoodsIssueListSelect.setButtonTintList(null);
@@ -476,6 +501,30 @@ public class GoodsIssueListActivity extends CommonActivity {
     }
 
     //endregion
+
+    // region チェックボックスクリック時
+
+    class chkChkBox_Click implements View.OnClickListener{
+
+        public Long syukono;
+
+        public  chkChkBox_Click(long l)
+        {
+            syukono = l;
+        }
+        @Override
+        public void onClick(View view) {
+            final boolean checked = ((CheckBox) view).isChecked();
+
+            if (checked) {
+                syukoChk.replace(syukono, true);
+            } else {
+                syukoChk.replace(syukono, false);
+            }
+        }
+    }
+
+    // endregion
 
     //region ハードキークリック
 

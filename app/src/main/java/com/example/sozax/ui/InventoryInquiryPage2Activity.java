@@ -103,13 +103,11 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
         private final ZaikoSyokai_NyusyukkoRirekiModel[] rirekis;
         private final LayoutInflater inflater;
-        private final Resources r;
 
         public ListAdapter(Context context, ZaikoSyokai_NyusyukkoRirekiModel[] rirekis) {
             super();
             this.rirekis = rirekis;
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            r = context.getResources();
         }
 
         @Override

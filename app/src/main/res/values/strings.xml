@@ -85,7 +85,7 @@
     <!-- GoodsIssuListActivityで使用するメッセージ -->
     <string name="goods_issue_list_activity_failed_get_syukosdata_message">出庫一覧データの取得に失敗しました。 \n{0}</string>
     <string name="goods_issue_list_activity_nosyukosdata_message">該当する出庫一覧データがありません。</string>
-    <string name="goods_issue_list_activity_failed_insert_syukosdata_message">出庫一覧データの登録に失敗しました。\r\n{0}</string>
+    <string name="goods_issue_list_activity_failed_insert_syukosgydata_message">出庫作業データの登録に失敗しました。\n{0}</string>
 
 
 
