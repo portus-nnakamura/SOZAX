@@ -6,6 +6,7 @@ import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantosModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.tensyo.TensyosModel;
+import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class SgytantoController {
+public class SgytantoController  extends CommonController {
 
     public static class GetSgytantosTask extends AsyncTask<LoginInfoModel, Void, SgytantosModel> {
 
@@ -27,7 +28,7 @@ public class SgytantoController {
             SgytantosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/sgytanto/get/" + loginInfoModel[0].Kaicd + "/" + loginInfoModel[0].Tensyocd)
+                    .url(strURL + "sgytanto/get/" + loginInfoModel[0].Kaicd + "/" + loginInfoModel[0].Tensyocd)
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -44,7 +45,7 @@ public class SgytantoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new SgytantosModel();
                 ret.Is_error = true;

@@ -543,11 +543,11 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     @Override
     public void onBackPressed() {
-
         Intent intent = new Intent(this, MenuActivity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         startActivity(intent);
         finish();
     }
+
     //endregion
 }

@@ -86,6 +86,9 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         // ログイン情報を表示
         DisplayLoginInfo();
 
+        // 作業開始ボタンの無効化
+        EnabledBtnGoodsIssuePage1Proceed(false);
+
         // 作業中の出庫伝票リストの取得条件を作成
         SyukoDenpyoConditionModel syukoDenpyoConditionModel = new SyukoDenpyoConditionModel();
         syukoDenpyoConditionModel.Kaicd = loginInfo.Kaicd;
@@ -241,6 +244,14 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     public void btnGoodsIssuePage1Proceed_Click(View view) {
 
+        if (sagyochuSyukoDenpyos.size() == 0) {
+            return;
+        }
+
+        if (selectedSagyochuSyukoDenpyoIndex == -1) {
+            return;
+        }
+
         Intent intent = new Intent(getApplicationContext(), GoodsIssuePage2Activity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         intent.putExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos), sagyochuSyukoDenpyos);
@@ -263,6 +274,9 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             // 作業中データと選択Indexを取得
             sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) data.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
             selectedSagyochuSyukoDenpyoIndex = data.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
+
+            // 作業開始ボタンの有効・無効化
+            EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
 
             if (sagyochuSyukoDenpyos.size() == 0) {
                 return;
@@ -288,21 +302,19 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     //region 進行ボタンの有効・無効化
 
-    private void EnabledBtnGoodsIssuePage1Proceed() {
+    private void EnabledBtnGoodsIssuePage1Proceed(boolean isEnabled) {
+
         ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
         SpannableStringBuilder sb = new SpannableStringBuilder("出庫作業開始");
         int start = sb.length();
         int color;
-        boolean enabled;
 
-        if (lvGoodsIssueList.getCount() == 0) {
-            sb.append("\n(スキャンした伝票が無いので押せません)");
-            color = getColor(R.color.darkgray);
-            enabled = false;
-        } else {
+        if (isEnabled) {
             sb.append("\n(全伝票スキャン後に押して下さい)");
             color = getColor(R.color.orientalblue);
-            enabled = true;
+        } else {
+            sb.append("\n(スキャンした伝票が無いので押せません)");
+            color = getColor(R.color.darkgray);
         }
 
         sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -310,7 +322,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         MaterialButton btnGoodsIssuePage1Proceed = findViewById(R.id.btnGoodsIssuePage1Proceed);
         btnGoodsIssuePage1Proceed.setText(sb);
         btnGoodsIssuePage1Proceed.setBackgroundColor(color);
-        btnGoodsIssuePage1Proceed.setEnabled(enabled);
+        btnGoodsIssuePage1Proceed.setEnabled(isEnabled);
     }
 
     //endregion
@@ -376,6 +388,9 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
+                // 作業開始ボタンの有効・無効化
+                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
+
                 // 共通の取得後処理
                 CommonPostExecute();
 
@@ -435,6 +450,9 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 DisplaySyukoDenpyos();
 
             } finally {
+
+                // 作業開始ボタンの有効・無効化
+                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
 
                 // 共通の取得後処理
                 CommonPostExecute();
@@ -682,12 +700,70 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
+                // 作業開始ボタンの有効・無効化
+                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
+
                 // 共通の取得後処理
                 CommonPostExecute();
 
             }
         }
 
+    }
+
+    //endregion
+
+    //region 取得・登録・削除処理前
+
+    private void CommonPreExecute()
+    {
+        // タッチ操作を無効化
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+        // ハードウェアキーを無効化
+        isHardwareKeyDisabled = true;
+
+        if (mBarcodeScanner != null) {
+            try {
+                // バーコードスキャナの読取を禁止
+                mBarcodeScanner.close();
+            } catch (BarcodeException e) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                builder.setTitle("エラー");
+                builder.setMessage(e.getMessage());
+
+                builder.show();
+                return;
+            }
+        }
+
+        // プログレスバーを表示
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    // endregion
+
+    //region 取得・登録・削除処理後
+
+    private void CommonPostExecute()
+    {
+        // プログレスバーを非表示
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.INVISIBLE);
+
+        // ハードウェアキーを有効化
+        isHardwareKeyDisabled = false;
+
+        // バーコードスキャナの読取を許可
+                try {
+                    mBarcodeScanner.claim();
+                } catch (BarcodeException e) {
+                    e.printStackTrace();
+                }
+
+        // タッチ操作を有効化
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
     //endregion
@@ -716,6 +792,14 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             // 数量・重量を表示
             DisplaySuryoJuryo();
+        }
+        else
+        {
+            // 荷主・荷渡先・品名をクリア
+            ClearNinuNiwaHin();
+
+            // 数量・重量をクリア
+            ClearSuryoJuryo();
         }
     }
 
@@ -796,6 +880,19 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         txtGoodsIssueSlipListDetailProductName.setText(hinmeinm);
     }
 
+    private void ClearNinuNiwaHin() {
+        TextView txtGoodsIssueSlipListDetailNinushi = findViewById(R.id.txtGoodsIssuePage1DetailNinushi);
+        TextView txtGoodsIssueSlipListDetailNiwatashi = findViewById(R.id.txtGoodsIssuePage1DetailNiwatashi);
+        TextView txtGoodsIssueSlipListDetailProductName = findViewById(R.id.txtGoodsIssuePage1DetailProductName);
+
+        // 荷主名
+        txtGoodsIssueSlipListDetailNinushi.setText("");
+        // 荷渡名
+        txtGoodsIssueSlipListDetailNiwatashi.setText("");
+        // 商品名
+        txtGoodsIssueSlipListDetailProductName.setText("");
+    }
+
     //endregion
 
     //region 数量・重量を表示
@@ -817,6 +914,16 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(currentSagyochuSyukoDenpyo.Juryo).intValue())));
     }
 
+    private void ClearSuryoJuryo()
+    {
+        TextView txtGoodsIssuePage1Quantity = findViewById(R.id.txtGoodsIssuePage1Quantity);
+        TextView txtGoodsIssuePage1Weight = findViewById(R.id.txtGoodsIssuePage1Weight);
+
+        // 出庫個数
+        txtGoodsIssuePage1Quantity.setText("");
+        // 出庫重量
+        txtGoodsIssuePage1Weight.setText("");
+    }
 
     //endregion
 
@@ -906,51 +1013,15 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     //endregion
 
-    private void CommonPreExecute()
-    {
-        // タッチ操作を無効化
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    //region 戻るボタン押下時
 
-        // ハードウェアキーを無効化
-        isHardwareKeyDisabled = true;
-
-        if (mBarcodeScanner != null) {
-            try {
-                // バーコードスキャナの読取を禁止
-                mBarcodeScanner.close();
-            } catch (BarcodeException e) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                builder.setTitle("エラー");
-                builder.setMessage(e.getMessage());
-
-                builder.show();
-                return;
-            }
-        }
-
-        // プログレスバーを表示
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE);
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MenuActivity.class);
+        intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+        startActivity(intent);
+        finish();
     }
 
-    private void CommonPostExecute()
-    {
-        // プログレスバーを非表示
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.INVISIBLE);
-
-        // ハードウェアキーを有効化
-        isHardwareKeyDisabled = false;
-
-        //                // バーコードスキャナの読取を許可
-//                try {
-//                    mBarcodeScanner.claim();
-//                } catch (BarcodeException e) {
-//                    e.printStackTrace();
-//                }
-
-        // タッチ操作を有効化
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-    }
-
+    //endregion
 }

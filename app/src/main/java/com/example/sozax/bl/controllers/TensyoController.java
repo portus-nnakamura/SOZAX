@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.tensyo.TensyosModel;
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
+import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class TensyoController {
+public class TensyoController  extends CommonController {
 
     public static class GetTensyosTask extends AsyncTask<LoginInfoModel, Void, TensyosModel> {
 
@@ -26,7 +27,7 @@ public class TensyoController {
             TensyosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/tensyo/get/" + loginInfoModel[0].Kaicd)
+                    .url(strURL + "tensyo/get/" + loginInfoModel[0].Kaicd)
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -43,7 +44,7 @@ public class TensyoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new TensyosModel();
                 ret.Is_error = true;

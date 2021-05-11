@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoConditionModel;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class HyojihyoController {
+public class HyojihyoController  extends CommonController {
 
     public static class GetHyojihyoTask extends AsyncTask<HyojihyoConditionModel, Void, HyojihyoModel> {
 

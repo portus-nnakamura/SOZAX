@@ -38,7 +38,6 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
         } catch (BarcodeException e) {
             Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
         }
-
     }
 
     //endregion

@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiConditionModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
+import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -16,7 +17,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class ZaikoSyokaiController {
+public class ZaikoSyokaiController  extends CommonController {
 
     public static class GetZaikoSyokaiTask extends AsyncTask<Long, Void, ZaikoSyokaiModel> {
 
@@ -27,7 +28,7 @@ public class ZaikoSyokaiController {
             ZaikoSyokaiModel ret;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/zaikosyokai/get/" + String.valueOf(syukeicd[0]))
+                    .url(strURL + "zaikosyokai/get/" + String.valueOf(syukeicd[0]))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -38,7 +39,7 @@ public class ZaikoSyokaiController {
 
                 Response response = client.newCall(request).execute();
 
-                if (response.isSuccessful() == false)
+                if (!response.isSuccessful())
                 {
                     ret = new ZaikoSyokaiModel();
                     ret.Is_error = true;

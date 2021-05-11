@@ -6,6 +6,7 @@ import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantosModel;
 import com.example.sozax.bl.models.souko.SoukosModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class SoukoController {
+public class SoukoController  extends CommonController {
 
     public static class GetSoukosTask extends AsyncTask<LoginInfoModel, Void, SoukosModel> {
 
@@ -27,7 +28,7 @@ public class SoukoController {
             SoukosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/souko/get/" + loginInfoModel[0].Kaicd + "/" + loginInfoModel[0].Tensyocd)
+                    .url(strURL + "souko/get/" + loginInfoModel[0].Kaicd + "/" + loginInfoModel[0].Tensyocd)
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -44,7 +45,7 @@ public class SoukoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new SoukosModel();
                 ret.Is_error = true;

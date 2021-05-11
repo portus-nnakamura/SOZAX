@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.common.CommonController;
 import com.example.sozax.common.CommonFunction;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,7 +18,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class SyukoDenpyoController {
+public class SyukoDenpyoController  extends CommonController {
 
     //region 1件取得
 
@@ -30,7 +31,7 @@ public class SyukoDenpyoController {
             SyukoDenpyoModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Syukono + "/"
+                    .url(strURL + "syukodenpyo/get/" + syukoDenpyoConditionModel[0].Syukono + "/"
                             + syukoDenpyoConditionModel[0].Kaicd + "/" + syukoDenpyoConditionModel[0].Soukocd + "/"
                             + CommonFunction.settingDateFormat(syukoDenpyoConditionModel[0].Sagyodate, "yyyy-MM-dd"))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
@@ -49,7 +50,7 @@ public class SyukoDenpyoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new SyukoDenpyoModel();
                 ret.Is_error = true;
@@ -95,7 +96,7 @@ public class SyukoDenpyoController {
             SyukoDenpyosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url(strURL + "syukodenpyo/get/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/"
                             + CommonFunction.settingDateFormat(syukoDenpyoConditionModel[0].Sagyodate, "yyyy-MM-dd"))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
@@ -114,7 +115,7 @@ public class SyukoDenpyoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new SyukoDenpyosModel();
                 ret.Is_error = true;
@@ -160,7 +161,7 @@ public class SyukoDenpyoController {
             SyukoDenpyosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/sagyochu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url(strURL + "syukodenpyo/get/sagyochu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/" + syukoDenpyoConditionModel[0].Sgytantocd + "/"
                             + CommonFunction.settingDateFormat(syukoDenpyoConditionModel[0].Sagyodate, "yyyy-MM-dd"))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
@@ -179,7 +180,7 @@ public class SyukoDenpyoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new SyukoDenpyosModel();
                 ret.Is_error = true;
@@ -224,7 +225,7 @@ public class SyukoDenpyoController {
             SyukoDenpyosModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukodenpyo/get/sagyomichakusyu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
+                    .url(strURL + "syukodenpyo/get/sagyomichakusyu/" + syukoDenpyoConditionModel[0].Kaicd + "/"
                             + syukoDenpyoConditionModel[0].Soukocd + "/"
                             + CommonFunction.settingDateFormat(syukoDenpyoConditionModel[0].Sagyodate, "yyyy-MM-dd"))
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
@@ -243,7 +244,7 @@ public class SyukoDenpyoController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new SyukoDenpyosModel();
                 ret.Is_error = true;

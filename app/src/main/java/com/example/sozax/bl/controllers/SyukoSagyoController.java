@@ -10,6 +10,7 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.bl.models.tensyo.TensyosModel;
+import com.example.sozax.common.CommonController;
 import com.example.sozax.common.ResultClass;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -27,7 +28,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class SyukoSagyoController {
+public class SyukoSagyoController  extends CommonController {
 
     public static class PostSyukoSagyosTask extends AsyncTask<SyukoDenpyosModel, Void, SyukoDenpyosModel> {
 
@@ -53,7 +54,7 @@ public class SyukoSagyoController {
 
             // リクエストを作成
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukosagyo/post/")
+                    .url(strURL + "syukosagyo/post/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .post(requestBody)
                     .build();
@@ -91,7 +92,7 @@ public class SyukoSagyoController {
 
             // リクエストを作成
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukosagyo/put/")
+                    .url(strURL + "syukosagyo/put/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .put(requestBody)
                     .build();
@@ -130,7 +131,7 @@ public class SyukoSagyoController {
 
             // リクエストを作成
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/syukosagyo/delete/")
+                    .url(strURL + "syukosagyo/delete/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .delete(requestBody)
                     .build();

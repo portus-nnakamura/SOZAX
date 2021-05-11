@@ -3,6 +3,7 @@ package com.example.sozax.bl.controllers;
 import android.os.AsyncTask;
 
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
+import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class VersionInfoController {
+public class VersionInfoController  extends CommonController {
 
     public static class GetVersionInfoTask extends AsyncTask<Void, Void, VersionInfoModel> {
 
@@ -25,7 +26,7 @@ public class VersionInfoController {
             VersionInfoModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/versioninfo/get/")
+                    .url(strURL + "versioninfo/get/")
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
 
@@ -42,7 +43,7 @@ public class VersionInfoController {
                 return  ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new VersionInfoModel();
                 ret.Is_error = true;
