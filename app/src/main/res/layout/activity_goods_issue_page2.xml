@@ -40,9 +40,16 @@
 
         <!-- 伝票情報 -->
         <TextView
-            style="@style/login_info_text_style"
+            android:layout_width="@dimen/space_size_0"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/space_size_minus_2"
+            android:layout_marginBottom="@dimen/space_size_minus_2"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="@dimen/font_size_16"
             android:id="@+id/txtSlipInfo"
             android:layout_weight="0.5"
+
             android:background="@drawable/text_border_white" />
 
         <!-- 次伝票 -->
@@ -269,7 +276,7 @@
         android:insetTop="0dp"
         android:insetRight="0dp"
         android:insetBottom="0dp"
-        android:onClick="btnGoodsIssuePage2Proceed"
+        android:onClick="btnGoodsIssuePage2Proceed_Click"
         android:padding="0dp"
         android:textColor="@color/white"
         android:textSize="24sp"

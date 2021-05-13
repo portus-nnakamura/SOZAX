@@ -15,34 +15,43 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
+import com.densowave.bhtsdk.barcode.BarcodeException;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.BarChkKomkController;
 import com.example.sozax.bl.controllers.HyojihyoController;
 import com.example.sozax.bl.controllers.SyukoSagyoController;
-import com.example.sozax.bl.goods_issue.GoodsIssueSlip;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkConditionModel;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomkModel;
 import com.example.sozax.bl.models.bar_chk_komk.BarChkKomk_KikakuModel;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoConditionModel;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
-import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
-import com.example.sozax.common.CommonActivity;
 import com.example.sozax.common.EnumClass;
+import com.example.sozax.common.ScannerActivity;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapLibrary.KeyRemapListener {
+import static com.example.sozax.common.CommonFunction.multiplyThousand;
+import static com.example.sozax.common.CommonFunction.toFullWidth;
+import static java.lang.String.format;
+
+public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemapLibrary.KeyRemapListener {
 
     //region インスタンス変数
 
@@ -69,6 +78,8 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         findViewById(R.id.btnPrevSlip).setOnClickListener(new btnPrevSlip_Click());
         // 次伝票を表示ボタン
         findViewById(R.id.btnNextSlip).setOnClickListener(new btnNextSlip_Click());
+        // 出庫伝票情報を選択
+        ((ListView) findViewById(R.id.lvGoodsIssueProductInformation)).setOnItemClickListener(new lvGoodsIssueProductInformation_Click());
 
         // ハードウェアキーのマッピングクラスのインスタンスを生成
         mKeyRemapLibrary = new KeyRemapLibrary();
@@ -92,8 +103,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         @Override
         public void onClick(View v) {
 
-            if(selectedSagyochuSyukoDenpyoIndex == 0)
-            {
+            if (selectedSagyochuSyukoDenpyoIndex == 0) {
                 return;
             }
 
@@ -114,8 +124,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         @Override
         public void onClick(View v) {
 
-            if(selectedSagyochuSyukoDenpyoIndex == (sagyochuSyukoDenpyos.size() -1))
-            {
+            if (selectedSagyochuSyukoDenpyoIndex == (sagyochuSyukoDenpyos.size() - 1)) {
                 return;
             }
 
@@ -129,11 +138,127 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
     //endregion
 
-    //region TODO QRをスキャン
+    //region 表示票のQRをスキャン
+
+    // 集計コードチェックパターン
+    final private String chkPattern = "2:[0-9]{15}$";
+
+    @Override
+    public void onBarcodeDataReceived(BarcodeDataReceivedEvent event) {
+
+        List<BarcodeDataReceivedEvent.BarcodeData> listBarcodeData = event.getBarcodeData();
+
+        for (BarcodeDataReceivedEvent.BarcodeData data : listBarcodeData) {
+
+            runOnUiThread(new Runnable() {
+
+                        BarcodeDataReceivedEvent.BarcodeData readData = null;
+
+                        Runnable setData(BarcodeDataReceivedEvent.BarcodeData _readData) {
+                            readData = _readData;
+                            return this;
+                        }
+
+                        @Override
+                        public void run() {
+
+                            // QRデータ取得
+                            String qrData = readData.getData();
+
+                            // 正規表現パターン
+                            Pattern ptn = Pattern.compile(chkPattern);        // 先頭文字が2であるか、2文字目が:であるか、3桁目以降が数値であるか、17桁であるか
+                            Matcher matcher = ptn.matcher(qrData);
+
+                            // 正規表現でチェック
+                            if (!matcher.lookingAt()) {
+                                // 不正なQRデータの場合メッセージを表示して処理中断
+                                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
+                                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
+                                builder.show();
+                            } else {
+                                // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
+                                // QRデータから集計コードを切り出す
+                                long syukeicd = Long.parseLong(qrData.substring(2));
+
+                                // 作業状況に集計コードをセット;
+                                SyukoDenpyoModel syukoDenpyoModel = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
+                                syukoDenpyoModel.Syukosgyjokyo.Syukeicd = syukeicd;
+
+                                // 更新データ作成
+                                SyukoDenpyosModel putData = new SyukoDenpyosModel();
+                                putData.SyukoDenpyos = new SyukoDenpyoModel[1];
+                                putData.SyukoDenpyos[0] = syukoDenpyoModel;
+
+                                // 更新
+                                new PutSyukoSagyosTask().execute(putData);
+                            }
+                        }
+                    }.setData(data)
+            );
+        }
+    }
 
     //endregion
 
-    //region TODO 進行ボタンをクリック
+    //region 出庫伝票情報をクリック
+
+    class lvGoodsIssueProductInformation_Click implements AdapterView.OnItemClickListener {
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            if (currentListData == null) return;
+
+            // 選択行の出庫品情報を取得
+            ListRowData listRowData = currentListData.ListRowDatas.get(position);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
+            builder.setTitle(listRowData.Komokname);
+            builder.setMessage(listRowData.Syukodenpyo_dispvalue + "\r\n" + listRowData.Hyojihyo_dispvalue);
+
+            builder.show();
+        }
+    }
+
+    //endregion
+
+    //region 進行ボタンをクリック
+
+    public void btnGoodsIssuePage2Proceed_Click(View view) {
+
+        if (sagyochuSyukoDenpyos.size() == 0) {
+            return;
+        }
+
+        if (selectedSagyochuSyukoDenpyoIndex == -1) {
+            return;
+        }
+
+        // 更新対象の出庫伝票を取得
+        SyukoDenpyoModel syukoDenpyoModel = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
+
+        // 出庫状況のステータスを変更
+        EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn);
+        switch (sgyjokyoKubun) {
+            case Uketuke:
+                syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Zaikokakunin.getInteger();
+                break;
+            case Zaikokakunin:
+                syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Syukosagyo.getInteger();
+                break;
+            case Syukosagyo:
+                syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Juryokakunin.getInteger();
+                break;
+        }
+
+        // 更新データ作成
+        SyukoDenpyosModel putData = new SyukoDenpyosModel();
+        putData.SyukoDenpyos = new SyukoDenpyoModel[1];
+        putData.SyukoDenpyos[0] = syukoDenpyoModel;
+
+        // 更新
+        new PutSyukoSagyosTask().execute(putData);
+    }
 
     //endregion
 
@@ -208,20 +333,6 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
     @SuppressLint("StaticFieldLeak")
     public class GetHyojihyoTask extends HyojihyoController.GetHyojihyoTask {
 
-        // 取得前処理
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
-
-        }
-
         // 取得後処理
         @Override
         protected void onPostExecute(HyojihyoModel _hyojihyoModel) {
@@ -292,6 +403,8 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         @Override
         protected void onPostExecute(SyukoDenpyosModel _syukoDenpyosModel) {
 
+            boolean isFinish = false;
+
             try {
 
                 // エラー発生
@@ -306,15 +419,39 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                 }
 
                 // 更新したデータに上書き
-                for (SyukoDenpyoModel _syukoDenpyoModel: _syukoDenpyosModel.SyukoDenpyos) {
+                for (SyukoDenpyoModel _syukoDenpyoModel : _syukoDenpyosModel.SyukoDenpyos) {
 
                     for (SyukoDenpyoModel sagyochuSyukoDenpyo : sagyochuSyukoDenpyos) {
 
-                        if(sagyochuSyukoDenpyo.Syukono == _syukoDenpyoModel.Syukono)
-                        {
+                        if (sagyochuSyukoDenpyo.Syukono == _syukoDenpyoModel.Syukono) {
                             sagyochuSyukoDenpyo = _syukoDenpyoModel;
                             break;
                         }
+                    }
+                }
+
+                // ステータスが「4:受領確認」の場合、リストから削除
+                ArrayList<SyukoDenpyoModel> removeSyukoDenpyoModelArrayList = new ArrayList<SyukoDenpyoModel>();
+                for (SyukoDenpyoModel sagyochuSyukoDenpyo : sagyochuSyukoDenpyos) {
+
+                    if (sagyochuSyukoDenpyo.Syukosgyjokyo.Sgyjokyokbn == EnumClass.SgyjokyoKubun.Juryokakunin.getInteger()) {
+                        removeSyukoDenpyoModelArrayList.add(sagyochuSyukoDenpyo);
+                    }
+                }
+
+                if (removeSyukoDenpyoModelArrayList.size() > 0) {
+                    for (SyukoDenpyoModel removeSyukoDenpyoModel : removeSyukoDenpyoModelArrayList) {
+                        sagyochuSyukoDenpyos.remove(removeSyukoDenpyoModel);
+                    }
+
+                    if (sagyochuSyukoDenpyos.size() == 0) {
+                        isFinish = true;
+                        return;
+                    }
+
+                    int lastIndex = sagyochuSyukoDenpyos.size() - 1;
+                    if (selectedSagyochuSyukoDenpyoIndex > lastIndex) {
+                        selectedSagyochuSyukoDenpyoIndex = lastIndex;
                     }
                 }
 
@@ -330,6 +467,14 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                 // タッチ操作を有効化
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
+                if (isFinish) {
+                    // リストから削除した結果、リストが空になった場合、画面を閉じる
+                    Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
+                    intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
+                    startActivity(intent);
+
+                    finish();
+                }
             }
         }
 
@@ -341,6 +486,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
     ListData currentListData = null;
 
+    @SuppressLint("DefaultLocale")
     private void RefreshScreenAll() {
 
         // 表示データを取得
@@ -371,43 +517,50 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         }
 
         // 表示する出庫伝票が変わった時のみ、リストビューの中身を更新する
-        if (currentListData == null || currentListData.Syukono != syukoDenpyo.Syukono) {
+        //if (currentListData == null || currentListData.Syukono != syukoDenpyo.Syukono) {
 
-            // リストビューのデータを作成
-            currentListData = new ListData();
-            currentListData.Syukono = syukoDenpyo.Syukono;
-            currentListData.ListRowDatas = CreateListRowDatas(syukoDenpyo);
+        // リストビューのデータを作成
+        currentListData = new ListData();
+        currentListData.Syukono = syukoDenpyo.Syukono;
+        currentListData.ListRowDatas = CreateListRowDatas(syukoDenpyo);
 
-            // リストビューのアダプターを作成
-            UniqueAdapter uniqueAdapter = new UniqueAdapter(this, currentListData);
+        // リストビューのアダプターを作成
+        UniqueAdapter uniqueAdapter = new UniqueAdapter(this, currentListData);
 
-            // アダプターをセット
-            ListView lvGoodsIssueProductInformation = findViewById(R.id.lvGoodsIssueProductInformation);
-            lvGoodsIssueProductInformation.setAdapter(uniqueAdapter);
+        // アダプターをセット
+        ListView lvGoodsIssueProductInformation = findViewById(R.id.lvGoodsIssueProductInformation);
+        lvGoodsIssueProductInformation.setAdapter(uniqueAdapter);
 
-        }
+        //}
 
         // 出庫番号とページ数
         TextView txtSlipInfo = findViewById(R.id.txtSlipInfo);
         String templateSlipInfo = "({0}/{1})\r\nNo.{2}";
-        txtSlipInfo.setText(java.text.MessageFormat.format(templateSlipInfo,(selectedSagyochuSyukoDenpyoIndex + 1),sagyochuSyukoDenpyos.size(),String.format("00000000000",syukoDenpyo.Syukono)));
+        txtSlipInfo.setText(java.text.MessageFormat.format(templateSlipInfo, (selectedSagyochuSyukoDenpyoIndex + 1), sagyochuSyukoDenpyos.size(), format("%011d", syukoDenpyo.Syukono)));
 
         // 進行状況
-        TextView  txtProgressPhase2 = findViewById(R.id.txtProgressPhase2);
-        TextView  txtProgressPhase3 = findViewById(R.id.txtProgressPhase3);
-        TextView  txtProgressPhase4 = findViewById(R.id.txtProgressPhase4);
+        TextView txtProgressPhase2 = findViewById(R.id.txtProgressPhase2);
+        TextView txtProgressPhase3 = findViewById(R.id.txtProgressPhase3);
+        TextView txtProgressPhase4 = findViewById(R.id.txtProgressPhase4);
         // ガイダンス
-        TextView  txtGoodsIssuePage2Guidance = findViewById(R.id.txtGoodsIssuePage2Guidance);
+        TextView txtGoodsIssuePage2Guidance = findViewById(R.id.txtGoodsIssuePage2Guidance);
         // 進行ボタン
         Button btnGoodsIssuePage2Proceed = findViewById(R.id.btnGoodsIssuePage2Proceed);
 
-        switch (EnumClass.getSgyjokyoKubun(syukoDenpyo.Syukosgyjokyo.Sgyjokyokbn))
-        {
+        // 数量・重量を表示
+        DisplaySuryoJuryo();
+
+        EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(syukoDenpyo.Syukosgyjokyo.Sgyjokyokbn);
+        if (sgyjokyoKubun == null) {
+            return;
+        }
+
+        switch (sgyjokyoKubun) {
             case Uketuke:
 
                 txtProgressPhase2.setBackgroundColor(getColor(R.color.signalred));
-                txtProgressPhase3.setBackgroundColor(getColor(R.color.white));
-                txtProgressPhase4.setBackgroundColor(getColor(R.color.white));
+                txtProgressPhase3.setBackgroundColor(getColor(R.color.transparent));
+                txtProgressPhase4.setBackgroundColor(getColor(R.color.transparent));
 
                 txtProgressPhase2.setTextColor(getColor(R.color.white));
                 txtProgressPhase3.setTextColor(getColor(R.color.black));
@@ -417,21 +570,17 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
                 boolean existsNG = false;
                 boolean existsUNCHECK = false;
-                for (ListRowData listRowData:currentListData.ListRowDatas)
-                {
-                    if(listRowData.Checkresult == EnumClass.CheckKubun.NG)
-                    {
+                for (ListRowData listRowData : currentListData.ListRowDatas) {
+                    if (listRowData.Checkresult == EnumClass.CheckKubun.NG) {
                         existsNG = true;
                         break;
-                    }else if(listRowData.Checkresult == EnumClass.CheckKubun.UNCHECK)
-                    {
+                    } else if (listRowData.Checkresult == EnumClass.CheckKubun.UNCHECK) {
                         existsUNCHECK = true;
                         break;
                     }
                 }
 
-                if(existsNG)
-                {
+                if (existsNG) {
                     SpannableStringBuilder sb = new SpannableStringBuilder("出庫指示");
                     int start = sb.length();
                     int color;
@@ -445,8 +594,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                     btnGoodsIssuePage2Proceed.setText(sb);
                     btnGoodsIssuePage2Proceed.setBackgroundColor(color);
                     btnGoodsIssuePage2Proceed.setEnabled(enabled);
-                }else if(existsUNCHECK)
-                {
+                } else if (existsUNCHECK) {
                     SpannableStringBuilder sb = new SpannableStringBuilder("出庫指示");
                     int start = sb.length();
                     int color;
@@ -460,9 +608,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                     btnGoodsIssuePage2Proceed.setText(sb);
                     btnGoodsIssuePage2Proceed.setBackgroundColor(color);
                     btnGoodsIssuePage2Proceed.setEnabled(enabled);
-                }
-                else
-                {
+                } else {
                     SpannableStringBuilder sb = new SpannableStringBuilder();
                     sb.append("出庫指示");
                     int start = sb.length();
@@ -473,7 +619,16 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                     btnGoodsIssuePage2Proceed.setEnabled(true);
                 }
 
+                try {
+                    if (mBarcodeScanner != null) {
 
+                        // 再開時に、バーコードスキャナの読取を許可
+                        mBarcodeScanner.claim();
+
+                    }
+                } catch (BarcodeException e) {
+
+                }
 
                 break;
 
@@ -481,7 +636,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
                 txtProgressPhase2.setBackgroundColor(getColor(R.color.signalred));
                 txtProgressPhase3.setBackgroundColor(getColor(R.color.signalred));
-                txtProgressPhase4.setBackgroundColor(getColor(R.color.white));
+                txtProgressPhase4.setBackgroundColor(getColor(R.color.transparent));
 
                 txtProgressPhase2.setTextColor(getColor(R.color.white));
                 txtProgressPhase3.setTextColor(getColor(R.color.white));
@@ -497,6 +652,14 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                 btnGoodsIssuePage2Proceed.setText(sb);
                 btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.coral));
                 btnGoodsIssuePage2Proceed.setEnabled(true);
+
+                if (mBarcodeScanner != null) {
+                    try {
+                        // 休止時に、バーコードスキャナの読取を禁止
+                        mBarcodeScanner.close();
+                    } catch (BarcodeException e) {
+                    }
+                }
 
                 break;
 
@@ -521,14 +684,38 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
                 btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.signalred));
                 btnGoodsIssuePage2Proceed.setEnabled(true);
 
+                if (mBarcodeScanner != null) {
+                    try {
+                        // 休止時に、バーコードスキャナの読取を禁止
+                        mBarcodeScanner.close();
+                    } catch (BarcodeException e) {
+                    }
+                }
+
                 break;
         }
+    }
+
+    private void DisplaySuryoJuryo() {
+        DisplaySuryoJuryo(selectedSagyochuSyukoDenpyoIndex);
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void DisplaySuryoJuryo(int index) {
+        TextView txtGoodsIssuePage1Quantity = findViewById(R.id.txtGoodsIssuePage2Quantity);
+        TextView txtGoodsIssuePage1Weight = findViewById(R.id.txtGoodsIssuePage2Weight);
+
+        SyukoDenpyoModel currentSagyochuSyukoDenpyo = sagyochuSyukoDenpyos.get(index);
+
+        // 出庫個数
+        txtGoodsIssuePage1Quantity.setText(toFullWidth(String.format("%,d", currentSagyochuSyukoDenpyo.Kosuu.intValue())));
+        // 出庫重量
+        txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(currentSagyochuSyukoDenpyo.Juryo).intValue())));
     }
 
     //endregion
 
     //region TODO ハードキークリック
-
 
     // F2押下中フラグ
     private boolean isF2Down = false;
@@ -538,181 +725,104 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
     final String[] items = {"目視で間違いないことを確認しました"};
     final boolean[] checkedItems = {false};
 
+    @SuppressLint("RtlHardcoded")
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
 
-        GoodsIssueSlip goodsIssueSlip = new GoodsIssueSlip();
+        SyukoDenpyoModel syukoDenpyoModel = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
 
-        if (goodsIssueSlip.getProgressState() != GoodsIssueSlip.ProgressStateEnum.在庫確認) {
-            return super.dispatchKeyEvent(e);
-        }
+        // 進行状況が受付の場合のみ
+        if (syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn == EnumClass.SgyjokyoKubun.Uketuke.getInteger()) {
 
-        if (e.getKeyCode() == KeyEvent.KEYCODE_F5) {
+            if (e.getKeyCode() == KeyEvent.KEYCODE_F2) {
 
-            // 荷主名
-            goodsIssueSlip.setNinushiCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 荷渡名
-            goodsIssueSlip.setNiwatashiCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 商品名
-            goodsIssueSlip.setProductCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 荷姿名
-            goodsIssueSlip.setNisugataCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 荷印名
-            goodsIssueSlip.setNijirushiCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 規格
-            goodsIssueSlip.setKikakuCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 船名
-            goodsIssueSlip.setFuneCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
+                if (e.getAction() == KeyEvent.ACTION_DOWN) {
+                    isF2Down = true;
+                } else if (e.getAction() == KeyEvent.ACTION_UP) {
+                    isF2Down = false;
+                }
+            } else if (e.getKeyCode() == KeyEvent.KEYCODE_F3) {
 
-        } else if (e.getKeyCode() == KeyEvent.KEYCODE_F6) {
-
-            // 荷主名
-            goodsIssueSlip.setNinushiCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 荷渡名
-            goodsIssueSlip.setNiwatashiCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 商品名
-            goodsIssueSlip.setProductCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 荷姿名
-            goodsIssueSlip.setNisugataCompareStateEnum(GoodsIssueSlip.CompareStateEnum.NG);
-            // 荷印名
-            goodsIssueSlip.setNijirushiCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-            // 規格
-            goodsIssueSlip.setKikakuCompareStateEnum(GoodsIssueSlip.CompareStateEnum.NG);
-            // 船名
-            goodsIssueSlip.setFuneCompareStateEnum(GoodsIssueSlip.CompareStateEnum.OK);
-
-            Vibrate();
-
-        } else if (e.getKeyCode() == KeyEvent.KEYCODE_F2) {
-
-            if (e.getAction() == KeyEvent.ACTION_DOWN) {
-                isF2Down = true;
-            } else if (e.getAction() == KeyEvent.ACTION_UP) {
-                isF2Down = false;
-            }
-        } else if (e.getKeyCode() == KeyEvent.KEYCODE_F3) {
-
-            if (e.getAction() == KeyEvent.ACTION_DOWN) {
-                isF3Down = true;
-            } else if (e.getAction() == KeyEvent.ACTION_UP) {
-                isF3Down = false;
-            }
-        }
-
-        if (isF2Down == true && isF3Down == true) {
-            boolean existsNG = false;
-            // 荷主名
-            if (goodsIssueSlip.getNinushiName().isEmpty() == false && goodsIssueSlip.getNiwatashiCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
-            }
-            // 荷渡名
-            if (goodsIssueSlip.getNiwatashiName().isEmpty() == false && goodsIssueSlip.getNiwatashiCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
-            }
-            // 商品名
-            if (goodsIssueSlip.getProductName().isEmpty() == false && goodsIssueSlip.getProductCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
-            }
-            // 荷姿名
-            if (goodsIssueSlip.getNisugataName().isEmpty() == false && goodsIssueSlip.getNisugataCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
-            }
-            // 荷印名
-            if (goodsIssueSlip.getNijirushiName().isEmpty() == false && goodsIssueSlip.getNijirushiCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
-            }
-            // 規格
-            if (goodsIssueSlip.getKikaku().isEmpty() == false && goodsIssueSlip.getKikakuCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
-            }
-            // 船名
-            if (goodsIssueSlip.getFuneName().isEmpty() == false && goodsIssueSlip.getFuneCompareStateEnum() == GoodsIssueSlip.CompareStateEnum.NG) {
-                existsNG = true;
+                if (e.getAction() == KeyEvent.ACTION_DOWN) {
+                    isF3Down = true;
+                } else if (e.getAction() == KeyEvent.ACTION_UP) {
+                    isF3Down = false;
+                }
             }
 
-            boolean allOK = true;
-            // 荷主名
-            if (goodsIssueSlip.getNinushiName().isEmpty() == false && goodsIssueSlip.getNiwatashiCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
-            // 荷渡名
-            if (goodsIssueSlip.getNiwatashiName().isEmpty() == false && goodsIssueSlip.getNiwatashiCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
-            // 商品名
-            if (goodsIssueSlip.getProductName().isEmpty() == false && goodsIssueSlip.getProductCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
-            // 荷姿名
-            if (goodsIssueSlip.getNisugataName().isEmpty() == false && goodsIssueSlip.getNisugataCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
-            // 荷印名
-            if (goodsIssueSlip.getNijirushiName().isEmpty() == false && goodsIssueSlip.getNijirushiCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
-            // 規格
-            if (goodsIssueSlip.getKikaku().isEmpty() == false && goodsIssueSlip.getKikakuCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
-            // 船名
-            if (goodsIssueSlip.getFuneName().isEmpty() == false && goodsIssueSlip.getFuneCompareStateEnum() != GoodsIssueSlip.CompareStateEnum.OK) {
-                allOK = false;
-            }
+            // F2&F3同時押し時のみ
+            if (isF2Down && isF3Down) {
 
-            if (allOK == false) {
-                // F2&F3押下中であるなら、
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
+                boolean existsNG = false;
+                boolean isAllOK = true;
+                for (ListRowData listRowData : currentListData.ListRowDatas) {
 
-                TextView msgTxt = new TextView(this);
-                msgTxt.setTextSize((float) 14.0);
-                msgTxt.setTextColor(getColor(R.color.black));
-                msgTxt.setPadding(20, 20, 0, 0);
+                    if (!existsNG && listRowData.Checkresult == EnumClass.CheckKubun.NG) {
+                        // NGが含まれる
+                        existsNG = true;
+                    }
 
-                if (existsNG == true) {
-                    msgTxt.setText("NGが含まれていますが、よろしいですか？");
-                } else {
-                    msgTxt.setText("表示票がスキャンされていませんが\nよろしいですか？");
+                    if (isAllOK && listRowData.Checkresult != EnumClass.CheckKubun.OK) {
+                        // 全てOK
+                        isAllOK = false;
+                    }
                 }
 
-                msgTxt.setGravity(Gravity.LEFT);
-                builder.setCustomTitle(msgTxt);
+                if (!isAllOK) {
 
-                checkedItems[0] = false;
-                builder//.setTitle("表示票がスキャンされていませんが\nよろしいですか？")
-                        .setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
-                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                checkedItems[which] = isChecked;
-                                AlertDialog alertDialog = (AlertDialog) dialog;
-                                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isChecked);
-                            }
-                        })
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                    // F2&F3押下中であるなら、
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
 
-//                                if (checkedItems[0] == false) {
-//                                    return;
-//                                }
-//
-//                                // 更新
-//                                UpdateProgressState();
-//
-//                                if (displayData.size() > 0) {
-//                                    // 伝票データを再取得
-//                                    GoodsIssueSlip goodsIssueSlip = displayData.get(CurrentSlipIndex);
-//
-//                                    // 画面をリフレッシュ
-//                                    Refresh(goodsIssueSlip);
-//                                }
-                            }
-                        })
-                        .setNegativeButton("キャンセル", null)
-                        .setCancelable(true);
+                    TextView msgTxt = new TextView(this);
+                    msgTxt.setTextSize((float) 14.0);
+                    msgTxt.setTextColor(getColor(R.color.black));
+                    msgTxt.setPadding(20, 20, 0, 0);
 
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                    if (existsNG) {
+                        msgTxt.setText("NGが含まれていますが、よろしいですか？");
+                    } else {
+                        msgTxt.setText("表示票がスキャンされていませんが\nよろしいですか？");
+                    }
+
+                    msgTxt.setGravity(Gravity.LEFT);
+                    builder.setCustomTitle(msgTxt);
+
+                    checkedItems[0] = false;
+                    builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                        public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                            checkedItems[which] = isChecked;
+                            AlertDialog alertDialog = (AlertDialog) dialog;
+                            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isChecked);
+                        }
+                    })
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    if (!checkedItems[0]) {
+                                        return;
+                                    }
+
+                                    // 「2:在庫確認」にステータスを変更
+                                    SyukoDenpyoModel syukoDenpyoModel = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
+                                    syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Zaikokakunin.getInteger();
+
+                                    // 更新データ作成
+                                    SyukoDenpyosModel putData = new SyukoDenpyosModel();
+                                    putData.SyukoDenpyos = new SyukoDenpyoModel[1];
+                                    putData.SyukoDenpyos[0] = syukoDenpyoModel;
+
+                                    // 更新
+                                    new PutSyukoSagyosTask().execute(putData);
+                                }
+                            })
+                            .setNegativeButton("キャンセル", null)
+                            .setCancelable(true);
+
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                }
             }
         }
 
@@ -788,7 +898,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
     }
 
     // リストビューのデータクラス
-    private class ListData {
+    private static class ListData {
 
         public long Syukono = 0L;
         public ArrayList<ListRowData> ListRowDatas = new ArrayList<ListRowData>();
@@ -796,7 +906,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
     }
 
     //　リストビューの行データクラス
-    private class ListRowData {
+    private static class ListRowData {
         // 項目名
         public String Komokname = "";
         // 出庫伝票の表示値
@@ -808,8 +918,9 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
     }
 
     // リストビューの行データを作成
+    @SuppressLint("DefaultLocale")
     private ArrayList<ListRowData> CreateListRowDatas(SyukoDenpyoModel syukoDenpyo) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日");
 
         // バーコードチェック項目
         BarChkKomkModel barChkKomk = syukoDenpyo.BarChkKomk;
@@ -914,14 +1025,14 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
 
             ret.add(listRowData);
         }
-        // TODO 荷主
+        // 荷主
         if (barChkKomk.Is_ninusicd == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "荷主";
-            listRowData.Syukodenpyo_dispvalue = "TODO";
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Ninusinm;
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = "TODO";
-                listRowData.Checkresult = syukoDenpyo.Ninusicd == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Ninusinm;
+                listRowData.Checkresult = syukoDenpyo.Ninusicd == hyojihyo.Ninusicd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -931,11 +1042,17 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "貨物区分";
             if (syukoDenpyo.Kamokbn > 0) {
-                listRowData.Syukodenpyo_dispvalue = EnumClass.getKamotuKubun(syukoDenpyo.Kamokbn).getString();
+                EnumClass.KamotuKubun kamotuKubun = EnumClass.getKamotuKubun(syukoDenpyo.Kamokbn);
+                if (kamotuKubun != null) {
+                    listRowData.Syukodenpyo_dispvalue = kamotuKubun.getString();
+                }
             }
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
                 if (hyojihyo.Kamokbn > 0) {
-                    listRowData.Hyojihyo_dispvalue = EnumClass.getKamotuKubun(hyojihyo.Kamokbn).getString();
+                    EnumClass.KamotuKubun kamotuKubun = EnumClass.getKamotuKubun(hyojihyo.Kamokbn);
+                    if (kamotuKubun != null) {
+                        listRowData.Hyojihyo_dispvalue = kamotuKubun.getString();
+                    }
                 }
 
                 listRowData.Checkresult = syukoDenpyo.Sdosecd == hyojihyo.Sdosecd ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
@@ -947,10 +1064,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_yunyudate == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "輸入年月";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Yunyudate);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Yunyudate != null ? simpleDateFormat.format(syukoDenpyo.Yunyudate) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Yunyudate);
-                listRowData.Checkresult = syukoDenpyo.Yunyudate == hyojihyo.Yunyudate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Yunyudate != null ? simpleDateFormat.format(hyojihyo.Yunyudate) : "";
+                listRowData.Checkresult = CompareToDate(syukoDenpyo.Yunyudate, hyojihyo.Yunyudate) == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -960,12 +1077,18 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "荷造作業区分";
             if (syukoDenpyo.Niduksgyokbn > 0) {
-                listRowData.Syukodenpyo_dispvalue = EnumClass.getNidukuriKubun(syukoDenpyo.Niduksgyokbn).getString();
+                EnumClass.NidukurisagyoKubun nidukurisagyoKubun = EnumClass.getNidukuriKubun(syukoDenpyo.Niduksgyokbn);
+                if (nidukurisagyoKubun != null) {
+                    listRowData.Syukodenpyo_dispvalue = nidukurisagyoKubun.getString();
+                }
             }
 
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
                 if (hyojihyo.Niduksgyokbn > 0) {
-                    listRowData.Hyojihyo_dispvalue = EnumClass.getNidukuriKubun(hyojihyo.Niduksgyokbn).getString();
+                    EnumClass.NidukurisagyoKubun nidukurisagyoKubun = EnumClass.getNidukuriKubun(hyojihyo.Niduksgyokbn);
+                    if (nidukurisagyoKubun != null) {
+                        listRowData.Hyojihyo_dispvalue = nidukurisagyoKubun.getString();
+                    }
                 }
 
                 listRowData.Checkresult = syukoDenpyo.Niduksgyokbn == hyojihyo.Niduksgyokbn ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
@@ -978,11 +1101,17 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "入庫手段区分";
             if (syukoDenpyo.Nyukosyudankbn > 0) {
-                listRowData.Syukodenpyo_dispvalue = EnumClass.getNyukosyudanKubun(syukoDenpyo.Nyukosyudankbn).getString();
+                EnumClass.NyukosyudanKubun nyukosyudanKubun = EnumClass.getNyukosyudanKubun(syukoDenpyo.Nyukosyudankbn);
+                if (nyukosyudanKubun != null) {
+                    listRowData.Syukodenpyo_dispvalue = nyukosyudanKubun.getString();
+                }
             }
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
                 if (hyojihyo.Nyukosyudankbn > 0) {
-                    listRowData.Hyojihyo_dispvalue = EnumClass.getNyukosyudanKubun(hyojihyo.Nyukosyudankbn).getString();
+                    EnumClass.NyukosyudanKubun nyukosyudanKubun = EnumClass.getNyukosyudanKubun(hyojihyo.Nyukosyudankbn);
+                    if (nyukosyudanKubun != null) {
+                        listRowData.Hyojihyo_dispvalue = nyukosyudanKubun.getString();
+                    }
                 }
 
                 listRowData.Checkresult = syukoDenpyo.Nyukosyudankbn == hyojihyo.Nyukosyudankbn ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
@@ -994,10 +1123,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_nyukodate == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "初期入庫日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Nyukodate);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Nyukodate != null ? simpleDateFormat.format(syukoDenpyo.Nyukodate) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Nyukodate);
-                listRowData.Checkresult = syukoDenpyo.Nyukodate == hyojihyo.Nyukodate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Nyukodate != null ? simpleDateFormat.format(hyojihyo.Nyukodate) : "";
+                listRowData.Checkresult = CompareToDate(syukoDenpyo.Nyukodate, hyojihyo.Nyukodate) == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -1006,9 +1135,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_tanjuryo == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "単重量";
-            listRowData.Syukodenpyo_dispvalue = String.format("#,##0.0000", syukoDenpyo.Tanjuryo);
+            DecimalFormat decimalFormat = new DecimalFormat("#,##0.0000");
+            listRowData.Syukodenpyo_dispvalue = decimalFormat.format(syukoDenpyo.Tanjuryo);
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = String.format("#,##0.0000", hyojihyo.Tanjuryo);
+                listRowData.Hyojihyo_dispvalue = decimalFormat.format(hyojihyo.Tanjuryo);
                 listRowData.Checkresult = syukoDenpyo.Tanjuryo.equals(hyojihyo.Tanjuryo) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
@@ -1018,10 +1148,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_syonindate == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "承認日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Syonindate);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Syonindate != null ? simpleDateFormat.format(syukoDenpyo.Syonindate) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Syonindate);
-                listRowData.Checkresult = syukoDenpyo.Syonindate == hyojihyo.Syonindate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Syonindate != null ? simpleDateFormat.format(hyojihyo.Syonindate) : "";
+                listRowData.Checkresult = CompareToDate(syukoDenpyo.Syonindate, hyojihyo.Syonindate) == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -1030,9 +1160,9 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_syoninno == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "承認番号";
-            listRowData.Syukodenpyo_dispvalue = String.format("00000000000", syukoDenpyo.Syoninno);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Syoninno > 0L ? format("%011d", syukoDenpyo.Syoninno) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = String.format("00000000000", hyojihyo.Syoninno);
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Syoninno > 0L ? format("%011d", hyojihyo.Syoninno) : "";
                 listRowData.Checkresult = syukoDenpyo.Syoninno == hyojihyo.Syoninno ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
@@ -1042,10 +1172,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_tukandate == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "通関申告日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Tukandate);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Tukandate != null ? simpleDateFormat.format(syukoDenpyo.Tukandate) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Tukandate);
-                listRowData.Checkresult = syukoDenpyo.Tukandate == hyojihyo.Tukandate ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Tukandate != null ? simpleDateFormat.format(hyojihyo.Tukandate) : "";
+                listRowData.Checkresult = CompareToDate(syukoDenpyo.Tukandate, hyojihyo.Tukandate) == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -1054,9 +1184,9 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_tukanno == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "通関番号";
-            listRowData.Syukodenpyo_dispvalue = String.format("00000000000", syukoDenpyo.Tukanno);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Tukanno > 0L ? format("%011d", syukoDenpyo.Tukanno) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = String.format("00000000000", hyojihyo.Tukanno);
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Tukanno > 0L ? format("%011d", hyojihyo.Tukanno) : "";
                 listRowData.Checkresult = syukoDenpyo.Tukanno == hyojihyo.Tukanno ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
@@ -1126,10 +1256,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_oltdate == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "保税輸送申告日";
-            listRowData.Syukodenpyo_dispvalue = simpleDateFormat.format(syukoDenpyo.Oltdate);
+            listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Oltdate != null ? simpleDateFormat.format(syukoDenpyo.Oltdate) : "";
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = simpleDateFormat.format(hyojihyo.Oltdate);
-                listRowData.Checkresult = syukoDenpyo.Oltdate.equals(hyojihyo.Oltdate) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = hyojihyo.Oltdate != null ? simpleDateFormat.format(hyojihyo.Oltdate) : "";
+                listRowData.Checkresult = CompareToDate(syukoDenpyo.Oltdate, hyojihyo.Oltdate) == 0 ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -1138,10 +1268,10 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         if (barChkKomk.Is_sinkokukkk == 1) {
             ListRowData listRowData = new ListRowData();
             listRowData.Komokname = "申告価格";
-            listRowData.Syukodenpyo_dispvalue = String.format("#,###", syukoDenpyo.Sinkokukkk);
+            listRowData.Syukodenpyo_dispvalue = format("%,d", syukoDenpyo.Sinkokukkk.intValue());
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
-                listRowData.Hyojihyo_dispvalue = String.format("#,###", hyojihyo.Sinkokukkk);
-                listRowData.Checkresult = syukoDenpyo.Sinkokukkk == hyojihyo.Sinkokukkk ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Hyojihyo_dispvalue = format("%,d", hyojihyo.Sinkokukkk.intValue());
+                listRowData.Checkresult = syukoDenpyo.Sinkokukkk.equals(hyojihyo.Sinkokukkk) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -1177,7 +1307,7 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
             listRowData.Syukodenpyo_dispvalue = syukoDenpyo.Dono;
             if (syukoDenpyo.Syukosgyjokyo.Syukeicd > 0L) {
                 listRowData.Hyojihyo_dispvalue = hyojihyo.Dono;
-                listRowData.Checkresult = syukoDenpyo.Dono == hyojihyo.Dono ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
+                listRowData.Checkresult = syukoDenpyo.Dono.equals(hyojihyo.Dono) ? EnumClass.CheckKubun.OK : EnumClass.CheckKubun.NG;
             }
 
             ret.add(listRowData);
@@ -1349,12 +1479,50 @@ public class GoodsIssuePage2Activity extends CommonActivity implements KeyRemapL
         return ret;
     }
 
+    // 日付比較
+    private int CompareToDate(Date date1, Date date2) {
+        if (date1 == null && date2 == null) {
+            // どっちもnullなら0
+            return 0;
+        }
+
+        if (date1 == null || date2 == null) {
+            // どっちかnullなら1
+            return 1;
+        }
+
+        if (date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay()) {
+            // 年月日の全てが一致しているなら0
+            return 0;
+        } else {
+            // それ以外は1
+            return 1;
+        }
+    }
+
+
     //endregion
 
-    //region TODO DENSO固有ボタンの設定
+    //region ボタンの割当
 
     @Override
     public void onKeyRemapCreated() {
+
+        // M1キーにF1キーを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_M1.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_F1.getString());
+
+        // M2キーにF2キーを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_M2.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_F2.getString());
+
+        // M3キーにF3キーを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_M3.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_F3.getString());
+
+        // M4キーにF4キーを割り当て
+        mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_M4.getValue(),
+                KeyRemapLibrary.ScanCode.SCAN_CODE_F4.getString());
 
         // 左トリガーにバーコードスキャンを割り当て
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_LT.getValue(),

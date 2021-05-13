@@ -172,7 +172,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:divider="@color/darkgray"
-        android:dividerHeight="1dp"
+        android:dividerHeight="1sp"
         android:background="@color/frostygray"
         app:layout_constraintBottom_toTopOf="@+id/tlGoodsIssuePage1Detail"
         app:layout_constraintLeft_toLeftOf="parent"

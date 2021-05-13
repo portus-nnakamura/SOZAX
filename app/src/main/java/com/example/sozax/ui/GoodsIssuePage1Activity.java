@@ -22,7 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
-import com.densowave.bhtsdk.barcode.BarcodeException;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.SyukoDenpyoController;
@@ -31,6 +30,7 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
+import com.example.sozax.common.CommonFunction;
 import com.example.sozax.common.EnumClass;
 import com.example.sozax.common.EnumClass.SgyjokyoKubun;
 import com.example.sozax.common.ScannerActivity;
@@ -40,6 +40,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
@@ -131,6 +133,9 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     //region 出庫作業のQRをスキャン
 
+    // 集計コードチェックパターン
+    final private String chkPattern = "1:[0-9]{11}$";
+
     @Override
     public void onBarcodeDataReceived(BarcodeDataReceivedEvent event) {
 
@@ -150,10 +155,34 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                         @Override
                         public void run() {
 
-                            // チェック
+                            // QRデータ取得
+                            String qrData = readData.getData();
 
-                            // 取得
-                            //new GetSyukoDenpyoTask().execute();
+                            // 正規表現パターン
+                            Pattern ptn = Pattern.compile(chkPattern);        // 先頭文字が2であるか、1文字目が:であるか、3桁目以降が数値であるか、13桁であるか
+                            Matcher matcher = ptn.matcher(qrData);
+
+                            // 正規表現でチェック
+                            if (!matcher.lookingAt()) {
+                                // 不正なQRデータの場合メッセージを表示して処理中断
+                                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
+                                builder.show();
+                            } else {
+
+                                // QRデータから出庫Noを切り出す
+                                long syukono = Long.parseLong(qrData.substring(2));
+
+                                // 出庫伝票取得の条件を作成
+                                SyukoDenpyoConditionModel syukoDenpyoConditionModel = new SyukoDenpyoConditionModel();
+                                syukoDenpyoConditionModel.Syukono = syukono;
+                                syukoDenpyoConditionModel.Kaicd  = loginInfo.Kaicd;
+                                syukoDenpyoConditionModel.Soukocd = loginInfo.Soukocd;
+                                syukoDenpyoConditionModel.Sagyodate = loginInfo.Sgydate;
+
+                                // 出庫伝票取得
+                                new GetSyukoDenpyoTask().execute(syukoDenpyoConditionModel);
+                            }
                         }
                     }.setData(data)
             );
@@ -169,8 +198,9 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+            view.setSelected(true);
+
             if (selectedSagyochuSyukoDenpyoIndex != position) {
-                view.setSelected(true);
 
                 // 選択伝票Indexを更新
                 selectedSagyochuSyukoDenpyoIndex = position;
@@ -388,9 +418,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 作業開始ボタンの有効・無効化
-                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
-
                 // 共通の取得後処理
                 CommonPostExecute();
 
@@ -424,7 +451,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    String template = "作業中の出庫伝票の削除に失敗しました。\r\n{0}";
+                    String template = "作業中の出庫伝票の取得に失敗しました。\r\n{0}";
                     builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
 
                     builder.show();
@@ -450,9 +477,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 DisplaySyukoDenpyos();
 
             } finally {
-
-                // 作業開始ボタンの有効・無効化
-                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
 
                 // 共通の取得後処理
                 CommonPostExecute();
@@ -524,6 +548,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
+                        dialog.dismiss();
+
                         // ✓がついている出庫伝票を取得
                         ArrayList<SyukoDenpyoModel> selectedData = new ArrayList<SyukoDenpyoModel>();
                         for (int i = 0; i < _syukoDenpyosModel.SyukoDenpyos.length; i++) {
@@ -537,7 +563,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                                 syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
                                 syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
                                 syukoSagyoModel.Sgydate = loginInfo.Sgydate;
-                                syukoSagyoModel.Sgyjokyokbn = SgyjokyoKubun.Uketuke.hashCode();
+                                syukoSagyoModel.Sgyjokyokbn = SgyjokyoKubun.Uketuke.getInteger();
 
                                 _syukoDenpyosModel.SyukoDenpyos[i].Syukosgyjokyo = syukoSagyoModel;
                                 selectedData.add(_syukoDenpyosModel.SyukoDenpyos[i]);
@@ -700,9 +726,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 作業開始ボタンの有効・無効化
-                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
-
                 // 共通の取得後処理
                 CommonPostExecute();
 
@@ -715,55 +738,60 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     //region 取得・登録・削除処理前
 
-    private void CommonPreExecute()
-    {
-        // タッチ操作を無効化
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    private void CommonPreExecute() {
 
-        // ハードウェアキーを無効化
-        isHardwareKeyDisabled = true;
+        try {
 
-        if (mBarcodeScanner != null) {
-            try {
-                // バーコードスキャナの読取を禁止
-                mBarcodeScanner.close();
-            } catch (BarcodeException e) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                builder.setTitle("エラー");
-                builder.setMessage(e.getMessage());
+            // タッチ操作を無効化
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                builder.show();
-                return;
-            }
+            // ハードウェアキーを無効化
+            isHardwareKeyDisabled = true;
+
+            // バーコードスキャナの読取を禁止
+            ScanClose();
+
+            // プログレスバーを表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+        } catch (Exception e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+            builder.setTitle("エラー");
+            builder.setMessage(e.getMessage());
+
+            builder.show();
         }
-
-        // プログレスバーを表示
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE);
     }
 
     // endregion
 
     //region 取得・登録・削除処理後
 
-    private void CommonPostExecute()
-    {
-        // プログレスバーを非表示
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.INVISIBLE);
+    private void CommonPostExecute() {
 
-        // ハードウェアキーを有効化
-        isHardwareKeyDisabled = false;
+        try {
 
-        // バーコードスキャナの読取を許可
-                try {
-                    mBarcodeScanner.claim();
-                } catch (BarcodeException e) {
-                    e.printStackTrace();
-                }
+            // プログレスバーを非表示
+            ProgressBar progressBar = findViewById(R.id.progressBar);
+            progressBar.setVisibility(View.INVISIBLE);
 
-        // タッチ操作を有効化
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            // ハードウェアキーを有効化
+            isHardwareKeyDisabled = false;
+
+            // バーコードスキャナの読取を許可
+            ScanClaim();
+
+            // タッチ操作を有効化
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+        } catch (Exception e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+            builder.setTitle("エラー");
+            builder.setMessage(e.getMessage());
+
+            builder.show();
+        }
     }
 
     //endregion
@@ -772,34 +800,44 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     private void DisplaySyukoDenpyos() {
 
-        // ListView取得
-        final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
+        try {
 
-        // アダプターを作成
-        final UniqueAdapter uniqueAdapter = new UniqueAdapter(this, sagyochuSyukoDenpyos);
+            // ListView取得
+            final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
 
-        // アダプターをセット
-        lvGoodsIssueList.setAdapter(uniqueAdapter);
+            // アダプターを作成
+            final UniqueAdapter uniqueAdapter = new UniqueAdapter(this, sagyochuSyukoDenpyos);
 
-        if (selectedSagyochuSyukoDenpyoIndex > -1) {
-            // 行選択
-            lvGoodsIssueList.deferNotifyDataSetChanged();
-            lvGoodsIssueList.requestFocusFromTouch();
-            lvGoodsIssueList.setSelection(selectedSagyochuSyukoDenpyoIndex);
+            // アダプターをセット
+            lvGoodsIssueList.setAdapter(uniqueAdapter);
 
-            // 荷主・荷渡先・品名を表示
-            DisplayNinuNiwaHin();
+            if (selectedSagyochuSyukoDenpyoIndex > -1) {
+                // 行選択
+                lvGoodsIssueList.deferNotifyDataSetChanged();
+                lvGoodsIssueList.requestFocusFromTouch();
+                lvGoodsIssueList.setSelection(selectedSagyochuSyukoDenpyoIndex);
 
-            // 数量・重量を表示
-            DisplaySuryoJuryo();
-        }
-        else
-        {
-            // 荷主・荷渡先・品名をクリア
-            ClearNinuNiwaHin();
+                // 荷主・荷渡先・品名を表示
+                DisplayNinuNiwaHin();
 
-            // 数量・重量をクリア
-            ClearSuryoJuryo();
+                // 数量・重量を表示
+                DisplaySuryoJuryo();
+            } else {
+                // 荷主・荷渡先・品名をクリア
+                ClearNinuNiwaHin();
+
+                // 数量・重量をクリア
+                ClearSuryoJuryo();
+            }
+
+            // 作業開始ボタンの有効・無効化
+            EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
+
+        } catch (Exception exception) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+            builder.setMessage(exception.getMessage());
+
+            builder.show();
         }
     }
 
@@ -914,8 +952,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         txtGoodsIssuePage1Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(currentSagyochuSyukoDenpyo.Juryo).intValue())));
     }
 
-    private void ClearSuryoJuryo()
-    {
+    private void ClearSuryoJuryo() {
         TextView txtGoodsIssuePage1Quantity = findViewById(R.id.txtGoodsIssuePage1Quantity);
         TextView txtGoodsIssuePage1Weight = findViewById(R.id.txtGoodsIssuePage1Weight);
 
@@ -929,7 +966,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     //region 独自のAdapter
 
-    private static class UniqueAdapter extends BaseAdapter {
+    private class UniqueAdapter extends BaseAdapter {
 
         private final ArrayList<SyukoDenpyoModel> list;
         private final LayoutInflater inflater;
@@ -968,6 +1005,11 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             final TextView txtGoodsIssueSlipNo = view.findViewById(R.id.txtGoodsIssueSlipNo);
             final TextView txtGoodsIssueStatus = view.findViewById(R.id.txtGoodsIssueStatus);
 
+            // 背景色設定
+            txtGoodsIssueNo.setBackgroundColor(getColor(R.color.frostygray));
+            txtGoodsIssueSlipNo.setBackgroundColor(getColor(R.color.frostygray));
+            txtGoodsIssueStatus.setBackgroundColor(getColor(R.color.frostygray));
+
             // 行番号
             txtGoodsIssueNo.setText(String.valueOf(position + 1));
             // 伝票番号
@@ -1003,9 +1045,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
 
-        if(isHardwareKeyDisabled)
-        {
-            return  true;
+        if (isHardwareKeyDisabled) {
+            return true;
         }
 
         return super.dispatchKeyEvent(e);

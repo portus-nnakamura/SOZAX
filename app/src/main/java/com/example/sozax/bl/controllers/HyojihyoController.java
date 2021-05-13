@@ -7,6 +7,7 @@ import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -27,7 +28,7 @@ public class HyojihyoController  extends CommonController {
             HyojihyoModel ret = null;
 
             final Request request = new Request.Builder()
-                    .url("http://192.168.10.214:55500/api/hyojihyo/get/" + hyojihyoConditionModel[0].Kaicd + "/"
+                    .url( strURL+ "hyojihyo/get/" + hyojihyoConditionModel[0].Kaicd + "/"
                             + hyojihyoConditionModel[0].Soukocd + "/" + hyojihyoConditionModel[0].Syukeicd)
                     .headers(Headers.of(new LinkedHashMap<String, String>()))
                     .build();
@@ -45,7 +46,7 @@ public class HyojihyoController  extends CommonController {
                 return ret;
             }
 
-            if (response.isSuccessful() == false)
+            if (!response.isSuccessful())
             {
                 ret = new HyojihyoModel();
                 ret.Is_error = true;
@@ -63,9 +64,16 @@ public class HyojihyoController  extends CommonController {
                 return ret;
             }
 
-            // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
-            ret = gson.fromJson(s, HyojihyoModel.class);
+            try{
+                // JSONファイルからModelデータに変換
+                Gson gson =  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+                ret = gson.fromJson(s, HyojihyoModel.class);
+            }catch (Exception e){
+                ret = new HyojihyoModel();
+                ret.Is_error = true;
+                ret.Message = e.getMessage();
+                return ret;
+            }
 
             return ret;
         }

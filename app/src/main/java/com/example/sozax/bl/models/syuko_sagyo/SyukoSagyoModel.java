@@ -20,11 +20,11 @@ public class SyukoSagyoModel implements Serializable {
 
     public int Sgysoukocd = 0;
 
-    public Date Sgydate = new Date(Long.MIN_VALUE);
+    public Date Sgydate = null;
 
     public int Sgyjokyokbn = 0;
 
-    public long Syukeicd = 0;
+    public long Syukeicd = 0L;
 
     public HyojihyoModel HyojiHyo = null;
 }

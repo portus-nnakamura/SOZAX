@@ -28,7 +28,7 @@
     <!-- ガイダンス -->
     <string name="text_function_menu_guidance"><big>機能を選択してください</big></string>
     <string name="text_goods_issue_guidance_phase1"><big>出庫伝票のQRをスキャン</big>\n<small>（QRが無いときは「＋」を押して下さい）</small></string>
-    <string name="text_goods_issue_guidance_phase2"><big>表示票のQRをスキャン</big>\n<small>（スキャンができない時は目視で確認）</small></string>
+    <string name="text_goods_issue_guidance_phase2"><big>表示票のQRをスキャン</big></string>
     <string name="text_goods_issue_guidance_phase3"><big>作業後に完了ボタンを押下</big></string>
     <string name="text_goods_issue_guidance_phase4"><big>ドライバーに受領確認を依頼</big></string>
     <string name="text_goods_issue_guidance_partition">></string>

@@ -9,6 +9,10 @@ import java.util.Date;
 public class HyojihyoModel extends ResultClass implements Serializable {
 
     public long Syukeicd = 0L;
+
+    public int Ninusicd = 0;
+
+    public String Ninusinm = "";
     
     public int Hinbuncd = 0;
 

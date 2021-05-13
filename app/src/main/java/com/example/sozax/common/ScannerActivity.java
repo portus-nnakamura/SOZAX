@@ -20,6 +20,7 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     //region インスタンス変数
 
     private final String TAG = "ScannerActivity";
+    private boolean isClaimed = false;
 
     private BarcodeManager mBarcodeManager = null;
     public BarcodeScanner mBarcodeScanner = null;
@@ -48,11 +49,19 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     protected void onResume() {
         super.onResume();
 
+        // 読み取り許可
+        ScanClaim();
+    }
+
+    // 読み取り許可
+    public  void ScanClaim()
+    {
         try {
-            if (mBarcodeScanner != null) {
+            if (mBarcodeScanner != null && !isClaimed) {
 
                 // 再開時に、バーコードスキャナの読取を許可
                 mBarcodeScanner.claim();
+                isClaimed = true;
             }
         } catch (BarcodeException e) {
             Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
@@ -67,13 +76,22 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     protected void onPause() {
         super.onPause();
 
-        if (mBarcodeScanner != null) {
-            try {
+        // 読み取り禁止
+        ScanClose();
+    }
+
+    // 読み取り禁止
+    public  void ScanClose()
+    {
+        try {
+            if (mBarcodeScanner != null && !isClaimed) {
+
                 // 休止時に、バーコードスキャナの読取を禁止
                 mBarcodeScanner.close();
-            } catch (BarcodeException e) {
-                Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
+                isClaimed = false;
             }
+        } catch (BarcodeException e) {
+            Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
         }
     }
 
@@ -89,6 +107,7 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
         if (mBarcodeScanner != null) {
             try {
                 mBarcodeScanner.destroy();
+                isClaimed = false;
             } catch (BarcodeException e) {
                 Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
             }
@@ -124,7 +143,7 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
                 setScanner();
 
                 // 設定した内容に従って、バーコードスキャナの読取を許可
-                mBarcodeScanner.claim();
+                ScanClaim();
 
             }
         } catch (BarcodeException e) {
