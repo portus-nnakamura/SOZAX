@@ -137,6 +137,7 @@ public class LoginActivity extends CommonActivity {
         // 倉庫
         editor.putInt(getResources().getString(R.string.login_preferences_key_soukocd), loginInfo.Soukocd);
         editor.putString(getResources().getString(R.string.login_preferences_key_soukonm), loginInfo.Soukonm);
+        editor.putString(getResources().getString(R.string.login_preferences_key_soukornm), loginInfo.Soukornm);
 
         // 作業日時
         editor.putLong(getResources().getString(R.string.login_preferences_key_sgydate), loginInfo.Sgydate.getTime());
@@ -522,7 +523,7 @@ public class LoginActivity extends CommonActivity {
                 ArrayList<String> items = new ArrayList<String>();
 
                 for (SoukoModel SoukoModel : soukosModel.Soukos) {
-                    items.add(SoukoModel.Soukonm);
+                    items.add(SoukoModel.Soukornm);
                 }
 
                 UniqueArrayAdapter arrayAdapter = new UniqueArrayAdapter(LoginActivity.this, R.layout.dropdown_menu_popup_item, items);
@@ -622,6 +623,7 @@ public class LoginActivity extends CommonActivity {
             // ログイン情報に選択した倉庫をセット
             loginInfo.Soukocd = soukosModel.Soukos[position].Soukocd;
             loginInfo.Soukonm = soukosModel.Soukos[position].Soukonm;
+            loginInfo.Soukornm = soukosModel.Soukos[position].Soukornm;
             soukoSelectedIndex = position;
 
         }
@@ -669,6 +671,7 @@ public class LoginActivity extends CommonActivity {
     {
         loginInfo.Soukocd = 0;
         loginInfo.Soukonm = "";
+        loginInfo.Soukornm = "";
         soukosModel = null;
         soukoSelectedIndex = -1;
         final com.google.android.material.textfield.TextInputLayout tilSouko = findViewById(R.id.tilSouko);

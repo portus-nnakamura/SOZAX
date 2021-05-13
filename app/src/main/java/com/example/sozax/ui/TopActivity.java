@@ -86,6 +86,7 @@ public class TopActivity extends CommonActivity {
         // 倉庫
         loginInfo.Soukocd = preferences.getInt(getResources().getString(R.string.login_preferences_key_soukocd), 0);
         loginInfo.Soukonm = preferences.getString(getResources().getString(R.string.login_preferences_key_soukonm), "");
+        loginInfo.Soukornm = preferences.getString(getResources().getString(R.string.login_preferences_key_soukornm), "");
 
         // 作業日時
         long sgydate = preferences.getLong(getResources().getString(R.string.login_preferences_key_sgydate), new Date().getTime());

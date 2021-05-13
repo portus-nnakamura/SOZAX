@@ -5,10 +5,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +23,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
@@ -30,6 +35,7 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
+import com.example.sozax.common.CommonActivity;
 import com.example.sozax.common.CommonFunction;
 import com.example.sozax.common.EnumClass;
 import com.example.sozax.common.EnumClass.SgyjokyoKubun;
@@ -37,9 +43,12 @@ import com.example.sozax.common.ScannerActivity;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
+import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,6 +89,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         ((ListView) findViewById(R.id.lvGoodsIssueList)).setOnItemLongClickListener(new lvGoodsIssueList_LongClick());
         // 行選択
         ((ListView) findViewById(R.id.lvGoodsIssueList)).setOnItemClickListener(new lvGoodsIssueList_Click());
+        // ログイン情報長押し
+        ((ConstraintLayout)findViewById(R.id.clLoginInfo)).setOnLongClickListener(new clLoginInfo_LongClick());
 
         // ハードウェアキーのマッピングクラスのインスタンスを生成
         mKeyRemapLibrary = new KeyRemapLibrary();

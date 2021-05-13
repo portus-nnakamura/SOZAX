@@ -173,7 +173,7 @@ public class MenuActivity extends CommonActivity {
         txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm,10));
 
         TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm,10));
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukornm,10));
 
     }
 

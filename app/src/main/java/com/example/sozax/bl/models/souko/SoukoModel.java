@@ -8,4 +8,7 @@ public class SoukoModel {
     // 倉庫名
     public String Soukonm = "";
 
+    // 倉庫略名
+    public String Soukornm = "";
+
 }

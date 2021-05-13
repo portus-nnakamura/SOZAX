@@ -22,6 +22,8 @@ public class LoginInfoModel implements Serializable {
     public int Soukocd = 0;
     // 倉庫名
     public  String Soukonm = "";
+    // 倉庫略名
+    public  String Soukornm = "";
 
     // 作業日
     public Date Sgydate = null;

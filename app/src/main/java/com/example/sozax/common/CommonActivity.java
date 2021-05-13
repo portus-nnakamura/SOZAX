@@ -7,14 +7,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
+import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
+import com.example.sozax.ui.GoodsIssuePage1Activity;
 
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -55,11 +61,42 @@ public abstract class CommonActivity extends AppCompatActivity {
         txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm, 10));
 
         TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukonm, 10));
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukornm, 10));
 
         SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
         TextView txtLoginSgydate = findViewById(R.id.txtLoginSgydate);
         txtLoginSgydate.setText(sdf.format(loginInfo.Sgydate));
+    }
+
+    //endregion
+
+    //region ログイン情報を長押しクリック
+
+    public class clLoginInfo_LongClick implements View.OnLongClickListener {
+
+        @Override
+        public boolean onLongClick(View v) {
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("事業所:");
+            sb.append(loginInfo.Tensyonm);
+            sb.append("\r\n");
+            sb.append("担当者:");
+            sb.append(loginInfo.Sgytantonm);
+            sb.append("\r\n");
+            sb.append("倉　庫:");
+            sb.append(loginInfo.Soukornm);
+            sb.append("\r\n");
+            sb.append("作業日:");
+            SimpleDateFormat sdf = new SimpleDateFormat("M/dd(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
+            sb.append(sdf.format(loginInfo.Sgydate));
+
+            Toast toast = Toast.makeText(getApplicationContext(),sb.toString(),Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+
+            return false;
+        }
     }
 
     //endregion

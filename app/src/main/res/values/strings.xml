@@ -63,6 +63,7 @@
     <string name="login_preferences_key_sgytantonm">Sgytantonm</string>
     <string name="login_preferences_key_soukocd">Soukocd</string>
     <string name="login_preferences_key_soukonm">Soukonm</string>
+    <string name="login_preferences_key_soukornm">Soukornm</string>
     <string name="login_preferences_key_sgydate">Sgydate</string>
     <string name="login_preferences_key_updatedate">Updatedate</string>
 
