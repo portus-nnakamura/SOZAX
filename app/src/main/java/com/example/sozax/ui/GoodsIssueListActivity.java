@@ -440,6 +440,8 @@ public class GoodsIssueListActivity extends CommonActivity {
                 view = inflater.inflate(R.layout.goods_issue_list_raw, null);
             }
 
+            view.setBackground(getDrawable(R.drawable.list_item_selecter_frostygray));
+
             TextView txtGoodsIssueListNo = view.findViewById(R.id.txtGoodsIssueListNo);
             TextView txtGoodsIssueListSlipNo = view.findViewById(R.id.txtGoodsIssueListSlipNo);
             TextView txtGoodsIssueListStatus = view.findViewById(R.id.txtGoodsIssueListStatus);
@@ -448,10 +450,10 @@ public class GoodsIssueListActivity extends CommonActivity {
             chkGoodsIssueListSelect.setOnClickListener(new chkChkBox_Click(datas.Syukono));
 
             // 背景色を白に設定
-            txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.frostygray));
-            txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.frostygray));
-            txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.frostygray));
-            chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.frostygray));
+//            txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.frostygray));
+//            txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.frostygray));
+//            txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.frostygray));
+//            chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.frostygray));
 
             // チェックボックス有効
             chkGoodsIssueListSelect.setEnabled(true);
@@ -460,7 +462,7 @@ public class GoodsIssueListActivity extends CommonActivity {
             chkGoodsIssueListSelect.setChecked(syukoChk.get(datas.Syukono));
 
             // チェックボックスの色リセット
-            chkGoodsIssueListSelect.setButtonTintList(null);
+            chkGoodsIssueListSelect.setVisibility(View.VISIBLE);
 
             if (datas != null) {
 
@@ -475,10 +477,11 @@ public class GoodsIssueListActivity extends CommonActivity {
                     if (EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn) == EnumClass.SgyjokyoKubun.Juryokakunin) {
 
                         // 背景色をグレーに設定
-                        txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.darkgray));
-                        txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.darkgray));
-                        txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.darkgray));
-                        chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.darkgray));
+                        view.setBackground(getDrawable(R.drawable.list_item_selecter_darkgray));
+//                        txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.darkgray));
+//                        txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.darkgray));
+//                        txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.darkgray));
+//                        chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.darkgray));
                     }
 
                     // 作業状況区分名表示
@@ -486,7 +489,7 @@ public class GoodsIssueListActivity extends CommonActivity {
                     // チェックボックスを無効
                     chkGoodsIssueListSelect.setEnabled(false);
                     // チェックボックスを透明にする
-                    chkGoodsIssueListSelect.setButtonTintList(getColorStateList(R.color.transparent));
+                    chkGoodsIssueListSelect.setVisibility(View.INVISIBLE);
 
                 }
                 //　出庫作業が登録されていない場合

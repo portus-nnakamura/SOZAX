@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/list_item_selecter"
+    android:background="@drawable/list_item_selecter_frostygray"
     style="@style/raw_style">
 
     <!-- No. -->

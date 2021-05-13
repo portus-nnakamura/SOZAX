@@ -1005,11 +1005,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             final TextView txtGoodsIssueSlipNo = view.findViewById(R.id.txtGoodsIssueSlipNo);
             final TextView txtGoodsIssueStatus = view.findViewById(R.id.txtGoodsIssueStatus);
 
-            // 背景色設定
-            txtGoodsIssueNo.setBackgroundColor(getColor(R.color.frostygray));
-            txtGoodsIssueSlipNo.setBackgroundColor(getColor(R.color.frostygray));
-            txtGoodsIssueStatus.setBackgroundColor(getColor(R.color.frostygray));
-
             // 行番号
             txtGoodsIssueNo.setText(String.valueOf(position + 1));
             // 伝票番号

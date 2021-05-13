@@ -22,19 +22,19 @@
         </activity>
 
         <!-- ログイン画面 -->
-        <activity android:name="com.example.sozax.ui.LoginActivity"/>
+        <activity android:name="com.example.sozax.ui.LoginActivity" android:configChanges="orientation|screenSize|fontScale" />
         <!-- メニュー画面 -->
-        <activity android:name="com.example.sozax.ui.MenuActivity"/>
+        <activity android:name="com.example.sozax.ui.MenuActivity" android:configChanges="orientation|screenSize|fontScale" />
         <!-- 出庫処理(1/2) -->
-        <activity android:name="com.example.sozax.ui.GoodsIssuePage1Activity" />
+        <activity android:name="com.example.sozax.ui.GoodsIssuePage1Activity" android:configChanges="orientation|screenSize|fontScale" />
         <!-- 出庫処理(2/2) -->
-        <activity android:name="com.example.sozax.ui.GoodsIssuePage2Activity" />
+        <activity android:name="com.example.sozax.ui.GoodsIssuePage2Activity" android:configChanges="orientation|screenSize|fontScale" />
         <!-- 出庫伝票一覧 -->
-        <activity android:name="com.example.sozax.ui.GoodsIssueListActivity" />
+        <activity android:name="com.example.sozax.ui.GoodsIssueListActivity" android:configChanges="orientation|screenSize|fontScale" />
         <!-- 在庫照会(1/2) -->
-        <activity android:name="com.example.sozax.ui.InventoryInquiryPage1Activity" />
+        <activity android:name="com.example.sozax.ui.InventoryInquiryPage1Activity" android:configChanges="orientation|screenSize|fontScale" />
         <!-- 在庫照会(2/2) -->
-        <activity android:name="com.example.sozax.ui.InventoryInquiryPage2Activity" />
+        <activity android:name="com.example.sozax.ui.InventoryInquiryPage2Activity" android:configChanges="orientation|screenSize|fontScale" />
 
     </application>
 

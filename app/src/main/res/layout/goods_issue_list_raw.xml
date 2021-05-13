@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/list_item_selecter"
+    android:background="@drawable/list_item_selecter_frostygray"
     style="@style/raw_style">
 
     <!-- No. -->
@@ -33,8 +33,9 @@
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/space_size_minus_2"
         android:layout_marginBottom="@dimen/space_size_minus_2"
+        android:layout_marginStart="@dimen/space_size_minus_2"
+        android:layout_marginEnd="@dimen/space_size_minus_2"
         android:layout_weight="0.13"
-        android:background="@drawable/text_border_dimgray"
         android:focusable="false"
         android:gravity="center" />
 
