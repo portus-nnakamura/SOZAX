@@ -4,21 +4,18 @@ import android.os.AsyncTask;
 
 import com.example.sozax.bl.models.hyojihyo.HyojihyoConditionModel;
 import com.example.sozax.bl.models.hyojihyo.HyojihyoModel;
-import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
 
-public class HyojihyoController  extends CommonController {
+@SuppressWarnings("ALL")
+public class HyojihyoController extends CommonController {
 
+    /**
+     * 表示票データを取得するタスク
+     */
     public static class GetHyojihyoTask extends AsyncTask<HyojihyoConditionModel, Void, HyojihyoModel> {
 
         // 非同期処理
@@ -27,48 +24,25 @@ public class HyojihyoController  extends CommonController {
 
             HyojihyoModel ret = null;
 
-            final Request request = new Request.Builder()
-                    .url( strURL+ "hyojihyo/get/" + hyojihyoConditionModel[0].Kaicd + "/"
-                            + hyojihyoConditionModel[0].Soukocd + "/" + hyojihyoConditionModel[0].Syukeicd)
-                    .headers(Headers.of(new LinkedHashMap<String, String>()))
-                    .build();
-
-            final OkHttpClient client = new OkHttpClient.Builder()
-                    .build();
-
-            Response response = null;
             try {
-                response = client.newCall(request).execute();
-            } catch (IOException e) {
-                ret = new HyojihyoModel();
-                ret.Is_error = true;
-                ret.Message = e.getMessage();
-                return ret;
-            }
+                // リクエストを投げて、レスポンスを取得
+                Response response = getResponse("hyojihyo/get/" + hyojihyoConditionModel[0].Kaicd + "/" + hyojihyoConditionModel[0].Soukocd + "/" + hyojihyoConditionModel[0].Syukeicd);
 
-            if (!response.isSuccessful())
-            {
-                ret = new HyojihyoModel();
-                ret.Is_error = true;
-                ret.Message = response.message();
-                return  ret;
-            }
+                // 失敗した場合
+                if (!response.isSuccessful()) {
+                    ret = new HyojihyoModel();
+                    ret.Is_error = true;
+                    ret.Message = response.message();
+                    return ret;
+                }
 
-            String s = "";
-            try {
-                s = response.body().string();
-            } catch (IOException e) {
-                ret = new HyojihyoModel();
-                ret.Is_error = true;
-                ret.Message = e.getMessage();
-                return ret;
-            }
+                // レスポンスから表示票データを取得
+                String s = response.body().string();
 
-            try{
                 // JSONファイルからModelデータに変換
-                Gson gson =  new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+                Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
                 ret = gson.fromJson(s, HyojihyoModel.class);
-            }catch (Exception e){
+            } catch (Exception e) {
                 ret = new HyojihyoModel();
                 ret.Is_error = true;
                 ret.Message = e.getMessage();

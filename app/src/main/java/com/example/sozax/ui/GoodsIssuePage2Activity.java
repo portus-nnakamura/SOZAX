@@ -129,7 +129,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
             }
 
             // インクリメント
-            selectedSagyochuSyukoDenpyoIndex--;
+            selectedSagyochuSyukoDenpyoIndex++;
 
             // 画面全体を更新する
             RefreshScreenAll();

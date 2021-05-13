@@ -4,21 +4,17 @@ import android.os.AsyncTask;
 
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.sgytanto.SgytantosModel;
-import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
-import com.example.sozax.bl.models.tensyo.TensyosModel;
 import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
 
-public class SgytantoController  extends CommonController {
+@SuppressWarnings("ALL")
+public class SgytantoController extends CommonController {
 
+    /**
+     * 作業担当者マスタ一覧を取得するタスク
+     */
     public static class GetSgytantosTask extends AsyncTask<LoginInfoModel, Void, SgytantosModel> {
 
         // 非同期処理
@@ -27,45 +23,30 @@ public class SgytantoController  extends CommonController {
 
             SgytantosModel ret = null;
 
-            final Request request = new Request.Builder()
-                    .url(strURL + "sgytanto/get/" + loginInfoModel[0].Kaicd + "/" + loginInfoModel[0].Tensyocd)
-                    .headers(Headers.of(new LinkedHashMap<String, String>()))
-                    .build();
-
-            final OkHttpClient client = new OkHttpClient.Builder()
-                    .build();
-
-            Response response = null;
             try {
-                response = client.newCall(request).execute();
-            } catch (IOException e) {
+                // リクエストを投げて、レスポンスを取得
+                Response response = getResponse("sgytanto/get/" + loginInfoModel[0].Kaicd + "/" + loginInfoModel[0].Tensyocd);
+
+                // 失敗した場合
+                if (!response.isSuccessful()) {
+                    ret = new SgytantosModel();
+                    ret.Is_error = true;
+                    ret.Message = response.message();
+                    return ret;
+                }
+
+                // レスポンスから作業担当者マスタ一覧を取得
+                String s = response.body().string();
+
+                // JSONファイルからModelデータに変換
+                Gson gson = new Gson();
+                ret = gson.fromJson(s, SgytantosModel.class);
+            } catch (Exception e) {
                 ret = new SgytantosModel();
                 ret.Is_error = true;
                 ret.Message = e.getMessage();
                 return ret;
             }
-
-            if (!response.isSuccessful())
-            {
-                ret = new SgytantosModel();
-                ret.Is_error = true;
-                ret.Message = response.message();
-                return  ret;
-            }
-
-            String s = "";
-            try {
-                s = response.body().string();
-            } catch (IOException e) {
-                ret = new SgytantosModel();
-                ret.Is_error = true;
-                ret.Message = e.getMessage();
-                return ret;
-            }
-
-            // JSONファイルからModelデータに変換
-            Gson gson = new Gson();
-            ret = gson.fromJson(s, SgytantosModel.class);
 
             return ret;
         }

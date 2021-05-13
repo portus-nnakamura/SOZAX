@@ -2,64 +2,45 @@ package com.example.sozax.bl.controllers;
 
 import android.os.AsyncTask;
 
-import com.example.sozax.bl.models.version_info.VersionInfoModel;
-import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiConditionModel;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-
-import okhttp3.Headers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
 
-public class ZaikoSyokaiController  extends CommonController {
+@SuppressWarnings("ALL")
+public class ZaikoSyokaiController extends CommonController {
 
+    /**
+     * 在庫照会データを取得するタスク
+     */
     public static class GetZaikoSyokaiTask extends AsyncTask<Long, Void, ZaikoSyokaiModel> {
 
         // 非同期処理
         @Override
         protected ZaikoSyokaiModel doInBackground(Long... syukeicd) {
 
-            ZaikoSyokaiModel ret;
-
-            final Request request = new Request.Builder()
-                    .url(strURL + "zaikosyokai/get/" + String.valueOf(syukeicd[0]))
-                    .headers(Headers.of(new LinkedHashMap<String, String>()))
-                    .build();
-
-            final OkHttpClient client = new OkHttpClient.Builder()
-                    .build();
+            ZaikoSyokaiModel ret = null;
 
             try {
+                // リクエストを投げて、レスポンスを取得
+                Response response = getResponse("zaikosyokai/get/" + syukeicd[0]);
 
-                Response response = client.newCall(request).execute();
-
-                if (!response.isSuccessful())
-                {
+                // 失敗した場合
+                if (!response.isSuccessful()) {
                     ret = new ZaikoSyokaiModel();
                     ret.Is_error = true;
                     ret.Message = response.message();
-                    return  ret;
+                    return ret;
                 }
 
+                // レスポンスから在庫照会データを取得
                 String s = response.body().string();
 
                 // JSONファイルからModelデータに変換
-                Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+                Gson gson = new Gson();
                 ret = gson.fromJson(s, ZaikoSyokaiModel.class);
-
-            } catch (IOException e) {
-                ret = new ZaikoSyokaiModel();
-                ret.Is_error = true;
-                ret.Message = e.getMessage();
-                return ret;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ret = new ZaikoSyokaiModel();
                 ret.Is_error = true;
                 ret.Message = e.getMessage();

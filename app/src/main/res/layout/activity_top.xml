@@ -33,8 +33,7 @@
     <ImageView
         android:id="@+id/imgMainLogo"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginVertical="@dimen/space_size_16"
+        android:layout_height="260dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/txtAppName"
         app:layout_constraintLeft_toLeftOf="parent"
