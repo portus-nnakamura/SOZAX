@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.example.sozax.R;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.common.CommonActivity;
@@ -16,16 +18,11 @@ import com.example.sozax.common.CommonActivity;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 import static com.example.sozax.common.CommonFunction.substringByBytes;
 
 public class MenuActivity extends CommonActivity {
-
-    //region インスタンス変数
-
-    //endregion
 
     //region 初回起動
 
@@ -37,6 +34,8 @@ public class MenuActivity extends CommonActivity {
 
         // アプリ終了イベントを追加
         findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(MenuActivity.this));
+        // ログイン情報長押し
+        findViewById(R.id.clLoginInfo).setOnLongClickListener(new clLoginInfo_LongClick());
 
         // ログイン情報を表示
         DisplayLoginInfo();
@@ -44,12 +43,6 @@ public class MenuActivity extends CommonActivity {
         // 作業日を表示
         DisplaySgydate();
     }
-
-    //endregion
-
-    //region アプリ終了アイコンをクリック
-
-    // CommonActivity内に処理を記述済み
 
     //endregion
 
@@ -61,7 +54,7 @@ public class MenuActivity extends CommonActivity {
         Intent intent = new Intent(getApplication(), LoginActivity.class);
         intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
         intent.putExtra(getResources().getString(R.string.intent_key_previous_activity_name), this.getComponentName().getClassName());
-        startActivityForResult(intent,requestCode);
+        startActivityForResult(intent, requestCode);
     }
 
     @SuppressLint("SetTextI18n")
@@ -163,17 +156,16 @@ public class MenuActivity extends CommonActivity {
 
     // region ログイン情報を表示
 
-    public void DisplayLoginInfo()
-    {
+    public void DisplayLoginInfo() {
 
-        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);;
-        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm,10));
+        TextView txtLoginTensyo = findViewById(R.id.txtLoginTensyo);
+        txtLoginTensyo.setText(substringByBytes(loginInfo.Tensyonm, 10));
 
         TextView txtLoginSgytanto = findViewById(R.id.txtLoginSgytanto);
-        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm,10));
+        txtLoginSgytanto.setText(substringByBytes(loginInfo.Sgytantonm, 10));
 
         TextView txtLoginSouko = findViewById(R.id.txtLoginSouko);
-        txtLoginSouko.setText(substringByBytes(loginInfo.Soukornm,10));
+        txtLoginSouko.setText(substringByBytes(loginInfo.Soukornm, 10));
 
     }
 
@@ -181,8 +173,7 @@ public class MenuActivity extends CommonActivity {
 
     //region 作業日を表示
 
-    public void DisplaySgydate()
-    {
+    public void DisplaySgydate() {
         TextView lblSgydate = findViewById(R.id.lblSgydate);
         @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
         lblSgydate.setText(sdf.format(loginInfo.Sgydate));

@@ -1,35 +1,22 @@
 package com.example.sozax.common;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Vibrator;
-import android.view.View;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
-import com.example.sozax.R;
-import com.example.sozax.bl.models.login_info.LoginInfoModel;
+import android.annotation.SuppressLint;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.function.BiFunction;
 
 public abstract class CommonFunction {
+
     /**
-     * @param text    対象となる文字列
-     * @param index   切り出すバイト数
-    // * @param charset 文字コード
-     * @return
+     * @param text  対象となる文字列
+     * @param index 切り出すバイト数
+     *              // * @param charset 文字コード
+     * @return 切り出し文字列
      */
     public static String substringByBytes(String text, int index) {
 
-        String ret = "";
+        StringBuilder ret = new StringBuilder();
 
         try {
 
@@ -42,16 +29,16 @@ public abstract class CommonFunction {
 
                 //切り出した文字を変数retに追加した際のバイト数が指定バイト数より大きければ、変数retを返します。
                 if (textByteCnt + tmpTextByte.length > index) {
-                    return ret;
+                    return ret.toString();
                 } else {
-                    ret += tmpText;
+                    ret.append(tmpText);
                     textByteCnt = textByteCnt + tmpTextByte.length;
                 }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return ret;
+        return ret.toString();
     }
 
     /**
@@ -72,13 +59,12 @@ public abstract class CommonFunction {
     }
 
     /**
-     *  重量をトン単位からキロ単位に変換する。(1000掛ける)
+     * 重量をトン単位からキロ単位に変換する。(1000掛ける)
      *
      * @param j 重量
      * @return r 計算結果
      */
-    public static BigDecimal multiplyThousand (BigDecimal j)
-    {
+    public static BigDecimal multiplyThousand(BigDecimal j) {
         // 戻り値
         BigDecimal r;
 
@@ -91,18 +77,17 @@ public abstract class CommonFunction {
     }
 
     /**
-     *  日付のフォーマットを設定する。
+     * 日付のフォーマットを設定する。
      *
      * @param d 日付
      * @param f フォーマット
      * @return r フォーマット設定した日付
      */
-    public static String settingDateFormat(Date d, String f)
-    {
+    public static String settingDateFormat(Date d, String f) {
         // 戻り値
         String r;
         // フォーマット
-        SimpleDateFormat dateFormat = new SimpleDateFormat(f);
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat(f);
 
         r = dateFormat.format(d);
 

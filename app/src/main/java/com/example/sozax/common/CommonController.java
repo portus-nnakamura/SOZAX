@@ -1,6 +1,5 @@
 package com.example.sozax.common;
 
-import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -59,7 +58,7 @@ public class CommonController {
     /**
      * 引数のルートと登録データを元にリクエストメッセージを作成して、レスポンスを取得する
      *
-     * @param route ルート
+     * @param route    ルート
      * @param postData 登録データ
      * @return レスポンス
      * @throws IOException
@@ -73,6 +72,7 @@ public class CommonController {
 
         // リクエストボディを作成
         final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+        //noinspection deprecation
         RequestBody requestBody = RequestBody.create(mediaType, s);
 
         // リクエストメッセージを作成
@@ -96,7 +96,7 @@ public class CommonController {
     /**
      * 引数のルートと更新データを元にリクエストメッセージを作成して、レスポンスを取得する
      *
-     * @param route ルート
+     * @param route   ルート
      * @param putData 更新データ
      * @return レスポンス
      * @throws IOException
@@ -110,6 +110,7 @@ public class CommonController {
 
         // リクエストボディを作成
         final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+        //noinspection deprecation
         RequestBody requestBody = RequestBody.create(mediaType, s);
 
         // リクエストメッセージを作成
@@ -133,7 +134,7 @@ public class CommonController {
     /**
      * 引数のルートと削除データを元にリクエストメッセージを作成して、レスポンスを取得する
      *
-     * @param route ルート
+     * @param route      ルート
      * @param deleteData 削除データ
      * @return レスポンス
      * @throws IOException
@@ -147,6 +148,7 @@ public class CommonController {
 
         // リクエストボディを作成
         final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+        //noinspection deprecation
         RequestBody requestBody = RequestBody.create(mediaType, s);
 
         // リクエストメッセージを作成

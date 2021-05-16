@@ -82,7 +82,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.3"
             android:background="@color/red"
-            android:text="@string/text_goods_issue_progress_phase2"
+            android:text="在庫確認"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="16sp" />
@@ -102,7 +102,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.3"
             android:background="@color/red"
-            android:text="@string/text_goods_issue_progress_phase3"
+            android:text="出庫作業"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="16sp" />
@@ -134,6 +134,7 @@
         style="@style/guidance_text_style"
         android:id="@+id/txtGoodsIssuePage2Guidance"
         android:textColor="@color/heavenlyblue"
+        android:textSize="@dimen/font_size_20"
         app:layout_constraintBottom_toTopOf="@+id/llGoodsIssueProductInformationColumnHeader"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -208,7 +209,7 @@
                 android:layout_marginLeft="-0.5dp"
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.4"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="center"
                 android:text="出庫個数"
@@ -222,7 +223,7 @@
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginRight="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="center"
                 android:text="出庫重量"
@@ -241,11 +242,11 @@
                 android:layout_marginLeft="-0.5dp"
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.4"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_24" />
+                android:textSize="@dimen/font_size_18" />
 
             <!-- 出庫重量 -->
             <TextView
@@ -255,11 +256,11 @@
                 android:layout_marginTop="-0.5dp"
                 android:layout_marginRight="-0.5dp"
                 android:layout_marginBottom="-0.5dp"
-                android:layout_weight="0.6"
+                android:layout_weight="0.5"
                 android:background="@drawable/text_border_dimgray"
                 android:gravity="right"
                 android:textColor="@color/black"
-                android:textSize="@dimen/font_size_24" />
+                android:textSize="@dimen/font_size_18" />
 
         </TableRow>
 

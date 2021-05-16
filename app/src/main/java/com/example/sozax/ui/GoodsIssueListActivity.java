@@ -5,16 +5,13 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.sozax.R;
@@ -25,6 +22,7 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.CommonFunction;
 import com.example.sozax.common.EnumClass;
 
 import java.math.BigDecimal;
@@ -33,7 +31,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
 
 public class GoodsIssueListActivity extends CommonActivity {
@@ -41,9 +38,6 @@ public class GoodsIssueListActivity extends CommonActivity {
     // region インスタンス変数
 
     private ArrayList<SyukoDenpyoModel> dispDatas = null;
-
-    // ハードウェアキー無効化フラグ
-    private boolean isHardwareKeyDisabled = false;
 
     // チェック制御用
     private Map<Long, Boolean> syukoChk;
@@ -57,6 +51,15 @@ public class GoodsIssueListActivity extends CommonActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_goods_issue_list);
 
+        // アプリ終了
+        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(GoodsIssueListActivity.this));
+        // 出庫
+        findViewById(R.id.btnGoodsIssue).setOnClickListener(new btnGoodsIssue_Click());
+        // 行選択
+        ((ListView) findViewById(R.id.lvGoodsIssueSlipList)).setOnItemClickListener(new lvGoodsIssueSlipList_Click());
+        // ログイン情報長押し
+        findViewById(R.id.clLoginInfo).setOnLongClickListener(new clLoginInfo_LongClick());
+
         // ログイン情報を表示
         DisplayLoginInfo();
 
@@ -68,14 +71,6 @@ public class GoodsIssueListActivity extends CommonActivity {
 
         // 取得処理
         new GetSyukoDenpyosTask().execute(syukoDenpyoConditionModel);
-
-        // アプリ終了
-        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(GoodsIssueListActivity.this));
-        // 出庫
-        findViewById(R.id.btnGoodsIssue).setOnClickListener(new btnGoodsIssue_Click());
-
-        // 行選択
-        ((ListView) findViewById(R.id.lvGoodsIssueSlipList)).setOnItemClickListener(new lvGoodsIssueSlipList_Click());
     }
 
     //endregion
@@ -138,8 +133,8 @@ public class GoodsIssueListActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通処理
-            CommonPreExecute();
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         /**
@@ -152,24 +147,13 @@ public class GoodsIssueListActivity extends CommonActivity {
 
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssueListActivity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.goods_issue_list_activity_failed_get_syukosdata_message), _syukoDenpyosModel.Message));
-
-                    builder.show();
-
+                    OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.goods_issue_list_activity_failed_get_syukosdata_message), _syukoDenpyosModel.Message));
                     return;
                 }
 
                 // 該当データなし
                 if (_syukoDenpyosModel.SyukoDenpyos == null) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssueListActivity.this);
-                    builder.setMessage(getResources().getString(R.string.goods_issue_list_activity_nosyukosdata_message));
-
-                    builder.show();
-
+                    OutputErrorMessage(getResources().getString(R.string.goods_issue_list_activity_nosyukosdata_message));
                     return;
                 }
 
@@ -185,8 +169,8 @@ public class GoodsIssueListActivity extends CommonActivity {
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
             }
         }
     }
@@ -203,8 +187,8 @@ public class GoodsIssueListActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通処理
-            CommonPreExecute();
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 登録後処理
@@ -228,8 +212,9 @@ public class GoodsIssueListActivity extends CommonActivity {
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
+
             }
         }
     }
@@ -243,34 +228,6 @@ public class GoodsIssueListActivity extends CommonActivity {
         startActivity(intent);
 
         finish();
-    }
-
-    // endregion
-
-    // region 取得・登録共通処理
-
-    private void CommonPreExecute() {
-        // タッチ操作を無効化
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-        // ハードウェアキーを無効化
-        isHardwareKeyDisabled = true;
-
-        // プログレスバーを表示
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    private void CommonPostExecute() {
-        // プログレスバーを非表示
-        ProgressBar progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.INVISIBLE);
-
-        // ハードウェアキーを有効化
-        isHardwareKeyDisabled = false;
-
-        // タッチ操作を有効化
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
 
     // endregion
@@ -302,6 +259,7 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     //region 詳細表示
 
+    @SuppressLint("DefaultLocale")
     private void DisplayDetail(SyukoDenpyoModel dispData) {
 
         TextView txtGoodsIssueSlipListDetailNinushi = findViewById(R.id.txtGoodsIssueSlipListDetailNinushi);
@@ -375,7 +333,7 @@ public class GoodsIssueListActivity extends CommonActivity {
         // 出庫個数
         txtGoodsIssueSlipListQuantity.setText(toFullWidth(String.format("%,d", dispData.Kosuu.intValue())));
         // 出庫重量
-        txtGoodsIssueSlipListWeight.setText(toFullWidth(String.format("%,d", multiplyThousand(dispData.Juryo).intValue())));
+        txtGoodsIssueSlipListWeight.setText(toFullWidth(String.format("%,d", CommonFunction.multiplyThousand(dispData.Juryo).intValue())));
     }
 
     //endregion
@@ -409,7 +367,7 @@ public class GoodsIssueListActivity extends CommonActivity {
             super();
             this.list = list;
             syukoChk = new HashMap<Long, Boolean>();
-            for (SyukoDenpyoModel syuko : list){
+            for (SyukoDenpyoModel syuko : list) {
                 syukoChk.put(syuko.Syukono, false);
             }
 
@@ -431,6 +389,7 @@ public class GoodsIssueListActivity extends CommonActivity {
             return position;
         }
 
+        @SuppressLint("UseCompatLoadingForDrawables")
         @Override
         public View getView(final int position, View view, ViewGroup parent) {
 
@@ -449,53 +408,47 @@ public class GoodsIssueListActivity extends CommonActivity {
 
             chkGoodsIssueListSelect.setOnClickListener(new chkChkBox_Click(datas.Syukono));
 
-            // 背景色を白に設定
-//            txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.frostygray));
-//            txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.frostygray));
-//            txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.frostygray));
-//            chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.frostygray));
-
             // チェックボックス有効
             chkGoodsIssueListSelect.setEnabled(true);
 
             // 出庫番号と紐づく場合チェックつける
+            //noinspection ConstantConditions
             chkGoodsIssueListSelect.setChecked(syukoChk.get(datas.Syukono));
 
             // チェックボックスの色リセット
             chkGoodsIssueListSelect.setVisibility(View.VISIBLE);
 
-            if (datas != null) {
+            // 値を設定
+            txtGoodsIssueListNo.setText(String.valueOf(position + 1));
+            txtGoodsIssueListSlipNo.setText(String.valueOf(datas.Syukono));
 
-                // 値を設定
-                txtGoodsIssueListNo.setText(String.valueOf(position + 1));
-                txtGoodsIssueListSlipNo.setText(String.valueOf(datas.Syukono));
+            //　出庫作業が登録されている場合
+            if (datas.Syukosgyjokyo != null) {
 
-                //　出庫作業が登録されている場合
-                if (datas.Syukosgyjokyo != null) {
+                // 受領確認の場合
+                if (EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn) == EnumClass.SgyjokyoKubun.Juryokakunin) {
 
-                    // 受領確認の場合
-                    if (EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn) == EnumClass.SgyjokyoKubun.Juryokakunin) {
-
-                        // 背景色をグレーに設定
-                        view.setBackground(getDrawable(R.drawable.list_item_selecter_darkgray));
-//                        txtGoodsIssueListNo.setBackgroundColor(getColor(R.color.darkgray));
-//                        txtGoodsIssueListSlipNo.setBackgroundColor(getColor(R.color.darkgray));
-//                        txtGoodsIssueListStatus.setBackgroundColor(getColor(R.color.darkgray));
-//                        chkGoodsIssueListSelect.setBackgroundColor(getColor(R.color.darkgray));
-                    }
-
-                    // 作業状況区分名表示
-                    txtGoodsIssueListStatus.setText(EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn).getString());
-                    // チェックボックスを無効
-                    chkGoodsIssueListSelect.setEnabled(false);
-                    // チェックボックスを透明にする
-                    chkGoodsIssueListSelect.setVisibility(View.INVISIBLE);
-
+                    // 背景色をグレーに設定
+                    view.setBackground(getDrawable(R.drawable.list_item_selecter_darkgray));
                 }
-                //　出庫作業が登録されていない場合
-                else {
-                    // 作業状況は未着手固定
-                    txtGoodsIssueListStatus.setText(EnumClass.getSgyjokyoKubun(EnumClass.SgyjokyoKubun.Michakusyu.getInteger()).getString());
+
+                // 作業状況区分名表示
+                EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn);
+                if (sgyjokyoKubun != null) {
+                    txtGoodsIssueListStatus.setText(sgyjokyoKubun.getString());
+                }
+                // チェックボックスを無効
+                chkGoodsIssueListSelect.setEnabled(false);
+                // チェックボックスを透明にする
+                chkGoodsIssueListSelect.setVisibility(View.INVISIBLE);
+
+            }
+            //　出庫作業が登録されていない場合
+            else {
+                // 作業状況は未着手固定
+                EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(EnumClass.SgyjokyoKubun.Michakusyu.getInteger());
+                if (sgyjokyoKubun != null) {
+                    txtGoodsIssueListStatus.setText(sgyjokyoKubun.getString());
                 }
             }
 
@@ -507,40 +460,23 @@ public class GoodsIssueListActivity extends CommonActivity {
 
     // region チェックボックスクリック時
 
-    class chkChkBox_Click implements View.OnClickListener{
+    class chkChkBox_Click implements View.OnClickListener {
 
         public Long syukono;
 
-        public  chkChkBox_Click(long l)
-        {
+        public chkChkBox_Click(long l) {
             syukono = l;
         }
+
         @Override
         public void onClick(View view) {
             final boolean checked = ((CheckBox) view).isChecked();
 
-            if (checked) {
-                syukoChk.replace(syukono, true);
-            } else {
-                syukoChk.replace(syukono, false);
-            }
+            syukoChk.replace(syukono, checked);
         }
     }
 
     // endregion
-
-    //region ハードキークリック
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent e) {
-        if (isHardwareKeyDisabled) {
-            return true;
-        }
-
-        return super.dispatchKeyEvent(e);
-    }
-
-    //endregion
 
     //region 戻るボタン押下時
 

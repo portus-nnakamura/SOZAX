@@ -1,21 +1,17 @@
 package com.example.sozax.ui;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
@@ -49,9 +45,6 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
     // 集計コードチェックパターン
     final private String chkPattern = "2:[0-9]{15}$";
 
-    // ハードウェアキー無効化フラグ
-    private boolean isHardwareKeyDisabled = false;
-
     // 再立ち上げフラグ
     public static boolean isRerase = false;
 
@@ -63,25 +56,25 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inventory_inquiry_page1);
 
+        // アプリ終了
+        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
+
+        // ログイン情報長押し
+        findViewById(R.id.clLoginInfo).setOnLongClickListener(new clLoginInfo_LongClick());
+
         // ログイン情報を表示
         DisplayLoginInfo();
 
         // 履歴画面で戻るボタンが押された場合
-        if (isRerase){
+        if (isRerase) {
             dispData = (ZaikoSyokaiModel) getIntent().getSerializableExtra(getResources().getString(R.string.intent_key_zaiko_syokai));
             DisplayData();
             // 終わったら元に戻す
             isRerase = false;
-        }
-        else{
+        } else {
             // ボタンの無効化
             InvalidBtnInventoryInquiry();
         }
-
-
-
-        // アプリ終了
-        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage1Activity.this));
 
         mKeyRemapLibrary = new KeyRemapLibrary();
         mKeyRemapLibrary.createKeyRemap(this, this); // create
@@ -120,10 +113,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
                             // 正規表現でチェック
                             if (!matcher.lookingAt()) {
                                 // 不正なQRデータの場合メッセージを表示して処理中断
-                                AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
-                                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
-                                builder.show();
-                                return;
+                                OutputErrorMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
                             } else {
                                 // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
                                 // QRデータから集計コードを切り出す
@@ -141,7 +131,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
     //endregion
 
     // region アダプター作成
-    private class ListAdapter extends BaseAdapter {
+    private static class ListAdapter extends BaseAdapter {
 
         private final ArrayList<String> list;
         private final LayoutInflater inflater;
@@ -177,7 +167,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
             final String s = (String) getItem(position);
 
             // テキストボックスを取得
-            TextView txtInventoryInquiryPage1Info = (TextView) convertView.findViewById(R.id.txtInventoryInquiryPage1Info);
+            TextView txtInventoryInquiryPage1Info = convertView.findViewById(R.id.txtInventoryInquiryPage1Info);
 
             // 値をセット
             txtInventoryInquiryPage1Info.setText(s);
@@ -205,7 +195,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
     //region 進行ボタンの有効・無効化
 
     // 共通
-    private void CommonEnabledBtnInventoryInquiry(SpannableStringBuilder sb, int color,  boolean enabled ) {
+    private void CommonEnabledBtnInventoryInquiry(SpannableStringBuilder sb, int color, boolean enabled) {
         MaterialButton btnInventoryInquiryPage1Proceed = findViewById(R.id.btnInventoryInquiryPage1Proceed);
         btnInventoryInquiryPage1Proceed.setText(sb);
         btnInventoryInquiryPage1Proceed.setBackgroundColor(color);
@@ -217,19 +207,19 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         SpannableStringBuilder sb = new SpannableStringBuilder(getResources().getString(R.string.inventory_inquiry_page1_activity_zaikosyokaibtn));
         int start = sb.length();
 
-        sb.append("\n" + getResources().getString(R.string.inventory_inquiry_page1_activity_cannot_press));
+        sb.append("\n").append(getResources().getString(R.string.inventory_inquiry_page1_activity_cannot_press));
         sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         int color = getColor(R.color.darkgray);
 
-        CommonEnabledBtnInventoryInquiry(sb,color,false);
+        CommonEnabledBtnInventoryInquiry(sb, color, false);
     }
 
     // 有効化
-    private void ActiveBtnInventoryInquiry(){
+    private void ActiveBtnInventoryInquiry() {
         SpannableStringBuilder sb = new SpannableStringBuilder(getResources().getString(R.string.inventory_inquiry_page1_activity_zaikosyokaibtn));
         int color = getColor(R.color.orientalblue);
 
-        CommonEnabledBtnInventoryInquiry(sb,color,true );
+        CommonEnabledBtnInventoryInquiry(sb, color, true);
     }
 
     //endregion
@@ -243,15 +233,8 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // デバイスボタン押下時制御実装予定
-            isHardwareKeyDisabled = true;
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         /**
@@ -264,24 +247,13 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
 
                 // エラー発生
                 if (zaikosyokai.Is_error) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.inventory_inquiry_page1_activity_failed_getdata_message), zaikosyokai.Message));
-
-                    builder.show();
-
+                    OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.inventory_inquiry_page1_activity_failed_getdata_message), zaikosyokai.Message));
                     return;
                 }
 
                 // 該当データなし
                 if (zaikosyokai.Syukeicd == 0) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(InventoryInquiryPage1Activity.this);
-                    builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_nodata_message));
-
-                    builder.show();
-
+                    OutputErrorMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_nodata_message));
                     return;
                 }
 
@@ -293,15 +265,9 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
+                // 操作の有効化
+                setEnabledOperation(true);
 
-                // ハードウェアキーを有効化
-                isHardwareKeyDisabled = false;
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             }
         }
     }
@@ -309,6 +275,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
     //endregion
 
     // データ表示処理
+    @SuppressLint("DefaultLocale")
     private void DisplayData() {
         // データを準備
         ArrayList<String> zaikoData = new ArrayList<String>();
@@ -321,7 +288,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         zaikoData.add(dispData.Sykdomenm);
 
         // レイアウトで定義している在庫品情報のリストビューを取得
-        ListView lvInventoryInquiryProductInformation = (ListView) findViewById(R.id.lvInventoryInquiryProductInformation);
+        ListView lvInventoryInquiryProductInformation = findViewById(R.id.lvInventoryInquiryProductInformation);
 
         // アダプタ－を作成
         ListAdapter adapter = new ListAdapter(InventoryInquiryPage1Activity.this, zaikoData);
@@ -363,20 +330,6 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
         ActiveBtnInventoryInquiry();
     }
 
-    //region ハードキークリック
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent e) {
-        if(isHardwareKeyDisabled)
-        {
-            return  true;
-        }
-
-        return super.dispatchKeyEvent(e);
-    }
-
-    //endregion
-
     //region DENSO固有ボタンの設定
 
     @Override
@@ -408,7 +361,7 @@ public class InventoryInquiryPage1Activity extends ScannerActivity implements Ke
 
     // region 戻るボタン押下時
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
 
         // 本画面に遷移時メニュー画面は終了されている為、新たにメニュー画面を立ち上げる
         // メニューに遷移

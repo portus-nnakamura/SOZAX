@@ -179,7 +179,4 @@ public class SyukoDenpyoModel extends ResultClass implements Serializable {
     public BarChkKomkModel BarChkKomk = null;
 
     public SyukoSagyoModel Syukosgyjokyo = null;
-
-
-
 }

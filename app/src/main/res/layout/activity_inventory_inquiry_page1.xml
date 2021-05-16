@@ -40,6 +40,7 @@
 
         <!-- ログイン情報 -->
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/clLoginInfo"
             style="@style/login_info_layout"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -137,8 +138,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:divider="@color/darkgray"
-        android:dividerHeight="1dp"
+        android:divider="@color/black"
+        android:dividerHeight="0.5dp"
         android:background="@color/frostygray"
         app:layout_constraintBottom_toTopOf="@+id/tlInventoryInquiryPage1QuantityAndWeight"
         app:layout_constraintLeft_toLeftOf="parent"

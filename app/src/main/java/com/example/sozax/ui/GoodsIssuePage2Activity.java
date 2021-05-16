@@ -14,16 +14,14 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
-import com.densowave.bhtsdk.barcode.BarcodeException;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
 import com.example.sozax.R;
 import com.example.sozax.bl.controllers.BarChkKomkController;
@@ -87,7 +85,13 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
         // 出庫伝票情報を取得
         Intent intent = getIntent();
-        sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) intent.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
+        try {
+            //noinspection unchecked
+            sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) intent.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
+        } catch (Exception exception) {
+            Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
         selectedSagyochuSyukoDenpyoIndex = intent.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
 
         // 画面全体の表示を更新
@@ -95,6 +99,18 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
     }
 
     //endregion
+
+    // region 画面終了時
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // KeyRemapLibrary クラスのインスタンスを解放
+        mKeyRemapLibrary.disposeKeyRemap();
+    }
+
+    // endregion
 
     //region 前伝票を表示する
 
@@ -143,6 +159,9 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
     // 集計コードチェックパターン
     final private String chkPattern = "2:[0-9]{15}$";
 
+    // 振動フラグ
+    private  Boolean isVibrate = false;
+
     @Override
     public void onBarcodeDataReceived(BarcodeDataReceivedEvent event) {
 
@@ -172,9 +191,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                             // 正規表現でチェック
                             if (!matcher.lookingAt()) {
                                 // 不正なQRデータの場合メッセージを表示して処理中断
-                                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
-                                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
-                                builder.show();
+                                OutputErrorMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
                             } else {
                                 // 正常なQRデータの場合集計コードを引数として取得処理を呼び出し処理続行
                                 // QRデータから集計コードを切り出す
@@ -188,6 +205,9 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                                 SyukoDenpyosModel putData = new SyukoDenpyosModel();
                                 putData.SyukoDenpyos = new SyukoDenpyoModel[1];
                                 putData.SyukoDenpyos[0] = syukoDenpyoModel;
+
+                                // 振動する
+                                isVibrate = true;
 
                                 // 更新
                                 new PutSyukoSagyosTask().execute(putData);
@@ -214,7 +234,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
             AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
             builder.setTitle(listRowData.Komokname);
-            builder.setMessage(listRowData.Syukodenpyo_dispvalue + "\r\n" + listRowData.Hyojihyo_dispvalue);
+            builder.setMessage("出庫伝票" + "\r\n" +listRowData.Syukodenpyo_dispvalue + "\r\n\n" + "表示票" + "\r\n"+ listRowData.Hyojihyo_dispvalue);
 
             builder.show();
         }
@@ -239,6 +259,11 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
         // 出庫状況のステータスを変更
         EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn);
+
+        if (sgyjokyoKubun == null) {
+            return;
+        }
+
         switch (sgyjokyoKubun) {
             case Uketuke:
                 syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Zaikokakunin.getInteger();
@@ -272,13 +297,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
-
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 取得後処理
@@ -289,21 +309,14 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_barChkKomkModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
                     String template = "バーコードチェック項目の取得に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _barChkKomkModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _barChkKomkModel.Message)));
                     return;
                 }
 
                 // 該当データなし
                 if (_barChkKomkModel.Hinbuncd == 0 && _barChkKomkModel.Hinsyucd == 0 && _barChkKomkModel.Ninusicd == 0) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage("該当するバーコードチェック項目がありません");
-
-                    builder.show();
+                    OutputErrorMessage("該当するバーコードチェック項目がありません");
                     return;
                 }
 
@@ -315,13 +328,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
+                // 操作の有効化
+                setEnabledOperation(true);
             }
         }
     }
@@ -341,21 +349,14 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_hyojihyoModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
                     String template = "表示票データの取得に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _hyojihyoModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _hyojihyoModel.Message)));
                     return;
                 }
 
                 // 該当データなし
                 if (_hyojihyoModel.Syukeicd == 0L) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage("該当する表示票データがありません");
-
-                    builder.show();
+                    OutputErrorMessage("該当する表示票データがありません");
                     return;
                 }
 
@@ -367,12 +368,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 操作の有効化
+                setEnabledOperation(true);
 
             }
         }
@@ -390,13 +387,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
-
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 登録後処理
@@ -409,12 +401,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
-                    builder.setTitle("エラー");
                     String template = "出庫作業の更新に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
                     return;
                 }
 
@@ -424,6 +412,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                     for (SyukoDenpyoModel sagyochuSyukoDenpyo : sagyochuSyukoDenpyos) {
 
                         if (sagyochuSyukoDenpyo.Syukono == _syukoDenpyoModel.Syukono) {
+                            //noinspection UnusedAssignment
                             sagyochuSyukoDenpyo = _syukoDenpyoModel;
                             break;
                         }
@@ -460,19 +449,16 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 操作の有効化
+                setEnabledOperation(true);
 
                 if (isFinish) {
                     // リストから削除した結果、リストが空になった場合、画面を閉じる
-                    Intent intent = new Intent(getApplication(), GoodsIssuePage1Activity.class);
-                    intent.putExtra(getResources().getString(R.string.intent_key_login_info), loginInfo);
-                    startActivity(intent);
+                    Intent intent = new Intent();
+                    intent.putExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos), sagyochuSyukoDenpyos);
+                    intent.putExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), selectedSagyochuSyukoDenpyoIndex);
 
+                    setResult(RESULT_OK, intent);
                     finish();
                 }
             }
@@ -486,7 +472,6 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
     ListData currentListData = null;
 
-    @SuppressLint("DefaultLocale")
     private void RefreshScreenAll() {
 
         // 表示データを取得
@@ -516,9 +501,6 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
             return;
         }
 
-        // 表示する出庫伝票が変わった時のみ、リストビューの中身を更新する
-        //if (currentListData == null || currentListData.Syukono != syukoDenpyo.Syukono) {
-
         // リストビューのデータを作成
         currentListData = new ListData();
         currentListData.Syukono = syukoDenpyo.Syukono;
@@ -530,8 +512,6 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
         // アダプターをセット
         ListView lvGoodsIssueProductInformation = findViewById(R.id.lvGoodsIssueProductInformation);
         lvGoodsIssueProductInformation.setAdapter(uniqueAdapter);
-
-        //}
 
         // 出庫番号とページ数
         TextView txtSlipInfo = findViewById(R.id.txtSlipInfo);
@@ -584,30 +564,34 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                     SpannableStringBuilder sb = new SpannableStringBuilder("出庫指示");
                     int start = sb.length();
                     int color;
-                    boolean enabled;
 
                     sb.append("\n(NGが含まれているため、押せません)");
                     sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     color = getColor(R.color.darkgray);
-                    enabled = false;
 
                     btnGoodsIssuePage2Proceed.setText(sb);
                     btnGoodsIssuePage2Proceed.setBackgroundColor(color);
-                    btnGoodsIssuePage2Proceed.setEnabled(enabled);
+                    btnGoodsIssuePage2Proceed.setEnabled(false);
+
+                    if(isVibrate)
+                    {
+                        // 振動する
+                        Vibrate();
+                        isVibrate = false;
+                    }
+
                 } else if (existsUNCHECK) {
                     SpannableStringBuilder sb = new SpannableStringBuilder("出庫指示");
                     int start = sb.length();
                     int color;
-                    boolean enabled;
 
                     sb.append("\n(在庫確認が未了のため、押せません)");
                     sb.setSpan(new RelativeSizeSpan(0.5f), start, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                     color = getColor(R.color.darkgray);
-                    enabled = false;
 
                     btnGoodsIssuePage2Proceed.setText(sb);
                     btnGoodsIssuePage2Proceed.setBackgroundColor(color);
-                    btnGoodsIssuePage2Proceed.setEnabled(enabled);
+                    btnGoodsIssuePage2Proceed.setEnabled(false);
                 } else {
                     SpannableStringBuilder sb = new SpannableStringBuilder();
                     sb.append("出庫指示");
@@ -619,16 +603,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                     btnGoodsIssuePage2Proceed.setEnabled(true);
                 }
 
-                try {
-                    if (mBarcodeScanner != null) {
-
-                        // 再開時に、バーコードスキャナの読取を許可
-                        mBarcodeScanner.claim();
-
-                    }
-                } catch (BarcodeException e) {
-
-                }
+                // バーコードスキャナの読取を許可
+                ScanClaim();
 
                 break;
 
@@ -653,13 +629,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                 btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.coral));
                 btnGoodsIssuePage2Proceed.setEnabled(true);
 
-                if (mBarcodeScanner != null) {
-                    try {
-                        // 休止時に、バーコードスキャナの読取を禁止
-                        mBarcodeScanner.close();
-                    } catch (BarcodeException e) {
-                    }
-                }
+                // バーコードスキャナの読取を禁止
+                ScanClose();
 
                 break;
 
@@ -684,13 +655,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
                 btnGoodsIssuePage2Proceed.setBackgroundColor(getColor(R.color.signalred));
                 btnGoodsIssuePage2Proceed.setEnabled(true);
 
-                if (mBarcodeScanner != null) {
-                    try {
-                        // 休止時に、バーコードスキャナの読取を禁止
-                        mBarcodeScanner.close();
-                    } catch (BarcodeException e) {
-                    }
-                }
+                // バーコードスキャナの読取を禁止
+                ScanClose();
 
                 break;
         }
@@ -715,7 +681,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
 
     //endregion
 
-    //region TODO ハードキークリック
+    //region ハードキークリック
 
     // F2押下中フラグ
     private boolean isF2Down = false;
@@ -725,7 +691,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
     final String[] items = {"目視で間違いないことを確認しました"};
     final boolean[] checkedItems = {false};
 
-    @SuppressLint("RtlHardcoded")
+    @SuppressLint({"RtlHardcoded", "SetTextI18n"})
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
 
@@ -1479,7 +1445,13 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
         return ret;
     }
 
-    // 日付比較
+    /**
+     * 日付比較
+     *
+     * @param date1 日付１
+     * @param date2 日付２
+     * @return 一致しているならtrue, 不一致ならfalse
+     */
     private int CompareToDate(Date date1, Date date2) {
         if (date1 == null && date2 == null) {
             // どっちもnullなら0
@@ -1491,6 +1463,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
             return 1;
         }
 
+        //noinspection deprecation
         if (date1.getYear() == date2.getYear() && date1.getMonth() == date2.getMonth() && date1.getDay() == date2.getDay()) {
             // 年月日の全てが一致しているなら0
             return 0;
@@ -1500,10 +1473,9 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
         }
     }
 
-
     //endregion
 
-    //region ボタンの割当
+    //region ボタンの割り当て
 
     @Override
     public void onKeyRemapCreated() {
@@ -1531,6 +1503,26 @@ public class GoodsIssuePage2Activity extends ScannerActivity implements KeyRemap
         // 右トリガーにバーコードスキャンを割り当て
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
                 KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
+
+    }
+
+    //endregion
+
+    //region 戻るボタン押下時
+
+    @Override
+    public void onBackPressed() {
+
+        try {
+            Intent intent = new Intent();
+            intent.putExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos), sagyochuSyukoDenpyos);
+            intent.putExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), selectedSagyochuSyukoDenpyoIndex);
+
+            setResult(RESULT_OK, intent);
+            finish();
+        } catch (Exception exception) {
+            Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
+        }
 
     }
 

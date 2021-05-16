@@ -1,8 +1,8 @@
 package com.example.sozax.ui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +25,7 @@ import java.util.Date;
 import static com.example.sozax.common.CommonFunction.multiplyThousand;
 import static com.example.sozax.common.CommonFunction.settingDateFormat;
 import static com.example.sozax.common.CommonFunction.toFullWidth;
+import static java.lang.String.format;
 
 public class InventoryInquiryPage2Activity extends CommonActivity {
 
@@ -42,12 +43,12 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
     // region enum
 
-    private enum SortMode{
-        Asc,Desc;
+    private enum SortMode {
+        Asc, Desc
     }
 
-    private enum DispMode{
-        Kosu,Juryo;
+    private enum DispMode {
+        Kosu, Juryo
     }
 
     // endregion
@@ -58,6 +59,12 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inventory_inquiry_page2);
+
+        // アプリ終了
+        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage2Activity.this));
+
+        // ログイン情報長押し
+        findViewById(R.id.clLoginInfo).setOnLongClickListener(new clLoginInfo_LongClick());
 
         MaterialButton btnInventoryInquiryPage2Quantity = findViewById(R.id.btnInventoryInquiryPage2Quantity);
         btnInventoryInquiryPage2Quantity.setChecked(true);
@@ -70,18 +77,16 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
         // データ表示
         DisplayData();
-
-        // アプリ終了
-        findViewById(R.id.btnExit).setOnClickListener(new btnExit_Click(InventoryInquiryPage2Activity.this));
     }
 
     // endregion
 
     // region データ表示
+    @SuppressLint("DefaultLocale")
     private void DisplayData() {
 
         // リスト表示
-        ListView lvInventoryInquiryPage2Detail = (ListView) findViewById(R.id.lvInventoryInquiryPage2Detail);
+        ListView lvInventoryInquiryPage2Detail = findViewById(R.id.lvInventoryInquiryPage2Detail);
 
         // アダプター作成
         ListAdapter adapter = new ListAdapter(this, dispData.Nyusyukkorireki);
@@ -89,10 +94,10 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
         // 合計表示
         TextView txtInventoryInquiryPage2Quantity = findViewById(R.id.txtInventoryInquiryPage2Quantity);
-        txtInventoryInquiryPage2Quantity.setText(toFullWidth(String.format("%,d", dispData.Total_kosu.intValue())));
+        txtInventoryInquiryPage2Quantity.setText(toFullWidth(format("%,d", dispData.Total_kosu.intValue())));
         TextView txtInventoryInquiryPage2Weight = findViewById(R.id.txtInventoryInquiryPage2Weight);
         // 重量表示(t→kg)
-        txtInventoryInquiryPage2Weight.setText(toFullWidth(String.format("%,d", multiplyThousand(dispData.Total_juryo).intValue())));
+        txtInventoryInquiryPage2Weight.setText(toFullWidth(format("%,d", multiplyThousand(dispData.Total_juryo).intValue())));
     }
 
     // endregion
@@ -125,6 +130,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
             return position;
         }
 
+        @SuppressLint("DefaultLocale")
         @Override
         public View getView(final int position, View view, ViewGroup parent) {
 
@@ -134,10 +140,10 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
 
             // TextView取得
-            TextView txtInventoryInquiryPage2Date = (TextView) view.findViewById(R.id.txtInventoryInquiryPage2Date);
-            TextView txtInventoryInquiryPage2GoodsReceipt = (TextView) view.findViewById(R.id.txtInventoryInquiryPage2GoodsReceipt);
-            TextView txtInventoryInquiryPage2GoodsIssue = (TextView) view.findViewById(R.id.txtInventoryInquiryPage2GoodsIssue);
-            TextView txtInventoryInquiryPage2GoodsResidue = (TextView) view.findViewById(R.id.txtInventoryInquiryPage2GoodsResidue);
+            TextView txtInventoryInquiryPage2Date = view.findViewById(R.id.txtInventoryInquiryPage2Date);
+            TextView txtInventoryInquiryPage2GoodsReceipt = view.findViewById(R.id.txtInventoryInquiryPage2GoodsReceipt);
+            TextView txtInventoryInquiryPage2GoodsIssue = view.findViewById(R.id.txtInventoryInquiryPage2GoodsIssue);
+            TextView txtInventoryInquiryPage2GoodsResidue = view.findViewById(R.id.txtInventoryInquiryPage2GoodsResidue);
             MaterialButton btnInventoryInquiryPage2Quantity = findViewById(R.id.btnInventoryInquiryPage2Quantity);
             MaterialButton btnInventoryInquiryPage2Weight = findViewById(R.id.btnInventoryInquiryPage2Weight);
 
@@ -153,27 +159,27 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
                 txtInventoryInquiryPage2Date.setText(settingDateFormat(datas.Ukehridate, "yy/MM/dd"));
 
                 // 個数表示
-                if (btnInventoryInquiryPage2Quantity.isChecked() == true) {
-                    if (datas.Nyuko_kosuu.compareTo(BigDecimal.ZERO) == 1) {
-                        txtInventoryInquiryPage2GoodsReceipt.setText(String.format("%,d", datas.Nyuko_kosuu.intValue()));
+                if (btnInventoryInquiryPage2Quantity.isChecked()) {
+                    if (datas.Nyuko_kosuu.compareTo(BigDecimal.ZERO) > 0) {
+                        txtInventoryInquiryPage2GoodsReceipt.setText(format("%,d", datas.Nyuko_kosuu.intValue()));
                     }
-                    if (datas.Syukko_kosuu.compareTo(BigDecimal.ZERO) == 1) {
-                        txtInventoryInquiryPage2GoodsIssue.setText(String.format("%,d", datas.Syukko_kosuu.intValue()));
+                    if (datas.Syukko_kosuu.compareTo(BigDecimal.ZERO) > 0) {
+                        txtInventoryInquiryPage2GoodsIssue.setText(format("%,d", datas.Syukko_kosuu.intValue()));
                     }
 
-                    txtInventoryInquiryPage2GoodsResidue.setText(String.format("%,d", datas.Zan_kosu.intValue()));
+                    txtInventoryInquiryPage2GoodsResidue.setText(format("%,d", datas.Zan_kosu.intValue()));
 
                     // 重量表示(t→kg)
-                } else if (btnInventoryInquiryPage2Weight.isChecked() == true) {
+                } else if (btnInventoryInquiryPage2Weight.isChecked()) {
 
-                    if (datas.Nyuko_Juryo.compareTo(BigDecimal.ZERO) == 1) {
-                        txtInventoryInquiryPage2GoodsReceipt.setText(String.format("%,d", multiplyThousand(datas.Nyuko_Juryo).intValue()));
+                    if (datas.Nyuko_Juryo.compareTo(BigDecimal.ZERO) > 0) {
+                        txtInventoryInquiryPage2GoodsReceipt.setText(format("%,d", multiplyThousand(datas.Nyuko_Juryo).intValue()));
                     }
-                    if (datas.Syukko_Juryo.compareTo(BigDecimal.ZERO) == 1) {
-                        txtInventoryInquiryPage2GoodsIssue.setText(String.format("%,d", multiplyThousand(datas.Syukko_Juryo).intValue()));
+                    if (datas.Syukko_Juryo.compareTo(BigDecimal.ZERO) > 0) {
+                        txtInventoryInquiryPage2GoodsIssue.setText(format("%,d", multiplyThousand(datas.Syukko_Juryo).intValue()));
                     }
 
-                    txtInventoryInquiryPage2GoodsResidue.setText(String.format("%,d", multiplyThousand(datas.Zan_juryo).intValue()));
+                    txtInventoryInquiryPage2GoodsResidue.setText(format("%,d", multiplyThousand(datas.Zan_juryo).intValue()));
                 }
             }
             return view;
@@ -184,7 +190,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
     //region 重量切替
     public void btnInventoryInquiryPage2Weight_Click(View view) {
 
-        if(dispMode == DispMode.Kosu) {
+        if (dispMode == DispMode.Kosu) {
             dispMode = DispMode.Juryo;
             DisplayData();
         }
@@ -194,7 +200,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
     //region 個数切替
     public void btnInventoryInquiryPage2Quantity_Click(View view) {
 
-        if (dispMode == DispMode.Juryo){
+        if (dispMode == DispMode.Juryo) {
             dispMode = DispMode.Kosu;
             DisplayData();
         }
@@ -207,8 +213,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
         // ソート順反転
         if (sortMode == SortMode.Asc) {
             sortMode = SortMode.Desc;
-        }
-        else {
+        } else {
             sortMode = SortMode.Asc;
         }
 
@@ -245,7 +250,7 @@ public class InventoryInquiryPage2Activity extends CommonActivity {
 
     // region 戻るボタン
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
 
         // メニューに遷移
         Intent intent = new Intent(this, InventoryInquiryPage1Activity.class);

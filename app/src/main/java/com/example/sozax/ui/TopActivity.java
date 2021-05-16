@@ -1,7 +1,6 @@
 package com.example.sozax.ui;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,8 +8,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.sozax.R;
@@ -47,11 +44,7 @@ public class TopActivity extends CommonActivity {
             app_version_info.Versionnm = pckInfo.versionName;
         } catch (PackageManager.NameNotFoundException ex) {
             // エラー内容を出力
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("エラー");
-            builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.top_activity_message1), ex.getMessage()));
-
-            builder.show();
+            OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.top_activity_message1), ex.getMessage()));
             return;
         }
 
@@ -130,12 +123,8 @@ public class TopActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
+            // 操作を無効化
+            setEnabledOperation(false);
         }
 
         /**
@@ -151,41 +140,26 @@ public class TopActivity extends CommonActivity {
 
                 // エラー発生
                 if (db_version_info.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.top_activity_message2), db_version_info.Message));
-
-                    builder.show();
+                    OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.top_activity_message2), db_version_info.Message));
                     return;
                 }
 
                 // 該当データなし
                 if (db_version_info.Versioncd == 0) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                    builder.setMessage(getResources().getString(R.string.top_activity_message3));
-
-                    builder.show();
+                    OutputErrorMessage(getResources().getString(R.string.top_activity_message3));
                     return;
                 }
 
                 // アプリ内とDBの、バージョンコードを比較して、
                 // 最新のバージョンであるかチェックする
                 if (db_version_info.Versioncd > app_version_info.Versioncd) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(TopActivity.this);
-                    builder.setTitle("お知らせ");
-                    builder.setMessage(getResources().getString(R.string.top_activity_message4));
-
-                    builder.show();
+                    OutputInformationMessage(getResources().getString(R.string.top_activity_message4));
                 }
 
             } finally {
 
-                // プログレスバーを非表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.INVISIBLE);
-
-                // タッチ操作を有効化
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                // 操作を有効化
+                setEnabledOperation(true);
 
             }
         }

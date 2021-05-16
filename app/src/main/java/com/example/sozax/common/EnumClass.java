@@ -1,52 +1,44 @@
 package com.example.sozax.common;
 
-import java.util.Dictionary;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
-
 public class EnumClass {
 
     //region 作業状況区分
 
     public enum SgyjokyoKubun {
 
-        Michakusyu("未着手",0),
-        Uketuke("受付",1),
-        Zaikokakunin("在庫確認",2),
-        Syukosagyo("出庫作業",3),
-        Juryokakunin("受領確認",4);
+        Michakusyu("未着手", 0),
+        Uketuke("受付", 1),
+        Zaikokakunin("在庫確認", 2),
+        Syukosagyo("出庫作業", 3),
+        Juryokakunin("受領確認", 4);
 
         private final String s;
         private final Integer i;
 
 
-        private SgyjokyoKubun(final String name,final int code) {
+        SgyjokyoKubun(final String name, final int code) {
             this.s = name;
             this.i = code;
         }
 
-        public String getString()
-        {
-            return  this.s;
+        public String getString() {
+            return this.s;
         }
 
-        public int getInteger()
-        {
-            return  this.i;
+        public int getInteger() {
+            return this.i;
         }
     }
 
-    public  static SgyjokyoKubun getSgyjokyoKubun(final int code) {
+    public static SgyjokyoKubun getSgyjokyoKubun(final int code) {
         SgyjokyoKubun[] sgyjokyoKubuns = SgyjokyoKubun.values();
-        for(SgyjokyoKubun sgyjokyoKubun : sgyjokyoKubuns){
-            if(sgyjokyoKubun.getInteger() == code){
+        for (SgyjokyoKubun sgyjokyoKubun : sgyjokyoKubuns) {
+            if (sgyjokyoKubun.getInteger() == code) {
                 return sgyjokyoKubun;
             }
         }
 
-        return  null;
+        return null;
     }
 
     //endregion
@@ -55,38 +47,37 @@ public class EnumClass {
 
     public enum CheckKubun {
 
-        UNCHECK("",0),
-        OK("OK",1),
-        NG("NG",2);
+        UNCHECK("", 0),
+        OK("OK", 1),
+        NG("NG", 2);
 
         private final String s;
         private final Integer i;
 
-        private CheckKubun(final String name,final int code) {
+        CheckKubun(final String name, final int code) {
             this.s = name;
             this.i = code;
         }
 
-        public String getString()
-        {
-            return  this.s;
+        public String getString() {
+            return this.s;
         }
 
-        public int getInteger()
-        {
-            return  this.i;
+        public int getInteger() {
+            return this.i;
         }
     }
 
-    public  static CheckKubun getCheckKubun(final int code) {
+    @SuppressWarnings("unused")
+    public static CheckKubun getCheckKubun(final int code) {
         CheckKubun[] checkKubuns = CheckKubun.values();
-        for(CheckKubun checkKubun : checkKubuns){
-            if(checkKubun.getInteger() == code){
+        for (CheckKubun checkKubun : checkKubuns) {
+            if (checkKubun.getInteger() == code) {
                 return checkKubun;
             }
         }
 
-        return  null;
+        return null;
     }
 
     //endregion
@@ -95,37 +86,35 @@ public class EnumClass {
 
     public enum KamotuKubun {
 
-        Naika("内貨",1),
-        Gaika("外貨",2);
+        Naika("内貨", 1),
+        Gaika("外貨", 2);
 
         private final String s;
         private final Integer i;
 
-        private KamotuKubun(final String name,final int code) {
+        KamotuKubun(final String name, final int code) {
             this.s = name;
             this.i = code;
         }
 
-        public String getString()
-        {
-            return  this.s;
+        public String getString() {
+            return this.s;
         }
 
-        public int getInteger()
-        {
-            return  this.i;
+        public int getInteger() {
+            return this.i;
         }
     }
 
-    public  static KamotuKubun getKamotuKubun(final int code) {
+    public static KamotuKubun getKamotuKubun(final int code) {
         KamotuKubun[] kamotuKubuns = KamotuKubun.values();
-        for(KamotuKubun kamotuKubun : kamotuKubuns){
-            if(kamotuKubun.getInteger() == code){
+        for (KamotuKubun kamotuKubun : kamotuKubuns) {
+            if (kamotuKubun.getInteger() == code) {
                 return kamotuKubun;
             }
         }
 
-        return  null;
+        return null;
     }
 
     //endregion
@@ -134,39 +123,37 @@ public class EnumClass {
 
     public enum NidukurisagyoKubun {
 
-        Misettei("",0),
-        Nidukuri("荷造",1),
-        Tukurioki("作り置き",2),
-        Ninusinidukuri("荷主荷造",5);
+        Misettei("", 0),
+        Nidukuri("荷造", 1),
+        Tukurioki("作り置き", 2),
+        Ninusinidukuri("荷主荷造", 5);
 
         private final String s;
         private final Integer i;
 
-        private NidukurisagyoKubun(final String name,final int code) {
+        NidukurisagyoKubun(final String name, final int code) {
             this.s = name;
             this.i = code;
         }
 
-        public String getString()
-        {
-            return  this.s;
+        public String getString() {
+            return this.s;
         }
 
-        public int getInteger()
-        {
-            return  this.i;
+        public int getInteger() {
+            return this.i;
         }
     }
 
-    public  static NidukurisagyoKubun getNidukuriKubun(final int code) {
+    public static NidukurisagyoKubun getNidukuriKubun(final int code) {
         NidukurisagyoKubun[] nidukuriKubuns = NidukurisagyoKubun.values();
-        for(NidukurisagyoKubun nidukuriKubun : nidukuriKubuns){
-            if(nidukuriKubun.getInteger() == code){
+        for (NidukurisagyoKubun nidukuriKubun : nidukuriKubuns) {
+            if (nidukuriKubun.getInteger() == code) {
                 return nidukuriKubun;
             }
         }
 
-        return  null;
+        return null;
     }
 
     //endregion
@@ -175,38 +162,36 @@ public class EnumClass {
 
     public enum NyukosyudanKubun {
 
-        Funenyuko("船入庫",1),
-        Truck("トラック",2),
-        Container("コンテナ",3);
+        Funenyuko("船入庫", 1),
+        Truck("トラック", 2),
+        Container("コンテナ", 3);
 
         private final String s;
         private final Integer i;
 
-        private NyukosyudanKubun(final String name,final int code) {
+        NyukosyudanKubun(final String name, final int code) {
             this.s = name;
             this.i = code;
         }
 
-        public String getString()
-        {
-            return  this.s;
+        public String getString() {
+            return this.s;
         }
 
-        public int getInteger()
-        {
-            return  this.i;
+        public int getInteger() {
+            return this.i;
         }
     }
 
-    public  static NyukosyudanKubun getNyukosyudanKubun(final int code) {
+    public static NyukosyudanKubun getNyukosyudanKubun(final int code) {
         NyukosyudanKubun[] nyukosyudanKubuns = NyukosyudanKubun.values();
-        for(NyukosyudanKubun nyukosyudanKubun : nyukosyudanKubuns){
-            if(nyukosyudanKubun.getInteger() == code){
+        for (NyukosyudanKubun nyukosyudanKubun : nyukosyudanKubuns) {
+            if (nyukosyudanKubun.getInteger() == code) {
                 return nyukosyudanKubun;
             }
         }
 
-        return  null;
+        return null;
     }
 
     //endregion

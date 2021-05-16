@@ -127,6 +127,7 @@
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/heavenlyblue</item>
         <item name="android:textSize">@dimen/font_size_16</item>
+        <item name="android:textStyle">bold</item>
         <item name="backgroundColor">@color/transparent</item>
     </style>
 

@@ -54,8 +54,7 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     }
 
     // 読み取り許可
-    public  void ScanClaim()
-    {
+    public void ScanClaim() {
         try {
             if (mBarcodeScanner != null && !isClaimed) {
 
@@ -81,8 +80,7 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     }
 
     // 読み取り禁止
-    public  void ScanClose()
-    {
+    public void ScanClose() {
         try {
             if (mBarcodeScanner != null && !isClaimed) {
 
@@ -350,6 +348,37 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
         // 読取関連の設定を設定
         mBarcodeScanner.setSettings(settings);
 
+    }
+
+    //endregion
+
+    //region 操作を有効・無効化する
+
+    /**
+     * 操作を有効・無効化
+     */
+    @Override
+    public void setEnabledOperation(boolean isEnabled) {
+
+        super.setEnabledOperation(isEnabled);
+
+        try {
+
+            if (isEnabled) {
+
+                // バーコードスキャナの読取を禁止
+                ScanClose();
+
+            } else {
+
+                // バーコードスキャナの読取を許可
+                ScanClaim();
+
+            }
+
+        } catch (Exception exception) {
+            OutputErrorMessage(exception.getMessage());
+        }
     }
 
     //endregion

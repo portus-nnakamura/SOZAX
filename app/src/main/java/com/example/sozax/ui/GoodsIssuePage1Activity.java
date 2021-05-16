@@ -5,26 +5,19 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.annotation.RequiresApi;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.densowave.bhtsdk.barcode.BarcodeDataReceivedEvent;
 import com.densowave.bhtsdk.keyremap.KeyRemapLibrary;
@@ -35,20 +28,15 @@ import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoConditionModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyoModel;
 import com.example.sozax.bl.models.syuko_denpyo.SyukoDenpyosModel;
 import com.example.sozax.bl.models.syuko_sagyo.SyukoSagyoModel;
-import com.example.sozax.common.CommonActivity;
-import com.example.sozax.common.CommonFunction;
 import com.example.sozax.common.EnumClass;
 import com.example.sozax.common.EnumClass.SgyjokyoKubun;
 import com.example.sozax.common.ScannerActivity;
 import com.google.android.material.button.MaterialButton;
 
 import java.math.BigDecimal;
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,9 +52,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     // 現在作業中の出庫伝票のインデックス
     private int selectedSagyochuSyukoDenpyoIndex = -1;
-
-    // ハードウェアキー無効化フラグ
-    private boolean isHardwareKeyDisabled = false;
 
     // キー割り当てライブラリ(DENSO製)
     private KeyRemapLibrary mKeyRemapLibrary;
@@ -90,7 +75,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         // 行選択
         ((ListView) findViewById(R.id.lvGoodsIssueList)).setOnItemClickListener(new lvGoodsIssueList_Click());
         // ログイン情報長押し
-        ((ConstraintLayout)findViewById(R.id.clLoginInfo)).setOnLongClickListener(new clLoginInfo_LongClick());
+        findViewById(R.id.clLoginInfo).setOnLongClickListener(new clLoginInfo_LongClick());
 
         // ハードウェアキーのマッピングクラスのインスタンスを生成
         mKeyRemapLibrary = new KeyRemapLibrary();
@@ -114,6 +99,18 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
     }
 
     //endregion
+
+    // region 画面終了時
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // KeyRemapLibrary クラスのインスタンスを解放
+        mKeyRemapLibrary.disposeKeyRemap();
+    }
+
+    // endregion
 
     //region アプリ終了アイコンをクリック
 
@@ -176,9 +173,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                             // 正規表現でチェック
                             if (!matcher.lookingAt()) {
                                 // 不正なQRデータの場合メッセージを表示して処理中断
-                                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                                builder.setMessage(getResources().getString(R.string.inventory_inquiry_page1_activity_not_hyojihyosqr));
-                                builder.show();
+                                OutputErrorMessage("出庫伝票のQRではありません。");
                             } else {
 
                                 // QRデータから出庫Noを切り出す
@@ -187,7 +182,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                                 // 出庫伝票取得の条件を作成
                                 SyukoDenpyoConditionModel syukoDenpyoConditionModel = new SyukoDenpyoConditionModel();
                                 syukoDenpyoConditionModel.Syukono = syukono;
-                                syukoDenpyoConditionModel.Kaicd  = loginInfo.Kaicd;
+                                syukoDenpyoConditionModel.Kaicd = loginInfo.Kaicd;
                                 syukoDenpyoConditionModel.Soukocd = loginInfo.Soukocd;
                                 syukoDenpyoConditionModel.Sagyodate = loginInfo.Sgydate;
 
@@ -232,6 +227,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     class lvGoodsIssueList_LongClick implements AdapterView.OnItemLongClickListener {
 
+        private final onPositiveButtonClieckListener _onPositiveButtonClieckListener = new onPositiveButtonClieckListener();
+
         @Override
         public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
 
@@ -248,32 +245,22 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 DisplaySuryoJuryo();
             }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-            builder.setMessage("選択行をクリアしても\nよろしいですか？")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            OutputConfirmationMessage("選択行をクリアしてもよろしいですか？", _onPositiveButtonClieckListener);
 
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            // 出庫作業削除用のデータを作成
-                            SyukoDenpyosModel deleteData = new SyukoDenpyosModel();
-                            deleteData.SyukoDenpyos = new SyukoDenpyoModel[1];
-                            deleteData.SyukoDenpyos[0] = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
-
-                            // 出庫作業削除
-                            new DeleteSyukoSagyosTask().execute(deleteData);
-
-                        }
-
-                    })
-                    .setNegativeButton("キャンセル", null)
-                    .setCancelable(true);
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
-
-            TextView msgTxt = alertDialog.findViewById(android.R.id.message);
-            msgTxt.setTextSize((float) 14.0);
             return false;
+        }
+
+        private class onPositiveButtonClieckListener implements DialogInterface.OnClickListener {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // 出庫作業削除用のデータを作成
+                SyukoDenpyosModel deleteData = new SyukoDenpyosModel();
+                deleteData.SyukoDenpyos = new SyukoDenpyoModel[1];
+                deleteData.SyukoDenpyos[0] = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
+
+                // 出庫作業削除
+                new DeleteSyukoSagyosTask().execute(deleteData);
+            }
         }
     }
 
@@ -313,28 +300,31 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
         if (requestCode == REQUESTCODE && resultCode == RESULT_OK) {
             // 作業中データと選択Indexを取得
+            //noinspection unchecked
             sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) data.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
             selectedSagyochuSyukoDenpyoIndex = data.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
 
-            // 作業開始ボタンの有効・無効化
-            EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
+            if (sagyochuSyukoDenpyos == null || sagyochuSyukoDenpyos.size() == 0) {
 
-            if (sagyochuSyukoDenpyos.size() == 0) {
+                // ListView取得
+                final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
+                // アダプターをクリア
+                lvGoodsIssueList.setAdapter(null);
+
+                // 荷主・荷渡先・品名をクリア
+                ClearNinuNiwaHin();
+
+                // 数量・重量をクリア
+                ClearSuryoJuryo();
+
+                // 作業開始ボタンの無効化
+                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
                 return;
+
             }
 
             // 出庫伝票を表示
             DisplaySyukoDenpyos();
-
-            if (selectedSagyochuSyukoDenpyoIndex == -1) {
-                return;
-            }
-
-            // 荷主・荷渡先・品名を表示
-            DisplayNinuNiwaHin();
-
-            // 数量・重量を表示
-            DisplaySuryoJuryo();
         }
     }
 
@@ -345,7 +335,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     private void EnabledBtnGoodsIssuePage1Proceed(boolean isEnabled) {
 
-        ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
         SpannableStringBuilder sb = new SpannableStringBuilder("出庫作業開始");
         int start = sb.length();
         int color;
@@ -378,8 +367,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通の取得前処理
-            CommonPreExecute();
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 取得後処理
@@ -390,38 +379,41 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_syukoDenpyoModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
                     String template = "作業中の出庫伝票の削除に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Message)));
                     return;
                 }
 
                 // 該当データなし
                 if (_syukoDenpyoModel.Syukono == 0L) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage("該当する出庫伝票がありません");
-
-                    builder.show();
+                    Toast toast = Toast.makeText(GoodsIssuePage1Activity.this, "該当する出庫伝票がありません", Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.show();
                     return;
                 }
 
                 // 別のユーザーが作業中
                 if (_syukoDenpyoModel.Syukosgyjokyo != null && _syukoDenpyoModel.Syukosgyjokyo.Sgytantocd != loginInfo.Sgytantocd) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    builder.setTitle("エラー");
                     String template = "{0}が作業中のため、追加できません";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Syukosgyjokyo.Sgytantonm)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Syukosgyjokyo.Sgytantonm)));
                     return;
                 }
 
+                // 作業状況設定
+                SyukoSagyoModel syukoSagyoModel = new SyukoSagyoModel();
+                syukoSagyoModel.Sgysyukono = _syukoDenpyoModel.Syukono;
+                syukoSagyoModel.Kaicd = loginInfo.Kaicd;
+                syukoSagyoModel.Sgytencd = loginInfo.Tensyocd;
+                syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
+                syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
+                syukoSagyoModel.Sgydate = loginInfo.Sgydate;
+                syukoSagyoModel.Sgyjokyokbn = SgyjokyoKubun.Uketuke.getInteger();
+
+                _syukoDenpyoModel.Syukosgyjokyo = syukoSagyoModel;
+
                 // 出庫作業登録用のデータを作成
                 SyukoDenpyosModel postData = new SyukoDenpyosModel();
-                postData.SyukoDenpyos = new SyukoDenpyoModel[0];
+                postData.SyukoDenpyos = new SyukoDenpyoModel[1];
                 postData.SyukoDenpyos[0] = _syukoDenpyoModel;
 
                 // 出庫作業登録
@@ -429,8 +421,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
 
             }
         }
@@ -448,9 +440,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通の取得前処理
-            CommonPreExecute();
-
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 取得後処理
@@ -461,11 +452,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
                     String template = "作業中の出庫伝票の取得に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
                     return;
                 }
 
@@ -489,8 +477,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
 
             }
         }
@@ -508,9 +496,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通の取得前処理
-            CommonPreExecute();
-
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 取得後処理
@@ -521,21 +508,16 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    builder.setTitle("エラー");
                     String template = "未着手の出庫伝票の取得に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
                     return;
                 }
 
                 // 該当データなし
                 if (_syukoDenpyosModel.SyukoDenpyos == null) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    builder.setMessage("追加できる出庫伝票がありません");
-
-                    builder.show();
+                    Toast toast = Toast.makeText(GoodsIssuePage1Activity.this, "追加できる出庫伝票がありません", Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.show();
                     return;
                 }
 
@@ -621,8 +603,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
 
             }
         }
@@ -640,8 +622,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通の取得前処理
-            CommonPreExecute();
+            // 操作の無効化
+            setEnabledOperation(false);
 
         }
 
@@ -653,12 +635,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    builder.setTitle("エラー");
                     String template = "出庫作業の登録に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
                     return;
                 }
 
@@ -680,8 +658,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
 
             }
         }
@@ -700,9 +678,8 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         protected void onPreExecute() {
             super.onPreExecute();
 
-            // 共通の取得前処理
-            CommonPreExecute();
-
+            // 操作の無効化
+            setEnabledOperation(false);
         }
 
         // 削除後処理
@@ -713,20 +690,14 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
                 // エラー発生
                 if (_syukoDenpyosModel.Is_error) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-                    builder.setTitle("エラー");
                     String template = "出庫作業の削除に失敗しました。\r\n{0}";
-                    builder.setMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
-
-                    builder.show();
+                    OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyosModel.Message)));
                     return;
                 }
 
                 // 作業中出庫伝票リストから削除した伝票を削除する
                 for (SyukoDenpyoModel _syukoDenpyoModel : _syukoDenpyosModel.SyukoDenpyos) {
-
                     sagyochuSyukoDenpyos.remove(_syukoDenpyoModel);
-
                 }
 
                 // 現在作業中伝票Indexをクリアする
@@ -737,72 +708,12 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
             } finally {
 
-                // 共通の取得後処理
-                CommonPostExecute();
+                // 操作の有効化
+                setEnabledOperation(true);
 
             }
         }
 
-    }
-
-    //endregion
-
-    //region 取得・登録・削除処理前
-
-    private void CommonPreExecute() {
-
-        try {
-
-            // タッチ操作を無効化
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-            // ハードウェアキーを無効化
-            isHardwareKeyDisabled = true;
-
-            // バーコードスキャナの読取を禁止
-            ScanClose();
-
-            // プログレスバーを表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.VISIBLE);
-
-        } catch (Exception e) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-            builder.setTitle("エラー");
-            builder.setMessage(e.getMessage());
-
-            builder.show();
-        }
-    }
-
-    // endregion
-
-    //region 取得・登録・削除処理後
-
-    private void CommonPostExecute() {
-
-        try {
-
-            // プログレスバーを非表示
-            ProgressBar progressBar = findViewById(R.id.progressBar);
-            progressBar.setVisibility(View.INVISIBLE);
-
-            // ハードウェアキーを有効化
-            isHardwareKeyDisabled = false;
-
-            // バーコードスキャナの読取を許可
-            ScanClaim();
-
-            // タッチ操作を有効化
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-        } catch (Exception e) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-            builder.setTitle("エラー");
-            builder.setMessage(e.getMessage());
-
-            builder.show();
-        }
     }
 
     //endregion
@@ -826,6 +737,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 // 行選択
                 lvGoodsIssueList.deferNotifyDataSetChanged();
                 lvGoodsIssueList.requestFocusFromTouch();
+                lvGoodsIssueList.setItemChecked(selectedSagyochuSyukoDenpyoIndex,true);
                 lvGoodsIssueList.setSelection(selectedSagyochuSyukoDenpyoIndex);
 
                 // 荷主・荷渡先・品名を表示
@@ -977,7 +889,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
     //region 独自のAdapter
 
-    private class UniqueAdapter extends BaseAdapter {
+    private static class UniqueAdapter extends BaseAdapter {
 
         private final ArrayList<SyukoDenpyoModel> list;
         private final LayoutInflater inflater;
@@ -1021,7 +933,10 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             // 伝票番号
             txtGoodsIssueSlipNo.setText(String.valueOf(syukoDenpyoModel.Syukono));
             // 作業状況
-            txtGoodsIssueStatus.setText(EnumClass.getSgyjokyoKubun(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn).getString());
+            EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn);
+            if (sgyjokyoKubun != null) {
+                txtGoodsIssueStatus.setText(sgyjokyoKubun.getString());
+            }
 
             return view;
         }
@@ -1042,20 +957,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         mKeyRemapLibrary.setRemapKey(KeyRemapLibrary.KeyCode.KEY_CODE_RT.getValue(),
                 KeyRemapLibrary.ScanCode.SCAN_CODE_TRIGGER_BARCODE.getString());
 
-    }
-
-    //endregion
-
-    //region ハードウェアキー押下
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent e) {
-
-        if (isHardwareKeyDisabled) {
-            return true;
-        }
-
-        return super.dispatchKeyEvent(e);
     }
 
     //endregion

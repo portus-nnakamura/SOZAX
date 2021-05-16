@@ -14,7 +14,7 @@
         android:theme="@style/Theme.MILIS">
 
         <!-- トップ画面 -->
-        <activity android:name="com.example.sozax.ui.TopActivity">
+        <activity android:name="com.example.sozax.ui.TopActivity" android:configChanges="orientation|screenSize|fontScale" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

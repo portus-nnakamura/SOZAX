@@ -1,20 +1,16 @@
 package com.example.sozax.ui;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 
@@ -57,7 +53,7 @@ public class LoginActivity extends CommonActivity {
     // 作業担当者取得中フラグ
     private boolean isSgytantoGetting = false;
     // 倉庫取得中フラグ
-    private  boolean isSoukoGetting = false;
+    private boolean isSoukoGetting = false;
 
     //endregion
 
@@ -117,8 +113,6 @@ public class LoginActivity extends CommonActivity {
         }
 
         if (isErr) {
-            // エラー時に振動する
-            Vibrate();
             return;
         }
 
@@ -179,14 +173,9 @@ public class LoginActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            if(!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting)
-            {
-                // タッチ操作を無効化
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-                // プログレスバーを表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.VISIBLE);
+            if (!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting) {
+                // 操作を無効化
+                setEnabledOperation(false);
             }
 
             isTensyoGetting = true;
@@ -202,42 +191,13 @@ public class LoginActivity extends CommonActivity {
 
                 // エラー発生
                 if (tensyos.Is_error) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message4), tensyos.Message));
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                            // すべての一覧をクリア
-                            ClearListData();
-
-                        }
-                    });
-
-                    builder.show();
-
+                    OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message4), tensyos.Message), errorDialogDismissListener);
                     return;
                 }
 
                 // 該当データなし
                 if (tensyos.Tensyos == null) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                    builder.setMessage(getResources().getString(R.string.login_activity_message7));
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                            // すべての一覧をクリア
-                            ClearListData();
-
-                        }
-                    });
-
-                    builder.show();
-
+                    OutputErrorMessage(getResources().getString(R.string.login_activity_message7), errorDialogDismissListener);
                     return;
                 }
 
@@ -284,19 +244,15 @@ public class LoginActivity extends CommonActivity {
 
                 isTensyoGetting = false;
 
-                if(!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting)
-                {
-                    // プログレスバーを非表示
-                    ProgressBar progressBar = findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.INVISIBLE);
-
-                    // タッチ操作を有効化
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                if (!isSgytantoGetting && !isSoukoGetting) {
+                    // 操作を有効化
+                    setEnabledOperation(true);
                 }
 
             }
 
         }
+
     }
 
     //endregion
@@ -310,14 +266,9 @@ public class LoginActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            if(!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting)
-            {
-                // タッチ操作を無効化
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-                // プログレスバーを表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.VISIBLE);
+            if (!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting) {
+                // 操作を無効化
+                setEnabledOperation(false);
             }
 
             isSgytantoGetting = true;
@@ -339,42 +290,13 @@ public class LoginActivity extends CommonActivity {
 
                 // エラー発生
                 if (sgytantos.Is_error) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message5), sgytantos.Message));
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                            // すべての一覧をクリア
-                            ClearListData();
-
-                        }
-                    });
-
-                    builder.show();
-
+                    OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message5), sgytantos.Message), errorDialogDismissListener);
                     return;
                 }
 
                 // 該当データなし
                 if (sgytantos.Sgytantos == null) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                    builder.setMessage(getResources().getString(R.string.login_activity_message8));
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                            // すべての一覧をクリア
-                            ClearListData();
-
-                        }
-                    });
-
-                    builder.show();
-
+                    OutputErrorMessage(getResources().getString(R.string.login_activity_message8), errorDialogDismissListener);
                     return;
                 }
 
@@ -423,14 +345,9 @@ public class LoginActivity extends CommonActivity {
 
                 isSgytantoGetting = false;
 
-                if(!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting)
-                {
-                    // プログレスバーを非表示
-                    ProgressBar progressBar = findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.INVISIBLE);
-
-                    // タッチ操作を有効化
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                if (!isTensyoGetting && !isSoukoGetting) {
+                    // 操作を有効化
+                    setEnabledOperation(true);
                 }
 
             }
@@ -448,14 +365,9 @@ public class LoginActivity extends CommonActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            if(!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting)
-            {
-                // タッチ操作を無効化
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
-                // プログレスバーを表示
-                ProgressBar progressBar = findViewById(R.id.progressBar);
-                progressBar.setVisibility(View.VISIBLE);
+            if (!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting) {
+                // 操作を無効化
+                setEnabledOperation(false);
             }
 
             isSoukoGetting = true;
@@ -477,42 +389,13 @@ public class LoginActivity extends CommonActivity {
 
                 // エラー発生
                 if (soukos.Is_error) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                    builder.setTitle("エラー");
-                    builder.setMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message6), soukos.Message));
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                            // すべての一覧をクリア
-                            ClearListData();
-
-                        }
-                    });
-
-                    builder.show();
-
+                    OutputErrorMessage(java.text.MessageFormat.format(getResources().getString(R.string.login_activity_message6), soukos.Message), errorDialogDismissListener);
                     return;
                 }
 
                 // 該当データなし
                 if (soukos.Soukos == null) {
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
-                    builder.setMessage(getResources().getString(R.string.login_activity_message9));
-                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                            // すべての一覧をクリア
-                            ClearListData();
-
-                        }
-                    });
-
-                    builder.show();
-
+                    OutputErrorMessage(getResources().getString(R.string.login_activity_message9), errorDialogDismissListener);
                     return;
                 }
 
@@ -546,7 +429,7 @@ public class LoginActivity extends CommonActivity {
 
                     // 前回ログイン時の作業担当者を選択
                     if (soukoSelectedIndex > -1) {
-                        txtSouko.setText(soukos.Soukos[soukoSelectedIndex].Soukonm);
+                        txtSouko.setText(soukos.Soukos[soukoSelectedIndex].Soukornm);
                     }
                 }
 
@@ -558,17 +441,27 @@ public class LoginActivity extends CommonActivity {
 
                 isSoukoGetting = false;
 
-                if(!isTensyoGetting && !isSgytantoGetting && !isSoukoGetting)
-                {
-                    // プログレスバーを非表示
-                    ProgressBar progressBar = findViewById(R.id.progressBar);
-                    progressBar.setVisibility(View.INVISIBLE);
-
-                    // タッチ操作を有効化
-                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                if (!isTensyoGetting && !isSgytantoGetting) {
+                    // 操作を有効化
+                    setEnabledOperation(true);
                 }
 
             }
+        }
+    }
+
+    //endregion
+
+    //region エラーダイアログのDismissリスナー
+
+    ErrorDialogDismissListener errorDialogDismissListener = new ErrorDialogDismissListener();
+
+    private class ErrorDialogDismissListener implements DialogInterface.OnDismissListener {
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            // すべての一覧をクリア
+            ClearListData();
         }
     }
 
@@ -634,16 +527,14 @@ public class LoginActivity extends CommonActivity {
     //region クリア
 
     // 一覧クリア
-    private void ClearListData()
-    {
+    private void ClearListData() {
         ClearTensyo();
         ClearSgytanto();
         ClearSouko();
     }
 
     // 事業所をクリア
-    private  void  ClearTensyo()
-    {
+    private void ClearTensyo() {
         loginInfo.Tensyocd = 0;
         loginInfo.Tensyonm = "";
         tensyoSelectedIndex = -1;
@@ -652,8 +543,7 @@ public class LoginActivity extends CommonActivity {
     }
 
     // 作業担当者をクリア
-    private  void  ClearSgytanto()
-    {
+    private void ClearSgytanto() {
         loginInfo.Sgytantocd = 0;
         loginInfo.Sgytantonm = "";
         sgytantosModel = null;
@@ -667,8 +557,7 @@ public class LoginActivity extends CommonActivity {
     }
 
     // 倉庫をクリア
-    private  void  ClearSouko()
-    {
+    private void ClearSouko() {
         loginInfo.Soukocd = 0;
         loginInfo.Soukonm = "";
         loginInfo.Soukornm = "";
@@ -686,7 +575,7 @@ public class LoginActivity extends CommonActivity {
 
     //region 独自のアダプター
 
-    private class UniqueArrayAdapter extends ArrayAdapter<String> {
+    private static class UniqueArrayAdapter extends ArrayAdapter<String> {
         public UniqueArrayAdapter(@NonNull Context context, int resource, ArrayList<String> items) {
             super(context, resource, items);
         }
@@ -697,7 +586,7 @@ public class LoginActivity extends CommonActivity {
         }
     }
 
-    private class UniqueFilter extends Filter {
+    private static class UniqueFilter extends Filter {
         @Override
         protected FilterResults performFiltering(CharSequence prefix) {
             // 常に絞り込みを行わずに、全件表示する
