@@ -117,8 +117,9 @@ public class GoodsIssueListActivity extends CommonActivity {
                 // 出庫作業に登録
                 new PostSyukoSagyosTask().execute(postData);
             } else {
-                // 出庫画面に遷移
-                CreateIntent();
+
+                OutputNoTitleMessage("未着手の出庫伝票が選択されていません。");
+
             }
         }
     }
@@ -247,7 +248,7 @@ public class GoodsIssueListActivity extends CommonActivity {
         // 一行を目選択
         lvGoodsIssueSlipList.deferNotifyDataSetChanged();
         lvGoodsIssueSlipList.requestFocusFromTouch();
-        lvGoodsIssueSlipList.setSelection(0);
+        lvGoodsIssueSlipList.setItemChecked(0,true);
 
         // 詳細表示
         if (dispDatas.size() > 0) {
@@ -345,7 +346,7 @@ public class GoodsIssueListActivity extends CommonActivity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            view.setSelected(true);
+            view.setActivated(true);
 
             SyukoDenpyoModel syukodenpyo = dispDatas.get(position);
 
@@ -432,11 +433,9 @@ public class GoodsIssueListActivity extends CommonActivity {
                     view.setBackground(getDrawable(R.drawable.list_item_selecter_darkgray));
                 }
 
+                //
                 // 作業状況区分名表示
-                EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(datas.Syukosgyjokyo.Sgyjokyokbn);
-                if (sgyjokyoKubun != null) {
-                    txtGoodsIssueListStatus.setText(sgyjokyoKubun.getString());
-                }
+                txtGoodsIssueListStatus.setText(EnumClass.getNextSgyjokyoKubunName(datas.Syukosgyjokyo.Sgyjokyokbn));
                 // チェックボックスを無効
                 chkGoodsIssueListSelect.setEnabled(false);
                 // チェックボックスを透明にする

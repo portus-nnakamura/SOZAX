@@ -10,11 +10,11 @@ public class EnumClass {
         Uketuke("受付", 1),
         Zaikokakunin("在庫確認", 2),
         Syukosagyo("出庫作業", 3),
-        Juryokakunin("受領確認", 4);
+        Juryokakunin("受領確認", 4),
+        Kanryo("完了", 5);
 
         private final String s;
         private final Integer i;
-
 
         SgyjokyoKubun(final String name, final int code) {
             this.s = name;
@@ -40,6 +40,36 @@ public class EnumClass {
 
         return null;
     }
+
+    public static String getNextSgyjokyoKubunName(final  int code)
+    {
+        String ret = "";
+
+        SgyjokyoKubun sgyjokyoKubun = getSgyjokyoKubun(code);
+        if(sgyjokyoKubun != null)
+        {
+            switch (sgyjokyoKubun){
+                case Michakusyu:
+                    ret =  SgyjokyoKubun.Michakusyu.getString();
+                    break;
+                case Uketuke:
+                    ret =  SgyjokyoKubun.Zaikokakunin.getString();
+                    break;
+                case Zaikokakunin:
+                    ret =  SgyjokyoKubun.Syukosagyo.getString();
+                    break;
+                case Syukosagyo:
+                    ret =  SgyjokyoKubun.Juryokakunin.getString();
+                    break;
+                case Juryokakunin:
+                    ret =  SgyjokyoKubun.Kanryo.getString();
+                    break;
+            }
+        }
+
+        return  ret;
+    }
+
 
     //endregion
 
@@ -188,6 +218,44 @@ public class EnumClass {
         for (NyukosyudanKubun nyukosyudanKubun : nyukosyudanKubuns) {
             if (nyukosyudanKubun.getInteger() == code) {
                 return nyukosyudanKubun;
+            }
+        }
+
+        return null;
+    }
+
+    //endregion
+
+    //region 入力区分
+
+    public enum NyurKubun {
+
+        Code("コード入力",1),
+        Date("日付入力",2),
+        Free("フリー入力",3);
+
+        private final String s;
+        private final Integer i;
+
+        NyurKubun(final String name, final int code) {
+            this.s = name;
+            this.i = code;
+        }
+
+        public String getString() {
+            return this.s;
+        }
+
+        public int getInteger() {
+            return this.i;
+        }
+    }
+
+    public static NyurKubun getNyurKubun(final int code) {
+        NyurKubun[] nyurKubuns = NyurKubun.values();
+        for (NyurKubun nyurKubun : nyurKubuns) {
+            if (nyurKubun.getInteger() == code) {
+                return nyurKubun;
             }
         }
 

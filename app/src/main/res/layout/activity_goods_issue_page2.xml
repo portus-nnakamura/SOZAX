@@ -154,6 +154,7 @@
 
         <!-- 出庫品情報 -->
         <TextView
+            android:id="@+id/lblGoodsIssuePage2Info"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.85"

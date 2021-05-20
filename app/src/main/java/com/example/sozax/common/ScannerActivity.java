@@ -33,11 +33,19 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // バーコード関連を作成
+        CreateBarcodeRelation();
+    }
+
+    // バーコード関連を作成
+    public void CreateBarcodeRelation()
+    {
+        isClaimed = false;
         try {
             // マネージャーを作成
             BarcodeManager.create(this, this);
         } catch (BarcodeException e) {
-            Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
+            OutputErrorMessage(e.getMessage());
         }
     }
 
@@ -57,13 +65,12 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     public void ScanClaim() {
         try {
             if (mBarcodeScanner != null && !isClaimed) {
-
                 // 再開時に、バーコードスキャナの読取を許可
                 mBarcodeScanner.claim();
                 isClaimed = true;
             }
         } catch (BarcodeException e) {
-            Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
+            OutputErrorMessage(e.getMessage());
         }
     }
 
@@ -83,13 +90,12 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     public void ScanClose() {
         try {
             if (mBarcodeScanner != null && !isClaimed) {
-
                 // 休止時に、バーコードスキャナの読取を禁止
                 mBarcodeScanner.close();
                 isClaimed = false;
             }
         } catch (BarcodeException e) {
-            Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
+            OutputErrorMessage(e.getMessage());
         }
     }
 
@@ -101,13 +107,21 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
     protected void onDestroy() {
         super.onDestroy();
 
+        // バーコード関連を破棄
+        DestroyBarcodeRelation();
+    }
+
+    // バーコード関連を破棄
+    public void DestroyBarcodeRelation()
+    {
         // 終了時に、スキャナのインスタンスを破棄する
         if (mBarcodeScanner != null) {
             try {
                 mBarcodeScanner.destroy();
+                mBarcodeScanner = null;
                 isClaimed = false;
             } catch (BarcodeException e) {
-                Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
+                OutputErrorMessage(e.getMessage());
             }
         }
 
@@ -115,6 +129,7 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
         if (mBarcodeManager != null) {
             // Remove Scanner Manager
             mBarcodeManager.destroy();
+            mBarcodeManager = null;
         }
     }
 
@@ -142,12 +157,10 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
 
                 // 設定した内容に従って、バーコードスキャナの読取を許可
                 ScanClaim();
-
             }
         } catch (BarcodeException e) {
-            Log.e(TAG, "Error Code = " + e.getErrorCode(), e);
+            OutputErrorMessage(e.getMessage());
         }
-
     }
 
     //endregion
@@ -366,14 +379,13 @@ public abstract class ScannerActivity extends CommonActivity implements BarcodeM
 
             if (isEnabled) {
 
-                // バーコードスキャナの読取を禁止
-                ScanClose();
-
-            } else {
-
                 // バーコードスキャナの読取を許可
                 ScanClaim();
 
+            } else {
+
+                // バーコードスキャナの読取を禁止
+                ScanClose();
             }
 
         } catch (Exception exception) {

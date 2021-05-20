@@ -112,7 +112,7 @@ public abstract class CommonActivity extends AppCompatActivity {
     public class btnExit_Click implements View.OnClickListener {
 
         private final Activity activity;
-        private final  onPositiveButtonClieckListener _onPositiveButtonClieckListener = new onPositiveButtonClieckListener();
+        private final onPositiveButtonClieckListener _onPositiveButtonClieckListener = new onPositiveButtonClieckListener();
 
         public btnExit_Click(Activity _activity) {
             activity = _activity;
@@ -121,7 +121,7 @@ public abstract class CommonActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-            OutputConfirmationMessage("アプリを終了してもよろしいですか？" , _onPositiveButtonClieckListener);
+            OutputConfirmationMessage("アプリを終了してもよろしいですか？", _onPositiveButtonClieckListener);
 
         }
     }
@@ -145,7 +145,7 @@ public abstract class CommonActivity extends AppCompatActivity {
 
     //endregion
 
-    //region エラーを出力する
+    //region エラーメッセージを出力する
 
     /**
      * エラーダイアログ
@@ -235,10 +235,9 @@ public abstract class CommonActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setCustomTitle(titleView);
             builder.setMessage(ErrorMessage);
-            builder.setPositiveButton("OK",null);
+            builder.setPositiveButton("OK", null);
 
-            if(onDismissListener != null)
-            {
+            if (onDismissListener != null) {
                 builder.setOnDismissListener(onDismissListener);
             }
 
@@ -278,7 +277,7 @@ public abstract class CommonActivity extends AppCompatActivity {
 
     //endregion
 
-    //region お知らせを出力する
+    //region お知らせメッセージを出力する
 
     private InformationDialogFragment informationDialogFragment;
 
@@ -343,7 +342,7 @@ public abstract class CommonActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setCustomTitle(titleView);
             builder.setMessage(InformationMessage);
-            builder.setPositiveButton("OK",null);
+            builder.setPositiveButton("OK", null);
 
             return builder.create();
         }
@@ -378,9 +377,9 @@ public abstract class CommonActivity extends AppCompatActivity {
     private ConfirmationDialogFragment confirmationDialogFragment;
 
     /**
-     * お知らせを出力する
+     * 確認メッセージを出力する
      *
-     * @param confirmationMessage お知らせメッセージ
+     * @param confirmationMessage 確認メッセージ
      */
     public void OutputConfirmationMessage(String confirmationMessage) {
         if (confirmationDialogFragment == null) {
@@ -394,11 +393,11 @@ public abstract class CommonActivity extends AppCompatActivity {
     }
 
     /**
-     * お知らせを出力する
+     * 確認メッセージを出力する
      *
-     * @param confirmationMessage お知らせメッセージ
+     * @param confirmationMessage 確認メッセージ
      */
-    public void OutputConfirmationMessage(String confirmationMessage , DialogInterface.OnClickListener onPositiveButtonClieckListener) {
+    public void OutputConfirmationMessage(String confirmationMessage, DialogInterface.OnClickListener onPositiveButtonClieckListener) {
         if (confirmationDialogFragment == null) {
             confirmationDialogFragment = new ConfirmationDialogFragment();
         }
@@ -407,8 +406,7 @@ public abstract class CommonActivity extends AppCompatActivity {
         confirmationDialogFragment.setMessage(confirmationMessage);
 
         // ポジティブボタンクリックリスナーをセット
-        if(onPositiveButtonClieckListener != null)
-        {
+        if (onPositiveButtonClieckListener != null) {
             confirmationDialogFragment.setOnPositiveButtonClieckListener(onPositiveButtonClieckListener);
         }
 
@@ -417,14 +415,12 @@ public abstract class CommonActivity extends AppCompatActivity {
     }
 
     /**
-     * お知らせダイアログ
+     * 確認ダイアログ
      */
     public static class ConfirmationDialogFragment extends DialogFragment {
 
-        //region インスタンス変数
-
         /**
-         * お知らせメッセージ
+         * 確認メッセージ
          */
         private String ConfirmationMessage;
 
@@ -432,10 +428,6 @@ public abstract class CommonActivity extends AppCompatActivity {
          * Dismissリスナー
          */
         private DialogInterface.OnClickListener onPositiveButtonClieckListener;
-
-        //endregion
-
-        //endregion
 
         //region コンストラクタ
 
@@ -468,8 +460,8 @@ public abstract class CommonActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setCustomTitle(titleView);
             builder.setMessage(ConfirmationMessage);
-            builder.setPositiveButton("OK",onPositiveButtonClieckListener);
-            builder.setNegativeButton("CANCEL",null);
+            builder.setPositiveButton("OK", onPositiveButtonClieckListener);
+            builder.setNegativeButton("CANCEL", null);
 
             return builder.create();
         }
@@ -500,6 +492,82 @@ public abstract class CommonActivity extends AppCompatActivity {
 
         public void setOnPositiveButtonClieckListener(DialogInterface.OnClickListener _onPositiveButtonClieckListener) {
             onPositiveButtonClieckListener = _onPositiveButtonClieckListener;
+        }
+
+        //endregion
+    }
+
+    //endregion
+
+    //region タイトルなしメッセージを出力する
+
+    private NoTitleDialogFragment noTitleDialogFragment;
+
+    /**
+     * メッセージを出力する
+     *
+     * @param message メッセージ
+     */
+    public void OutputNoTitleMessage(String message) {
+        if (noTitleDialogFragment == null) {
+            noTitleDialogFragment = new NoTitleDialogFragment();
+        }
+        // メッセージをセット
+        noTitleDialogFragment.setMessage(message);
+
+        // 出力
+        noTitleDialogFragment.show(getSupportFragmentManager(), "");
+    }
+
+    /**
+     * タイトルなしダイアログ
+     */
+    public static class NoTitleDialogFragment extends DialogFragment {
+
+        /**
+         * メッセージ
+         */
+        private String Message;
+
+         //region コンストラクタ
+
+        public NoTitleDialogFragment() {
+
+        }
+
+        //endregion
+
+        //region ダイアログ作成
+
+        @NotNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(Message);
+            builder.setPositiveButton("OK", null);
+
+            return builder.create();
+        }
+
+        //endregion
+
+        //region 休止
+
+        @Override
+        public void onPause() {
+            super.onPause();
+
+            // onPause でダイアログを閉じる場合
+            dismiss();
+        }
+
+        //endregion
+
+        //region メッセージ追加
+
+        public void setMessage(String message) {
+            Message = message;
         }
 
         //endregion

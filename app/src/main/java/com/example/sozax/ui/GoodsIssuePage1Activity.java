@@ -204,7 +204,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            view.setSelected(true);
+            view.setActivated(true);
 
             if (selectedSagyochuSyukoDenpyoIndex != position) {
 
@@ -233,7 +233,10 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
         public boolean onItemLongClick(final AdapterView<?> parent, View view, final int position, long id) {
 
             if (selectedSagyochuSyukoDenpyoIndex != position) {
-                view.setSelected(true);
+
+                // 行選択
+                final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
+                lvGoodsIssueList.setItemChecked(position, true);
 
                 // 選択伝票Indexを更新
                 selectedSagyochuSyukoDenpyoIndex = position;
@@ -287,47 +290,54 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
 
         try {
             startActivityForResult(intent, REQUESTCODE);
+            // バーコード関連破棄
+            DestroyBarcodeRelation();
         } catch (Exception exception) {
-            Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
+            OutputErrorMessage(exception.getMessage());
         }
-
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUESTCODE && resultCode == RESULT_OK) {
-            // 作業中データと選択Indexを取得
-            //noinspection unchecked
-            sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) data.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
-            selectedSagyochuSyukoDenpyoIndex = data.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
+        try {
 
-            if (sagyochuSyukoDenpyos == null || sagyochuSyukoDenpyos.size() == 0) {
+            // バーコード関連作成
+            CreateBarcodeRelation();
 
-                // ListView取得
-                final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
-                // アダプターをクリア
-                lvGoodsIssueList.setAdapter(null);
+            if (requestCode == REQUESTCODE && resultCode == RESULT_OK) {
+                // 作業中データと選択Indexを取得
+                //noinspection unchecked
+                sagyochuSyukoDenpyos = (ArrayList<SyukoDenpyoModel>) data.getSerializableExtra(getResources().getString(R.string.intent_key_sagyochu_syuko_denpyos));
+                selectedSagyochuSyukoDenpyoIndex = data.getIntExtra(getResources().getString(R.string.intent_key_selected_sagyochu_syuko_denpyo_index), -1);
 
-                // 荷主・荷渡先・品名をクリア
-                ClearNinuNiwaHin();
+                if (sagyochuSyukoDenpyos == null || sagyochuSyukoDenpyos.size() == 0) {
 
-                // 数量・重量をクリア
-                ClearSuryoJuryo();
+                    // ListView取得
+                    final ListView lvGoodsIssueList = findViewById(R.id.lvGoodsIssueList);
+                    // アダプターをクリア
+                    lvGoodsIssueList.setAdapter(null);
 
-                // 作業開始ボタンの無効化
-                EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
-                return;
+                    // 荷主・荷渡先・品名をクリア
+                    ClearNinuNiwaHin();
 
+                    // 数量・重量をクリア
+                    ClearSuryoJuryo();
+
+                    // 作業開始ボタンの無効化
+                    EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
+                    return;
+
+                }
+
+                // 出庫伝票を表示
+                DisplaySyukoDenpyos();
             }
-
-            // 出庫伝票を表示
-            DisplaySyukoDenpyos();
+        } catch (Exception exception) {
+            OutputErrorMessage(exception.getMessage());
         }
     }
-
 
     //endregion
 
@@ -396,6 +406,16 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 if (_syukoDenpyoModel.Syukosgyjokyo != null && _syukoDenpyoModel.Syukosgyjokyo.Sgytantocd != loginInfo.Sgytantocd) {
                     String template = "{0}が作業中のため、追加できません";
                     OutputErrorMessage((java.text.MessageFormat.format(template, _syukoDenpyoModel.Syukosgyjokyo.Sgytantonm)));
+                    return;
+                }
+
+                // 既に作業開始済み
+                if (_syukoDenpyoModel.Syukosgyjokyo != null) {
+                    if (_syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn == SgyjokyoKubun.Juryokakunin.getInteger()) {
+                        OutputNoTitleMessage("作業完了済みの出庫伝票のため、追加できません。");
+                    } else {
+                        OutputNoTitleMessage("作業中の出庫伝票のため、追加できません。");
+                    }
                     return;
                 }
 
@@ -737,8 +757,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                 // 行選択
                 lvGoodsIssueList.deferNotifyDataSetChanged();
                 lvGoodsIssueList.requestFocusFromTouch();
-                lvGoodsIssueList.setItemChecked(selectedSagyochuSyukoDenpyoIndex,true);
-                lvGoodsIssueList.setSelection(selectedSagyochuSyukoDenpyoIndex);
+                lvGoodsIssueList.setItemChecked(selectedSagyochuSyukoDenpyoIndex, true);
 
                 // 荷主・荷渡先・品名を表示
                 DisplayNinuNiwaHin();
@@ -757,10 +776,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             EnabledBtnGoodsIssuePage1Proceed(sagyochuSyukoDenpyos != null && sagyochuSyukoDenpyos.size() != 0);
 
         } catch (Exception exception) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-            builder.setMessage(exception.getMessage());
-
-            builder.show();
+            OutputErrorMessage(exception.getMessage());
         }
     }
 
@@ -933,10 +949,7 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             // 伝票番号
             txtGoodsIssueSlipNo.setText(String.valueOf(syukoDenpyoModel.Syukono));
             // 作業状況
-            EnumClass.SgyjokyoKubun sgyjokyoKubun = EnumClass.getSgyjokyoKubun(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn);
-            if (sgyjokyoKubun != null) {
-                txtGoodsIssueStatus.setText(sgyjokyoKubun.getString());
-            }
+            txtGoodsIssueStatus.setText(EnumClass.getNextSgyjokyoKubunName(syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn));
 
             return view;
         }

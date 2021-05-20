@@ -31,11 +31,9 @@
         android:id="@+id/chkGoodsIssueListSelect"
         android:layout_width="@dimen/space_size_0"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/space_size_minus_2"
-        android:layout_marginBottom="@dimen/space_size_minus_2"
-        android:layout_marginStart="@dimen/space_size_minus_2"
-        android:layout_marginEnd="@dimen/space_size_minus_2"
         android:layout_weight="0.13"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
         android:focusable="false"
         android:gravity="center" />
 

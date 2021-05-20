@@ -128,49 +128,97 @@ public class SyukoDenpyoModel extends ResultClass implements Serializable {
 
     public int Katteflg = 0;
 
+    public String Kkkkmnm1= "";
+
+    public int Nyurkbn1 =0;
+
     public int Kikakucd1 = 0;
 
     public String Kikakunaiyo1 = "";
+
+    public String Kkkkmnm2= "";
+
+    public int Nyurkbn2 =0;
 
     public int Kikakucd2 = 0;
 
     public String Kikakunaiyo2 = "";
 
+    public String Kkkkmnm3= "";
+
+    public int Nyurkbn3 =0;
+
     public int Kikakucd3 = 0;
 
     public String Kikakunaiyo3 = "";
+
+    public String Kkkkmnm4= "";
+
+    public int Nyurkbn4 =0;
 
     public int Kikakucd4 = 0;
 
     public String Kikakunaiyo4 = "";
 
+    public String Kkkkmnm5= "";
+
+    public int Nyurkbn5 =0;
+
     public int Kikakucd5 = 0;
 
     public String Kikakunaiyo5 = "";
+
+    public String Kkkkmnm6= "";
+
+    public int Nyurkbn6 =0;
 
     public int Kikakucd6 = 0;
 
     public String Kikakunaiyo6 = "";
 
+    public String Kkkkmnm7= "";
+
+    public int Nyurkbn7 =0;
+
     public int Kikakucd7 = 0;
 
     public String Kikakunaiyo7 = "";
+
+    public String Kkkkmnm8= "";
+
+    public int Nyurkbn8 =0;
 
     public int Kikakucd8 = 0;
 
     public String Kikakunaiyo8 = "";
 
+    public String Kkkkmnm9= "";
+
+    public int Nyurkbn9 =0;
+
     public int Kikakucd9 = 0;
 
     public String Kikakunaiyo9 = "";
+
+    public String Kkkkmnm10= "";
+
+    public int Nyurkbn10 =0;
 
     public int Kikakucd10 = 0;
 
     public String Kikakunaiyo10 = "";
 
+    public String Kkkkmnm11= "";
+
+    public int Nyurkbn11 =0;
+
     public int Kikakucd11 = 0;
 
     public String Kikakunaiyo11 = "";
+
+    public String Kkkkmnm12= "";
+
+    public int Nyurkbn12 =0;
 
     public int Kikakucd12 = 0;
 

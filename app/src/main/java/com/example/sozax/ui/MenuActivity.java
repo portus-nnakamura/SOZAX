@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -177,6 +178,14 @@ public class MenuActivity extends CommonActivity {
         TextView lblSgydate = findViewById(R.id.lblSgydate);
         @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("M/d(E)", DateFormatSymbols.getInstance(Locale.JAPAN));
         lblSgydate.setText(sdf.format(loginInfo.Sgydate));
+    }
+
+    //endregion
+
+    //region 戻るボタン押下時
+
+    @Override
+    public void onBackPressed() {
     }
 
     //endregion

@@ -16,20 +16,14 @@
     <!-- 行のレイアウト -->
     <style name="raw_style">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">@dimen/space_size_32</item>
-        <item name="maxHeight">@dimen/space_size_32</item>
-        <item name="minHeight">@dimen/space_size_32</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
     </style>
 
     <!-- 行のText -->
     <style name="raw_text_style">
         <item name="android:layout_width">@dimen/space_size_0</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:layout_marginTop">@dimen/space_size_minus_2</item>
-        <item name="android:layout_marginBottom">@dimen/space_size_minus_2</item>
-        <item name="android:paddingTop">@dimen/space_size_8</item>
-        <item name="android:paddingBottom">@dimen/space_size_8</item>
+        <item name="android:layout_height">@dimen/space_size_44</item>
         <item name="android:textColor">@color/black</item>
         <item name="android:textSize">@dimen/font_size_16</item>
     </style>

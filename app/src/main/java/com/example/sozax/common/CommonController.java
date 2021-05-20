@@ -21,7 +21,7 @@ public class CommonController {
      * デフォルトルート
      */
     public static final String defaultRoute = "http://192.168.10.108:55500/api/";
-    //    public static final String defaultRoute = "http://192.168.10.214:55500/api/";
+//        public static final String defaultRoute = "http://192.168.10.214:55500/api/";
 
     //endregion
 

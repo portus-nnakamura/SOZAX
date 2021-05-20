@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import com.example.sozax.bl.models.zaiko_syokai.ZaikoSyokaiModel;
 import com.example.sozax.common.CommonController;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import okhttp3.Response;
 
@@ -38,7 +39,7 @@ public class ZaikoSyokaiController extends CommonController {
                 String s = response.body().string();
 
                 // JSONファイルからModelデータに変換
-                Gson gson = new Gson();
+                Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
                 ret = gson.fromJson(s, ZaikoSyokaiModel.class);
             } catch (Exception e) {
                 ret = new ZaikoSyokaiModel();
