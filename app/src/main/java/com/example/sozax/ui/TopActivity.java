@@ -6,16 +6,23 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.core.content.FileProvider;
+
 import com.example.sozax.R;
+import com.example.sozax.bl.controllers.ApkController;
 import com.example.sozax.bl.controllers.VersionInfoController;
+import com.example.sozax.bl.models.apk_download.ApkDownloadModel;
 import com.example.sozax.bl.models.login_info.LoginInfoModel;
 import com.example.sozax.bl.models.version_info.VersionInfoModel;
 import com.example.sozax.common.CommonActivity;
+import com.example.sozax.common.ResultClass;
 
+import java.io.File;
 import java.util.Date;
 
 public class TopActivity extends CommonActivity {
@@ -153,7 +160,8 @@ public class TopActivity extends CommonActivity {
                 // アプリ内とDBの、バージョンコードを比較して、
                 // 最新のバージョンであるかチェックする
                 if (db_version_info.Versioncd > app_version_info.Versioncd) {
-                    OutputInformationMessage(getResources().getString(R.string.top_activity_message4));
+                    //OutputInformationMessage(getResources().getString(R.string.top_activity_message4));
+                    new GetApkTask().execute();
                 }
 
             } finally {
@@ -161,6 +169,50 @@ public class TopActivity extends CommonActivity {
                 // 操作を有効化
                 setEnabledOperation(true);
 
+            }
+        }
+    }
+
+    //endregion
+
+    //region バージョン情報取得
+
+    @SuppressLint("StaticFieldLeak")
+    public class GetApkTask extends ApkController.GetApkTask {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // 操作を無効化
+            setEnabledOperation(false);
+        }
+
+        /**
+         * バックグランド処理が完了し、UIスレッドに反映する
+         */
+        @Override
+        protected void onPostExecute(ApkDownloadModel apkDownloadModel) {
+
+            if (apkDownloadModel.Is_error) {
+                // エラー
+                OutputErrorMessage(apkDownloadModel.Message);
+            } else {
+
+                try {
+                    // Intent生成
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    // MIMEtype 設定
+                    intent.setDataAndType(FileProvider.getUriForFile(TopActivity.this,getApplicationContext().getPackageName() + ".provider" ,new File(apkDownloadModel.Filepath)),"application/vnd.android.package-archive");
+                    // Intent発行
+                    startActivity(intent);
+                    finish();
+                }catch (Exception exception)
+                {
+                    OutputErrorMessage(exception.getMessage());
+                }
             }
         }
     }

@@ -20,8 +20,8 @@ public class CommonController {
     /**
      * デフォルトルート
      */
-    public static final String defaultRoute = "http://192.168.10.108:55500/api/";
-//        public static final String defaultRoute = "http://192.168.10.214:55500/api/";
+    public static final String defaultRoute = "http://192.168.10.108:55500/";
+//        public static final String defaultRoute = "http://192.168.10.214:55500/";
 
     //endregion
 
@@ -39,7 +39,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute + route)
+                .url(defaultRoute +"api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .build();
 
@@ -77,7 +77,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute + route)
+                .url(defaultRoute +"api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .post(requestBody)
                 .build();
@@ -115,7 +115,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute + route)
+                .url(defaultRoute +"api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .put(requestBody)
                 .build();
@@ -153,7 +153,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute + route)
+                .url(defaultRoute +"api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .delete(requestBody)
                 .build();
