@@ -160,7 +160,6 @@ public class TopActivity extends CommonActivity {
                 // アプリ内とDBの、バージョンコードを比較して、
                 // 最新のバージョンであるかチェックする
                 if (db_version_info.Versioncd > app_version_info.Versioncd) {
-                    //OutputInformationMessage(getResources().getString(R.string.top_activity_message4));
                     new GetApkTask().execute();
                 }
 

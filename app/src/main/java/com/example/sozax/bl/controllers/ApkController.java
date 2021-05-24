@@ -56,17 +56,18 @@ public class ApkController extends CommonController {
                 }
 
                 // apkファイルの保存先を指定
-                String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) .getPath() +"/release/";
-                File file = new File(path);
-                if(!file.mkdirs())
-                {
-                    ret = new ApkDownloadModel();
-                    ret.Is_error = true;
-                    ret.Message = "保存先ディレクトリの作成に失敗しました。";
-                }
+//                String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) .getPath() +"/release/";
+//                File file = new File(path);
+//                if(!file.mkdirs())
+//                {
+//                    ret = new ApkDownloadModel();
+//                    ret.Is_error = true;
+//                    ret.Message = "保存先ディレクトリの作成に失敗しました。";
+//                }
 
                 // テンポラリファイルの設定
-                File outputFile = new File(file,"tmp.apk");
+                File outputFile = File.createTempFile("tmp","apk");
+//                File outputFile = new File(file,"tmp.apk");
                 FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
 
                 // ダウンロード開始
