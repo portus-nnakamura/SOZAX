@@ -285,6 +285,7 @@
         app:cornerRadius="0dp"
         android:textAllCaps="false"
         android:bufferType="spannable"
+        android:enabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />

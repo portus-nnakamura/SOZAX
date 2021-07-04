@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.sozax">
+    package="com.example.sozax_app">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -17,27 +18,36 @@
         android:theme="@style/Theme.MILIS">
 
         <!-- トップ画面 -->
-        <activity android:name="com.example.sozax.ui.TopActivity" android:configChanges="orientation|screenSize|fontScale" >
+        <activity
+            android:name=".ui.TopActivity"
+            android:configChanges="orientation|screenSize|fontScale">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- ログイン画面 -->
-        <activity android:name="com.example.sozax.ui.LoginActivity" android:configChanges="orientation|screenSize|fontScale" />
-        <!-- メニュー画面 -->
-        <activity android:name="com.example.sozax.ui.MenuActivity" android:configChanges="orientation|screenSize|fontScale" />
-        <!-- 出庫処理(1/2) -->
-        <activity android:name="com.example.sozax.ui.GoodsIssuePage1Activity" android:configChanges="orientation|screenSize|fontScale" />
-        <!-- 出庫処理(2/2) -->
-        <activity android:name="com.example.sozax.ui.GoodsIssuePage2Activity" android:configChanges="orientation|screenSize|fontScale" />
-        <!-- 出庫伝票一覧 -->
-        <activity android:name="com.example.sozax.ui.GoodsIssueListActivity" android:configChanges="orientation|screenSize|fontScale" />
-        <!-- 在庫照会(1/2) -->
-        <activity android:name="com.example.sozax.ui.InventoryInquiryPage1Activity" android:configChanges="orientation|screenSize|fontScale" />
-        <!-- 在庫照会(2/2) -->
-        <activity android:name="com.example.sozax.ui.InventoryInquiryPage2Activity" android:configChanges="orientation|screenSize|fontScale" />
+        </activity> <!-- ログイン画面 -->
+        <activity
+            android:name=".ui.LoginActivity"
+            android:configChanges="orientation|screenSize|fontScale" /> <!-- メニュー画面 -->
+        <activity
+            android:name=".ui.MenuActivity"
+            android:configChanges="orientation|screenSize|fontScale" /> <!-- 出庫処理(1/2) -->
+        <activity
+            android:name=".ui.GoodsIssuePage1Activity"
+            android:configChanges="orientation|screenSize|fontScale" /> <!-- 出庫処理(2/2) -->
+        <activity
+            android:name=".ui.GoodsIssuePage2Activity"
+            android:configChanges="orientation|screenSize|fontScale" /> <!-- 出庫伝票一覧 -->
+        <activity
+            android:name=".ui.GoodsIssueListActivity"
+            android:configChanges="orientation|screenSize|fontScale" /> <!-- 在庫照会(1/2) -->
+        <activity
+            android:name=".ui.InventoryInquiryPage1Activity"
+            android:configChanges="orientation|screenSize|fontScale" /> <!-- 在庫照会(2/2) -->
+        <activity
+            android:name=".ui.InventoryInquiryPage2Activity"
+            android:configChanges="orientation|screenSize|fontScale" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -48,7 +58,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
-
     </application>
 
 </manifest>
