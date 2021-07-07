@@ -234,7 +234,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity {
 
     //region 詳細ダイアログ
 
-    public class DetailDialogFragment extends DialogFragment {
+    public static class DetailDialogFragment extends DialogFragment {
 
         public ListRowData listRowData;
 
@@ -252,7 +252,7 @@ public class GoodsIssuePage2Activity extends ScannerActivity {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(listRowData.Komokname);
             builder.setMessage("出庫伝票" + "\r\n" + listRowData.Syukodenpyo_dispvalue + "\r\n\n" + "表示票" + "\r\n" + listRowData.Hyojihyo_dispvalue);
 
@@ -756,6 +756,8 @@ public class GoodsIssuePage2Activity extends ScannerActivity {
     private boolean isF2Down = false;
     // F3押下中フラグ
     private boolean isF3Down = false;
+    final String[] items = {"目視で間違いないことを確認しました"};
+    final boolean[] checkedItems = {false};
 
     @SuppressLint({"RtlHardcoded", "SetTextI18n"})
     @Override
@@ -802,21 +804,58 @@ public class GoodsIssuePage2Activity extends ScannerActivity {
 
                 if (!isAllOK) {
 
-                    // ダイアログフラグメントを削除
-                    FragmentManager fragmentManager = getSupportFragmentManager();
-                    Fragment oldFragment = fragmentManager.findFragmentByTag(dialogTag);
-                    if (oldFragment != null) {
-                        fragmentManager.beginTransaction().remove(oldFragment).commit();
+                    // F2&F3押下中であるなら、
+                    AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
+
+                    TextView msgTxt = new TextView(this);
+                    msgTxt.setTextSize((float) 14.0);
+                    msgTxt.setTextColor(getColor(R.color.black));
+                    msgTxt.setPadding(20, 20, 0, 0);
+
+                    if (existsNG) {
+                        msgTxt.setText("NGが含まれていますが、よろしいですか？");
+                    } else {
+                        msgTxt.setText("表示票がスキャンされていませんが\nよろしいですか？");
                     }
 
-                    // F2&F3押下中であるなら、
-                    ProgressDialogFragment progressDialogFragment = new ProgressDialogFragment();
-                    progressDialogFragment.existsNG = existsNG;
-                    progressDialogFragment.showNow(fragmentManager, dialogTag);
+                    msgTxt.setGravity(Gravity.LEFT);
+                    builder.setCustomTitle(msgTxt);
 
-                    AlertDialog alertDialog = (AlertDialog) progressDialogFragment.getDialog();
-                    if (alertDialog != null)
-                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                    checkedItems[0] = false;
+                    builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                        public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                            checkedItems[which] = isChecked;
+                            AlertDialog alertDialog = (AlertDialog) dialog;
+                            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isChecked);
+                        }
+                    })
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    if (!checkedItems[0]) {
+                                        return;
+                                    }
+
+                                    // 「2:在庫確認」にステータスを変更
+                                    SyukoDenpyoModel syukoDenpyoModel = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
+                                    syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Zaikokakunin.getInteger();
+
+                                    // 更新データ作成
+                                    SyukoDenpyosModel putData = new SyukoDenpyosModel();
+                                    putData.SyukoDenpyos = new SyukoDenpyoModel[1];
+                                    putData.SyukoDenpyos[0] = syukoDenpyoModel;
+
+                                    // 更新
+                                    new PutSyukoSagyosTask().execute(putData);
+                                }
+                            })
+                            .setNegativeButton("キャンセル", null)
+                            .setCancelable(true);
+
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                 }
             }
         }
@@ -836,96 +875,6 @@ public class GoodsIssuePage2Activity extends ScannerActivity {
 
         return super.dispatchKeyEvent(e);
     }
-
-    //region 進行ダイアログ
-
-    public class ProgressDialogFragment extends DialogFragment {
-
-        private final String[] items = {"目視で間違いないことを確認しました"};
-        private final boolean[] checkedItems = {false};
-        public boolean existsNG;
-
-        //region コンストラクタ
-
-        public ProgressDialogFragment() {
-
-        }
-
-        //endregion
-
-        //region ダイアログ作成
-
-        @NotNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage2Activity.this);
-
-            TextView msgTxt = new TextView(GoodsIssuePage2Activity.this);
-            msgTxt.setTextSize((float) 14.0);
-            msgTxt.setTextColor(getColor(R.color.black));
-            msgTxt.setPadding(20, 20, 0, 0);
-
-            if (existsNG) {
-                msgTxt.setText("NGが含まれていますが、よろしいですか？");
-            } else {
-                msgTxt.setText("表示票がスキャンされていませんが\nよろしいですか？");
-            }
-
-            msgTxt.setGravity(Gravity.LEFT);
-            builder.setCustomTitle(msgTxt);
-
-            checkedItems[0] = false;
-            builder.setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
-                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                    checkedItems[which] = isChecked;
-                    AlertDialog alertDialog = (AlertDialog) dialog;
-                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isChecked);
-                }
-            })
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            if (!checkedItems[0]) {
-                                return;
-                            }
-
-                            // 「2:在庫確認」にステータスを変更
-                            SyukoDenpyoModel syukoDenpyoModel = sagyochuSyukoDenpyos.get(selectedSagyochuSyukoDenpyoIndex);
-                            syukoDenpyoModel.Syukosgyjokyo.Sgyjokyokbn = EnumClass.SgyjokyoKubun.Zaikokakunin.getInteger();
-
-                            // 更新データ作成
-                            SyukoDenpyosModel putData = new SyukoDenpyosModel();
-                            putData.SyukoDenpyos = new SyukoDenpyoModel[1];
-                            putData.SyukoDenpyos[0] = syukoDenpyoModel;
-
-                            // 更新
-                            new PutSyukoSagyosTask().execute(putData);
-                        }
-                    })
-                    .setNegativeButton("キャンセル", null)
-                    .setCancelable(true);
-
-            return builder.create();
-        }
-
-        //endregion
-
-        //region 休止
-
-        @Override
-        public void onPause() {
-            super.onPause();
-
-            // onPause でダイアログを閉じる場合
-            dismiss();
-        }
-
-        //endregion
-    }
-
-    //endregion
 
     //endregion
 

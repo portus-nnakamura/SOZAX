@@ -539,13 +539,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                     return;
                 }
 
-                // ダイアログフラグメントを削除
-                FragmentManager fragmentManager = getSupportFragmentManager();
-                Fragment oldFragment = fragmentManager.findFragmentByTag(dialogTag);
-                if (oldFragment != null) {
-                    fragmentManager.beginTransaction().remove(oldFragment).commit();
-                }
-
                 // 表示する「アイテムリスト」と「そのアイテムのチェック状態リスト」を作成
                 final String[] items = new String[_syukoDenpyosModel.SyukoDenpyos.length];
                 final boolean[] checkedItems = new boolean[_syukoDenpyosModel.SyukoDenpyos.length];
@@ -555,18 +548,76 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
                     checkedItems[i] = false;
                 }
 
-                SyukoDenpyosDialogFragment syukoDenpyosDialogFragment = new SyukoDenpyosDialogFragment();
-                syukoDenpyosDialogFragment.items = items;
-                syukoDenpyosDialogFragment.checkedItems = checkedItems;
-                syukoDenpyosDialogFragment.syukoDenpyosModel = _syukoDenpyosModel;
+                // 出庫伝票を複数選択できるダイアログを作成
+                AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
+                // タイトル
+                builder.setTitle("出庫伝票を選択して下さい");
+                // キャンセルボタン
+                builder.setNegativeButton("キャンセル", null);
+                // OKボタン
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        dialog.dismiss();
+
+                        // ✓がついている出庫伝票を取得
+                        ArrayList<SyukoDenpyoModel> selectedData = new ArrayList<SyukoDenpyoModel>();
+                        for (int i = 0; i < _syukoDenpyosModel.SyukoDenpyos.length; i++) {
+
+                            if (checkedItems[i]) {
+
+                                SyukoSagyoModel syukoSagyoModel = new SyukoSagyoModel();
+                                syukoSagyoModel.Sgysyukono = _syukoDenpyosModel.SyukoDenpyos[i].Syukono;
+                                syukoSagyoModel.Kaicd = loginInfo.Kaicd;
+                                syukoSagyoModel.Sgytencd = loginInfo.Tensyocd;
+                                syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
+                                syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
+                                syukoSagyoModel.Sgydate = loginInfo.Sgydate;
+                                syukoSagyoModel.Sgyjokyokbn = SgyjokyoKubun.Uketuke.getInteger();
+
+                                _syukoDenpyosModel.SyukoDenpyos[i].Syukosgyjokyo = syukoSagyoModel;
+                                selectedData.add(_syukoDenpyosModel.SyukoDenpyos[i]);
+                            }
+                        }
+
+                        // 出庫作業登録用データを作成
+                        SyukoDenpyosModel postData = new SyukoDenpyosModel();
+                        postData.SyukoDenpyos = new SyukoDenpyoModel[selectedData.size()];
+                        selectedData.toArray(postData.SyukoDenpyos);
+
+                        // 出庫作業を登録する
+                        new PostSyukoSagyosTask().execute(postData);
+                    }
+                }).setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+
+                        // ✔状態を反転
+                        checkedItems[which] = isChecked;
+
+                        // 1件でも✔されているか
+                        boolean existsChecked = false;
+                        for (boolean checkedItem : checkedItems) {
+                            if (checkedItem) {
+                                existsChecked = true;
+                                break;
+                            }
+                        }
+
+                        // 1件でも✔されていれば、OKボタンを有効化
+                        AlertDialog alertDialog = (AlertDialog) dialog;
+                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(existsChecked);
+                    }
+                });
+                // 出庫伝票を選択
 
                 // ダイアログ表示
-                syukoDenpyosDialogFragment.showNow(fragmentManager, dialogTag);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
 
                 // OKボタンを無効化
-                AlertDialog alertDialog = (AlertDialog) syukoDenpyosDialogFragment.getDialog();
-                if (alertDialog != null)
-                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 
             } finally {
                 // 操作の有効化
@@ -574,111 +625,6 @@ public class GoodsIssuePage1Activity extends ScannerActivity implements KeyRemap
             }
         }
     }
-
-    //region 出庫一覧ダイアログ
-
-    public class SyukoDenpyosDialogFragment extends DialogFragment {
-
-        public String[] items;
-        public boolean[] checkedItems;
-        public SyukoDenpyosModel syukoDenpyosModel;
-
-        //region コンストラクタ
-
-        public SyukoDenpyosDialogFragment() {
-
-        }
-
-        //endregion
-
-        //region ダイアログ作成
-
-        @NotNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-            // 出庫伝票を複数選択できるダイアログを作成
-            AlertDialog.Builder builder = new AlertDialog.Builder(GoodsIssuePage1Activity.this);
-            // タイトル
-            builder.setTitle("出庫伝票を選択して下さい");
-            // キャンセルボタン
-            builder.setNegativeButton("キャンセル", null);
-            // OKボタン
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                    dialog.dismiss();
-
-                    // ✓がついている出庫伝票を取得
-                    ArrayList<SyukoDenpyoModel> selectedData = new ArrayList<SyukoDenpyoModel>();
-                    for (int i = 0; i < syukoDenpyosModel.SyukoDenpyos.length; i++) {
-
-                        if (checkedItems[i]) {
-
-                            SyukoSagyoModel syukoSagyoModel = new SyukoSagyoModel();
-                            syukoSagyoModel.Sgysyukono = syukoDenpyosModel.SyukoDenpyos[i].Syukono;
-                            syukoSagyoModel.Kaicd = loginInfo.Kaicd;
-                            syukoSagyoModel.Sgytencd = loginInfo.Tensyocd;
-                            syukoSagyoModel.Sgytantocd = loginInfo.Sgytantocd;
-                            syukoSagyoModel.Sgysoukocd = loginInfo.Soukocd;
-                            syukoSagyoModel.Sgydate = loginInfo.Sgydate;
-                            syukoSagyoModel.Sgyjokyokbn = SgyjokyoKubun.Uketuke.getInteger();
-
-                            syukoDenpyosModel.SyukoDenpyos[i].Syukosgyjokyo = syukoSagyoModel;
-                            selectedData.add(syukoDenpyosModel.SyukoDenpyos[i]);
-                        }
-                    }
-
-                    // 出庫作業登録用データを作成
-                    SyukoDenpyosModel postData = new SyukoDenpyosModel();
-                    postData.SyukoDenpyos = new SyukoDenpyoModel[selectedData.size()];
-                    selectedData.toArray(postData.SyukoDenpyos);
-
-                    // 出庫作業を登録する
-                    new PostSyukoSagyosTask().execute(postData);
-                }
-            }).setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-
-                    // ✔状態を反転
-                    checkedItems[which] = isChecked;
-
-                    // 1件でも✔されているか
-                    boolean existsChecked = false;
-                    for (boolean checkedItem : checkedItems) {
-                        if (checkedItem) {
-                            existsChecked = true;
-                            break;
-                        }
-                    }
-
-                    // 1件でも✔されていれば、OKボタンを有効化
-                    AlertDialog alertDialog = (AlertDialog) dialog;
-                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(existsChecked);
-                }
-            });
-
-            return builder.create();
-        }
-
-        //endregion
-
-        //region 休止
-
-        @Override
-        public void onPause() {
-            super.onPause();
-
-            // onPause でダイアログを閉じる場合
-            dismiss();
-        }
-
-        //endregion
-    }
-
-    //endregion
 
     //endregion
 
