@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.concurrent.TimeUnit;
 
 import okhttp3.Headers;
 import okhttp3.MediaType;
@@ -21,7 +20,8 @@ public class CommonController {
     /**
      * デフォルトルート
      */
-    public static final String defaultRoute = "http://192.168.10.108:55500/";
+    public static final String defaultRoute = "http://172.19.99.109:55500/";
+//    public static final String defaultRoute = "http://192.168.10.108:55500/";
 //    public static final String defaultRoute = "http://192.168.10.214:55500/";
 
     //endregion
@@ -40,7 +40,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute +"api/" + route)
+                .url(defaultRoute + "api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .build();
 
@@ -78,7 +78,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute +"api/" + route)
+                .url(defaultRoute + "api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .post(requestBody)
                 .build();
@@ -116,7 +116,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute +"api/" + route)
+                .url(defaultRoute + "api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .put(requestBody)
                 .build();
@@ -154,7 +154,7 @@ public class CommonController {
 
         // リクエストメッセージを作成
         final Request request = new Request.Builder()
-                .url(defaultRoute +"api/" + route)
+                .url(defaultRoute + "api/" + route)
                 .headers(Headers.of(new LinkedHashMap<String, String>()))
                 .delete(requestBody)
                 .build();

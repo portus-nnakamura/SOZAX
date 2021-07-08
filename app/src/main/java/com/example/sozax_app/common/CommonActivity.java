@@ -207,9 +207,6 @@ public abstract class CommonActivity extends AppCompatActivity implements KeyRem
         // メッセージをセット
         newFragment.setMessage(errorMessage);
 
-        // 出力
-        newFragment.showNow(fragmentManager, dialogTag);
-
         // Dismissリスナーをセット
         newFragment.setOnDismissListener(dismissListener);
 
